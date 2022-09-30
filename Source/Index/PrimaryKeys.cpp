@@ -20,10 +20,11 @@ bool AccountPrimaryKey::CheckUpdate(const Account* const oldAccount, const Accou
 {
 	return AccountEqualForPrimaryKey()(oldAccount, newAccount);
 }
-const Account* AccountPrimaryKey::Select(const CBrokerIDType& brokerID, const CAccountIDType& accountID)
+const Account* AccountPrimaryKey::Select(const CBrokerIDType& brokerID, const CAccountIDType& accountID, const CAccountClassType& accountClass)
 {
 	m_SelectAccount.BrokerID = brokerID;
 	strcpy(m_SelectAccount.AccountID, accountID);
+	m_SelectAccount.AccountClass = accountClass;
 
 	auto it = m_Index.find(&m_SelectAccount);
 	if (it == m_Index.end())

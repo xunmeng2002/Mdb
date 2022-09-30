@@ -15,7 +15,7 @@ public:
 	bool Insert(Account* const account);
 	bool Erase(Account* const account);
 	bool CheckUpdate(const Account* const oldAccount, const Account* const newAccount);
-	const Account* Select(const CBrokerIDType& brokerID, const CAccountIDType& accountID);
+	const Account* Select(const CBrokerIDType& brokerID, const CAccountIDType& accountID, const CAccountClassType& accountClass);
 
 private:
 	Account m_SelectAccount;

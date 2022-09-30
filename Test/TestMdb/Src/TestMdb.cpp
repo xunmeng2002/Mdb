@@ -16,18 +16,19 @@ void PrepareAccount(Account* account, int index)
 	account->AccountType = CAccountTypeType::AT_Primary;
 	strcpy(account->AccountName, to_string(index).c_str());
 	account->AccountStatus = CAccountStatusType::AS_Normal;
+	strcpy(account->PrimaryAccountID, to_string(index).c_str());
 }
 
 
 int main()
 {
-	Mdb mdb;
+	Mdb* mdb = new Mdb();
 
 	for (auto i = 0; i < 10; i++)
 	{
-		auto account = mdb.t_Account->Alloc();
+		auto account = mdb->t_Account->Alloc();
 		PrepareAccount(account, i);
-		mdb.t_Account->Insert(account);
+		mdb->t_Account->Insert(account);
 	}
 
 	auto dateTime = GetLocalDate();
@@ -40,7 +41,15 @@ int main()
 		printf("_mkdir Failed for: %s, ret:%d\n", path, ret);
 	}
 
-	mdb.Dump(dateTime.c_str());
+	mdb->Dump(dateTime.c_str());
+
+	auto account = mdb->t_Account->m_PrimaryKey.Select(1, CAccountIDType("1"), CAccountClassType::AC_Future);
+	if (account)
+	{
+		printf("Account: %s\n", account->GetString());
+	}
+	
+	
 
 	return 0;
 }

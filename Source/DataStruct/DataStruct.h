@@ -28,5 +28,7 @@ public:
 	CCurrencyIDType CurrencyID;
 	//É¾³ý±êÖ¾
 	CBoolType DeleteFlag;
+
+	const char* GetString() const;
 };
 
