@@ -10,6 +10,7 @@ using namespace std;
 
 void PrepareAccount(Account* account, int index)
 {
+	strcpy(account->OrgID, "Pobo");
 	account->BrokerID = index;
 	strcpy(account->AccountID, to_string(index).c_str());
 	account->AccountClass = CAccountClassType::Future;
@@ -17,6 +18,7 @@ void PrepareAccount(Account* account, int index)
 	strcpy(account->AccountName, to_string(index).c_str());
 	account->AccountStatus = CAccountStatusType::Normal;
 	strcpy(account->PrimaryAccountID, to_string(index).c_str());
+	strcpy(account->CurrencyID, "CNY");
 }
 
 
@@ -43,13 +45,12 @@ int main()
 
 	mdb->Dump(dateTime.c_str());
 
-	auto account = mdb->t_Account->m_PrimaryKey.Select(1, CAccountIDType("1"), CAccountClassType::Future);
+	auto account = mdb->t_Account->m_DefaultPrimaryKey.Select(1, CAccountIDType("1"), CAccountClassType::Future);
 	if (account)
 	{
 		printf("Account: %s\n", account->GetString());
+		printf("Account: %s\n", account->GetDebugString());
 	}
-	
-	
 
 	return 0;
 }

@@ -1,30 +1,30 @@
-#include "PrimaryKeys.h"
+﻿#include "PrimaryKeys.h"
 
 using std::unordered_set;
 
 
 
-AccountPrimaryKey::AccountPrimaryKey(size_t buckets)
+AccountPrimaryKeyForDefault::AccountPrimaryKeyForDefault(size_t buckets)
 	:m_Index(buckets), m_SelectAccount()
 {
 }
-bool AccountPrimaryKey::Insert(Account* const account)
+bool AccountPrimaryKeyForDefault::Insert(Account* const record)
 {
-	return m_Index.insert(account).second;
+	return m_Index.insert(record).second;
 }
-bool AccountPrimaryKey::Erase(Account* const  account)
+bool AccountPrimaryKeyForDefault::Erase(Account* const  record)
 {
-	return  m_Index.erase(account) > 0;
+	return  m_Index.erase(record) > 0;
 }
-bool AccountPrimaryKey::CheckUpdate(const Account* const oldAccount, const Account* const newAccount)
+bool AccountPrimaryKeyForDefault::CheckUpdate(const Account* const oldRecord, const Account* const newRecord)
 {
-	return AccountEqualForPrimaryKey()(oldAccount, newAccount);
+	return AccountEqualForDefault()(oldRecord, newRecord);
 }
-const Account* AccountPrimaryKey::Select(const CBrokerIDType& brokerID, const CAccountIDType& accountID, const CAccountClassType& accountClass)
+const Account* AccountPrimaryKeyForDefault::Select(const CBrokerIDType& BrokerID, const CAccountIDType& AccountID, const CAccountClassType& AccountClass)
 {
-	m_SelectAccount.BrokerID = brokerID;
-	strcpy(m_SelectAccount.AccountID, accountID);
-	m_SelectAccount.AccountClass = accountClass;
+	m_SelectAccount.BrokerID = BrokerID;
+	strcpy(m_SelectAccount.AccountID, AccountID);
+	m_SelectAccount.AccountClass = AccountClass;
 
 	auto it = m_Index.find(&m_SelectAccount);
 	if (it == m_Index.end())
@@ -33,3 +33,5 @@ const Account* AccountPrimaryKey::Select(const CBrokerIDType& brokerID, const CA
 	}
 	return *it;
 }
+
+

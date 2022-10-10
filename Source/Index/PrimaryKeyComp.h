@@ -1,16 +1,15 @@
-#pragma once
+﻿#pragma once
 #include "DataStruct.h"
 
 
-struct AccountHashForPrimaryKey
+struct AccountEqualForDefault
 {
-	size_t operator()(const Account* item) const;
+	bool operator()(const Account* const left, const Account* const right) const;
 };
-struct AccountEqualForPrimaryKey
+struct AccountHashForDefault
 {
-	bool operator()(const Account* left, const Account* right) const;
+	size_t operator()(const Account* const record) const;
 };
-
 
 
 

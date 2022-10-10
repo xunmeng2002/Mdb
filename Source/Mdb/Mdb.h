@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "MdbTables.h"
 
 
@@ -12,6 +12,4 @@ public:
 public:
 	AccountTable* t_Account;
 };
-
-
 

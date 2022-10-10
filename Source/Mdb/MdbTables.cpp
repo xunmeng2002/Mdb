@@ -1,58 +1,74 @@
-#include "MdbTables.h"
+﻿#include "MdbTables.h"
 #include <string>
 
 using std::string;
 
-AccountTable::AccountTable()
-	:m_PrimaryAccountIndexUpdate(false)
-{
 
+AccountTable::AccountTable()
+{
 }
 Account* AccountTable::Alloc()
 {
 	return m_MemCache.Allocate();
 }
-void AccountTable::Free(Account* account)
+void AccountTable::Free(Account* record)
 {
-	m_MemCache.Free(account);
+	m_MemCache.Free(record);
 }
-bool AccountTable::Insert(Account* account)
+bool AccountTable::Insert(Account* record)
 {
-	if (!m_PrimaryKey.Insert(account))
+	if (!m_DefaultPrimaryKey.Insert(record))
 	{
-		printf("AccountTable Insert Failed for Account: BrokerID[%d], AccountID:[%s].\n", account->BrokerID, account->AccountID);
+		printf("AccountTable Insert Failed for Account:[%s]\n", record->GetString());
 		return false;
 	}
-	m_PrimaryAccountIndex.Insert(account);
-	return true;
-}
-bool AccountTable::Erase(Account* account)
-{
-	if (!m_PrimaryKey.Erase(account))
-	{
-		printf("AccountTable Erase Failed for Account: BrokerID[%d], AccountID:[%s].\n", account->BrokerID, account->AccountID);
-		return false;
-	}
-	m_PrimaryAccountIndex.Erase(account);
+
+	m_PrimaryAccountIndex.Insert(record);
+	m_BrokerIndex.Insert(record);
 
 	return true;
 }
-bool AccountTable::Update(const Account* oldAccount, const Account* newAccount)
+bool AccountTable::Erase(Account* record)
 {
-	if (!m_PrimaryKey.CheckUpdate(oldAccount, newAccount))
+	if (!m_DefaultPrimaryKey.Erase(record))
 	{
+		printf("AccountTable Erase Failed for Account:[%s]\n", record->GetString());
 		return false;
 	}
-	m_PrimaryAccountIndexUpdate = m_PrimaryAccountIndex.NeedUpdate(oldAccount, newAccount);
-	if (m_PrimaryAccountIndexUpdate)
+
+	m_PrimaryAccountIndex.Erase(record);
+	m_BrokerIndex.Erase(record);
+
+	return true;
+}
+bool AccountTable::Update(const Account* oldRecord, const Account* newRecord)
+{
+	if (!m_DefaultPrimaryKey.CheckUpdate(oldRecord, newRecord))
 	{
-		m_PrimaryAccountIndex.Erase((Account*)oldAccount);
+		printf("AccountTable Update Failed for Account:[%s], [%s]\n", oldRecord->GetString(), newRecord->GetString());
+		return false;
 	}
-	::memcpy((void*)oldAccount, newAccount, sizeof(Account));
-	
-	if (m_PrimaryAccountIndexUpdate)
+
+	bool PrimaryAccountIndexUpdate = m_PrimaryAccountIndex.NeedUpdate(oldRecord, newRecord);
+	if (PrimaryAccountIndexUpdate)
 	{
-		m_PrimaryAccountIndex.Insert((Account*)oldAccount);
+		m_PrimaryAccountIndex.Erase((Account*)oldRecord);
+	}
+	bool BrokerIndexUpdate = m_BrokerIndex.NeedUpdate(oldRecord, newRecord);
+	if (BrokerIndexUpdate)
+	{
+		m_BrokerIndex.Erase((Account*)oldRecord);
+	}
+
+	::memcpy((void*)oldRecord, newRecord, sizeof(Account));
+	
+	if (PrimaryAccountIndexUpdate)
+	{
+		m_PrimaryAccountIndex.Insert((Account*)oldRecord);
+	}
+	if (BrokerIndexUpdate)
+	{
+		m_BrokerIndex.Insert((Account*)oldRecord);
 	}
 
 	return true;
@@ -65,12 +81,15 @@ void AccountTable::Dump(const char* dir)
 	{
 		return;
 	}
-	fprintf(dumpFile, "BrokerID, AccountID, TradingDay, OrgID, AccountName, AccountClass, AccountType, PrimaryAccountID, AccountStatus, CurrencyID, DeleteFlag\n");
+
+	fprintf(dumpFile, "OrgID, BrokerID, AccountID, AccountName, AccountClass, AccountType, PrimaryAccountID, AccountStatus, CurrencyID, DeleteFlag\n");
 	char buff[4096] = { 0 };
-	for (auto it = m_PrimaryKey.m_Index.begin(); it != m_PrimaryKey.m_Index.end(); ++it)
+	for (auto it = m_DefaultPrimaryKey.m_Index.begin(); it != m_DefaultPrimaryKey.m_Index.end(); ++it)
 	{
-		fprintf(dumpFile, "%d, %s, %s, %s, %s, %c, %c, %s, %c, %s, %d\n",
-			(*it)->BrokerID, (*it)->AccountID, (*it)->TradingDay, (*it)->OrgID, (*it)->AccountName, (*it)->AccountClass, (*it)->AccountType, (*it)->PrimaryAccountID, (*it)->AccountStatus, (*it)->CurrencyID, (*it)->DeleteFlag);
+		fprintf(dumpFile, "%s\n",
+			(*it)->GetString());
 	}
 	fclose(dumpFile);
 }
+
+
