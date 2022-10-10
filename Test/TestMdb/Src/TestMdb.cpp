@@ -17,7 +17,7 @@ void PrepareAccount(Account* account, int index)
 	account->AccountType = CAccountTypeType::Primary;
 	strcpy(account->AccountName, to_string(index).c_str());
 	account->AccountStatus = CAccountStatusType::Normal;
-	strcpy(account->PrimaryAccountID, to_string(index).c_str());
+	strcpy(account->PrimaryAccountID, to_string(index + 1).c_str());
 	strcpy(account->CurrencyID, "CNY");
 }
 
@@ -50,6 +50,13 @@ int main()
 	{
 		printf("Account: %s\n", account->GetString());
 		printf("Account: %s\n", account->GetDebugString());
+	}
+
+	auto account2 = mdb->t_Account->m_PrimaryAccountPrimaryKey.Select(2, CAccountIDType("3"), CAccountClassType::Future);
+	if (account2)
+	{
+		printf("Account: %s\n", account2->GetString());
+		printf("Account: %s\n", account2->GetDebugString());
 	}
 
 	return 0;

@@ -3,20 +3,20 @@
 #include "DataStruct.h"
 
 
-struct AccountEqualForPrimaryAccount
+struct AccountEqualForPrimaryAccountIndex
 {
 	bool operator()(const Account* const left, const Account* const right) const;
 };
-struct AccountLessForPrimaryAccount
+struct AccountLessForPrimaryAccountIndex
 {
 	bool operator()(const Account* const left, const Account* const right) const;
 };
 
-struct AccountEqualForBroker
+struct AccountEqualForBrokerIndex
 {
 	bool operator()(const Account* const left, const Account* const right) const;
 };
-struct AccountLessForBroker
+struct AccountLessForBrokerIndex
 {
 	bool operator()(const Account* const left, const Account* const right) const;
 };

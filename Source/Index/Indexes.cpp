@@ -1,30 +1,30 @@
 ﻿#include "Indexes.h"
 
 
-void AccountIndexForPrimaryAccount::Insert(Account* const record)
+void AccountIndexPrimaryAccount::Insert(Account* const record)
 {
 	m_Index.insert(record);
 }
-void AccountIndexForPrimaryAccount::Erase(Account* const record)
+void AccountIndexPrimaryAccount::Erase(Account* const record)
 {
 	m_Index.erase(record);
 }
-bool AccountIndexForPrimaryAccount::NeedUpdate(const Account* const oldRecord, const Account* const newRecord)
+bool AccountIndexPrimaryAccount::NeedUpdate(const Account* const oldRecord, const Account* const newRecord)
 {
-	return !(AccountEqualForPrimaryAccount()(oldRecord, newRecord));
+	return !(AccountEqualForPrimaryAccountIndex()(oldRecord, newRecord));
 }
 
-void AccountIndexForBroker::Insert(Account* const record)
+void AccountIndexBroker::Insert(Account* const record)
 {
 	m_Index.insert(record);
 }
-void AccountIndexForBroker::Erase(Account* const record)
+void AccountIndexBroker::Erase(Account* const record)
 {
 	m_Index.erase(record);
 }
-bool AccountIndexForBroker::NeedUpdate(const Account* const oldRecord, const Account* const newRecord)
+bool AccountIndexBroker::NeedUpdate(const Account* const oldRecord, const Account* const newRecord)
 {
-	return !(AccountEqualForBroker()(oldRecord, newRecord));
+	return !(AccountEqualForBrokerIndex()(oldRecord, newRecord));
 }
 
 

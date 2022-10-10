@@ -17,10 +17,11 @@ public:
 	void Dump(const char* dir);
 
 public:
-	AccountPrimaryKeyForDefault m_DefaultPrimaryKey;
+	AccountPrimaryKeyDefault m_DefaultPrimaryKey;
+	AccountPrimaryKeyPrimaryAccount m_PrimaryAccountPrimaryKey;
 
-	AccountIndexForPrimaryAccount m_PrimaryAccountIndex;
-	AccountIndexForBroker m_BrokerIndex;
+	AccountIndexPrimaryAccount m_PrimaryAccountIndex;
+	AccountIndexBroker m_BrokerIndex;
 
 private:
 	MemCacheTemplate<Account> m_MemCache;

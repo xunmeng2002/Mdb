@@ -5,11 +5,11 @@ using std::string;
 
 
 
-bool AccountEqualForPrimaryAccount::operator()(const Account* const left, const Account* const right) const
+bool AccountEqualForPrimaryAccountIndex::operator()(const Account* const left, const Account* const right) const
 {
 	return left->BrokerID == right->BrokerID && strcmp(left->PrimaryAccountID, right->PrimaryAccountID) == 0;
 }
-bool AccountLessForPrimaryAccount::operator()(const Account* const left, const Account* const right) const
+bool AccountLessForPrimaryAccountIndex::operator()(const Account* const left, const Account* const right) const
 {
 	if (left->BrokerID < right->BrokerID)
 	{
@@ -30,11 +30,11 @@ bool AccountLessForPrimaryAccount::operator()(const Account* const left, const A
 	return false;
 };
 
-bool AccountEqualForBroker::operator()(const Account* const left, const Account* const right) const
+bool AccountEqualForBrokerIndex::operator()(const Account* const left, const Account* const right) const
 {
 	return left->BrokerID == right->BrokerID ;
 }
-bool AccountLessForBroker::operator()(const Account* const left, const Account* const right) const
+bool AccountLessForBrokerIndex::operator()(const Account* const left, const Account* const right) const
 {
 	if (left->BrokerID < right->BrokerID)
 	{

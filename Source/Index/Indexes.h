@@ -5,7 +5,7 @@
 
 using std::multiset;
 
-class AccountIndexForPrimaryAccount
+class AccountIndexPrimaryAccount
 {
 public:
 	void Insert(Account* const record);
@@ -13,9 +13,9 @@ public:
 	bool NeedUpdate(const Account* const oldRecord, const Account* const newRecord);
 
 private:
-	multiset<Account*, AccountLessForPrimaryAccount> m_Index;
+	multiset<Account*, AccountLessForPrimaryAccountIndex> m_Index;
 };
-class AccountIndexForBroker
+class AccountIndexBroker
 {
 public:
 	void Insert(Account* const record);
@@ -23,7 +23,7 @@ public:
 	bool NeedUpdate(const Account* const oldRecord, const Account* const newRecord);
 
 private:
-	multiset<Account*, AccountLessForBroker> m_Index;
+	multiset<Account*, AccountLessForBrokerIndex> m_Index;
 };
 
 

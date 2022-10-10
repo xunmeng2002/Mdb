@@ -2,8 +2,8 @@
 
 typedef bool CBoolType;
 
-typedef int CBrokerIDType;
 
+typedef long long CBrokerIDType;
 
 typedef double CPriceType;
 

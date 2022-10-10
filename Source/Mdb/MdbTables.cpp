@@ -22,6 +22,11 @@ bool AccountTable::Insert(Account* record)
 		printf("AccountTable Insert Failed for Account:[%s]\n", record->GetString());
 		return false;
 	}
+	if (!m_PrimaryAccountPrimaryKey.Insert(record))
+	{
+		printf("AccountTable Insert Failed for Account:[%s]\n", record->GetString());
+		return false;
+	}
 
 	m_PrimaryAccountIndex.Insert(record);
 	m_BrokerIndex.Insert(record);
@@ -35,6 +40,11 @@ bool AccountTable::Erase(Account* record)
 		printf("AccountTable Erase Failed for Account:[%s]\n", record->GetString());
 		return false;
 	}
+	if (!m_PrimaryAccountPrimaryKey.Erase(record))
+	{
+		printf("AccountTable Erase Failed for Account:[%s]\n", record->GetString());
+		return false;
+	}
 
 	m_PrimaryAccountIndex.Erase(record);
 	m_BrokerIndex.Erase(record);
@@ -44,6 +54,11 @@ bool AccountTable::Erase(Account* record)
 bool AccountTable::Update(const Account* oldRecord, const Account* newRecord)
 {
 	if (!m_DefaultPrimaryKey.CheckUpdate(oldRecord, newRecord))
+	{
+		printf("AccountTable Update Failed for Account:[%s], [%s]\n", oldRecord->GetString(), newRecord->GetString());
+		return false;
+	}
+	if (!m_PrimaryAccountPrimaryKey.CheckUpdate(oldRecord, newRecord))
 	{
 		printf("AccountTable Update Failed for Account:[%s], [%s]\n", oldRecord->GetString(), newRecord->GetString());
 		return false;
