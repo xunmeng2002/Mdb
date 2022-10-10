@@ -12,10 +12,10 @@ void PrepareAccount(Account* account, int index)
 {
 	account->BrokerID = index;
 	strcpy(account->AccountID, to_string(index).c_str());
-	account->AccountClass = CAccountClassType::AC_Future;
-	account->AccountType = CAccountTypeType::AT_Primary;
+	account->AccountClass = CAccountClassType::Future;
+	account->AccountType = CAccountTypeType::Primary;
 	strcpy(account->AccountName, to_string(index).c_str());
-	account->AccountStatus = CAccountStatusType::AS_Normal;
+	account->AccountStatus = CAccountStatusType::Normal;
 	strcpy(account->PrimaryAccountID, to_string(index).c_str());
 }
 
@@ -43,7 +43,7 @@ int main()
 
 	mdb->Dump(dateTime.c_str());
 
-	auto account = mdb->t_Account->m_PrimaryKey.Select(1, CAccountIDType("1"), CAccountClassType::AC_Future);
+	auto account = mdb->t_Account->m_PrimaryKey.Select(1, CAccountIDType("1"), CAccountClassType::Future);
 	if (account)
 	{
 		printf("Account: %s\n", account->GetString());

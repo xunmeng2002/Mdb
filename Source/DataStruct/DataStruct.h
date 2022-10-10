@@ -1,6 +1,5 @@
 #pragma once
 #include "DataType.h"
-#include "DataEnum.h"
 
 
 struct Account
