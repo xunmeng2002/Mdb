@@ -11,6 +11,7 @@ public:
 	AccountPrimaryKeyDefault(size_t buckets = 1000);
 	bool Insert(Account* const record);
 	bool Erase(Account* const record);
+	bool CheckInsert(Account* const record);
 	bool CheckUpdate(const Account* const oldRecord, const Account* const newRecord);
 	const Account* Select(const CBrokerIDType& BrokerID, const CAccountIDType& AccountID, const CAccountClassType& AccountClass);
 
@@ -26,6 +27,7 @@ public:
 	AccountPrimaryKeyPrimaryAccount(size_t buckets = 1000);
 	bool Insert(Account* const record);
 	bool Erase(Account* const record);
+	bool CheckInsert(Account* const record);
 	bool CheckUpdate(const Account* const oldRecord, const Account* const newRecord);
 	const Account* Select(const CBrokerIDType& BrokerID, const CAccountIDType& PrimaryAccountID, const CAccountClassType& AccountClass);
 

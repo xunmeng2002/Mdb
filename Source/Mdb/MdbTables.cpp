@@ -17,16 +17,13 @@ void AccountTable::Free(Account* record)
 }
 bool AccountTable::Insert(Account* record)
 {
-	if (!m_DefaultPrimaryKey.Insert(record))
+	if ((!m_DefaultPrimaryKey.CheckInsert(record)) && (!m_PrimaryAccountPrimaryKey.CheckInsert(record)))
 	{
 		printf("AccountTable Insert Failed for Account:[%s]\n", record->GetString());
 		return false;
 	}
-	if (!m_PrimaryAccountPrimaryKey.Insert(record))
-	{
-		printf("AccountTable Insert Failed for Account:[%s]\n", record->GetString());
-		return false;
-	}
+	m_DefaultPrimaryKey.Insert(record);
+	m_PrimaryAccountPrimaryKey.Insert(record);
 
 	m_PrimaryAccountIndex.Insert(record);
 	m_BrokerIndex.Insert(record);
@@ -85,7 +82,8 @@ bool AccountTable::Update(const Account* oldRecord, const Account* newRecord)
 	{
 		m_BrokerIndex.Insert((Account*)oldRecord);
 	}
-
+	
+	m_MemCache.Free((Account*)newRecord);
 	return true;
 }
 void AccountTable::Dump(const char* dir)
@@ -101,8 +99,7 @@ void AccountTable::Dump(const char* dir)
 	char buff[4096] = { 0 };
 	for (auto it = m_DefaultPrimaryKey.m_Index.begin(); it != m_DefaultPrimaryKey.m_Index.end(); ++it)
 	{
-		fprintf(dumpFile, "%s\n",
-			(*it)->GetString());
+		fprintf(dumpFile, "%s\n", (*it)->GetString());
 	}
 	fclose(dumpFile);
 }

@@ -16,6 +16,10 @@ bool AccountPrimaryKeyDefault::Erase(Account* const  record)
 {
 	return  m_Index.erase(record) > 0;
 }
+bool AccountPrimaryKeyDefault::CheckInsert(Account* const record)
+{
+	return m_Index.find(record) == m_Index.end();
+}
 bool AccountPrimaryKeyDefault::CheckUpdate(const Account* const oldRecord, const Account* const newRecord)
 {
 	return AccountEqualForDefaultPrimaryKey()(oldRecord, newRecord);
@@ -46,6 +50,10 @@ bool AccountPrimaryKeyPrimaryAccount::Insert(Account* const record)
 bool AccountPrimaryKeyPrimaryAccount::Erase(Account* const  record)
 {
 	return  m_Index.erase(record) > 0;
+}
+bool AccountPrimaryKeyPrimaryAccount::CheckInsert(Account* const record)
+{
+	return m_Index.find(record) == m_Index.end();
 }
 bool AccountPrimaryKeyPrimaryAccount::CheckUpdate(const Account* const oldRecord, const Account* const newRecord)
 {

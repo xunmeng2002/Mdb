@@ -20,7 +20,39 @@ void PrepareAccount(Account* account, int index)
 	strcpy(account->PrimaryAccountID, to_string(index + 1).c_str());
 	strcpy(account->CurrencyID, "CNY");
 }
+const Account* SelectAccount(Mdb* mdb, const CBrokerIDType& brokerID, const CAccountIDType& accountID, const CAccountClassType& accountClass)
+{
+	auto account = mdb->t_Account->m_DefaultPrimaryKey.Select(brokerID, accountID, accountClass);
+	if (account)
+	{
+		printf("Select Account: %s\n", account->GetString());
+		printf("Select Account: %s\n", account->GetDebugString());
+	}
+	else
+	{
+		printf("Not Find Account For BrokerID:[%lld], AccountID:[%s], AccountClass:[%c]\n", brokerID, accountID, accountClass);
+	}
+	return account;
+}
 
+void TestUpdateAccount(Mdb* mdb)
+{
+	auto newAccount = mdb->t_Account->Alloc();
+	PrepareAccount(newAccount, 1);
+	strcpy(newAccount->CurrencyID, "USD");
+	newAccount->AccountType = CAccountTypeType::Sub;
+
+	auto oldAccount = SelectAccount(mdb, newAccount->BrokerID, newAccount->AccountID, newAccount->AccountClass);
+	if (!oldAccount)
+	{
+		return;
+	}
+	mdb->t_Account->Update(oldAccount, newAccount);
+
+
+	auto account = SelectAccount(mdb, newAccount->BrokerID, newAccount->AccountID, newAccount->AccountClass);
+	printf("Account After Update, Account:%s\n", account->GetDebugString());
+}
 
 int main()
 {
@@ -32,6 +64,11 @@ int main()
 		PrepareAccount(account, i);
 		mdb->t_Account->Insert(account);
 	}
+	{
+		auto account = mdb->t_Account->Alloc();
+		PrepareAccount(account, 1);
+		mdb->t_Account->Insert(account);
+	}
 
 	auto dateTime = GetLocalDate();
 	char path[128] = { 0 };
@@ -40,24 +77,16 @@ int main()
 	auto ret = mkdir(path);
 	if (ret != 0)
 	{
-		printf("_mkdir Failed for: %s, ret:%d\n", path, ret);
+		printf("mkdir Failed for: %s, ret:%d\n", path, ret);
 	}
 
 	mdb->Dump(dateTime.c_str());
 
-	auto account = mdb->t_Account->m_DefaultPrimaryKey.Select(1, CAccountIDType("1"), CAccountClassType::Future);
-	if (account)
-	{
-		printf("Account: %s\n", account->GetString());
-		printf("Account: %s\n", account->GetDebugString());
-	}
+	SelectAccount(mdb, 1, CAccountIDType("1"), CAccountClassType::Future);
+	SelectAccount(mdb, 2, CAccountIDType("3"), CAccountClassType::Future);
+	SelectAccount(mdb, 3, CAccountIDType("3"), CAccountClassType::Future);
 
-	auto account2 = mdb->t_Account->m_PrimaryAccountPrimaryKey.Select(2, CAccountIDType("3"), CAccountClassType::Future);
-	if (account2)
-	{
-		printf("Account: %s\n", account2->GetString());
-		printf("Account: %s\n", account2->GetDebugString());
-	}
+	TestUpdateAccount(mdb);
 
 	return 0;
 }

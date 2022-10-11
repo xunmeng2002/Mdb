@@ -10,4 +10,4 @@ add_package(Index ${CMAKE_SOURCE_DIR}/Source/Index)
 add_package(Mdb ${CMAKE_SOURCE_DIR}/Source/Mdb)
 
 
-add_executable(${PROJECT_NAME} ${all_file})
+add_executable(${PROJECT_NAME} ${all_file} )
