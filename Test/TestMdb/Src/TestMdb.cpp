@@ -53,6 +53,41 @@ void TestUpdateAccount(Mdb* mdb)
 	auto account = SelectAccount(mdb, newAccount->BrokerID, newAccount->AccountID, newAccount->AccountClass);
 	printf("Account After Update, Account:%s\n", account->GetDebugString());
 }
+void TestSelectFromIndex(Mdb* mdb)
+{
+	cout << "TestSelectFromIndex" << endl;
+
+	auto lowAccount = mdb->t_Account->Alloc();
+	PrepareAccount(lowAccount, 1);
+	strcpy(lowAccount->CurrencyID, "USD");
+	cout << "lowAccount: " << lowAccount->GetDebugString() << endl;
+	auto upAccount = mdb->t_Account->Alloc();
+	PrepareAccount(upAccount, 10);
+	cout << "upAccount: " << upAccount->GetDebugString() << endl;
+
+
+	auto startIt = mdb->t_Account->m_PrimaryAccountIndex.LowerBound(lowAccount);
+	auto endIt = mdb->t_Account->m_PrimaryAccountIndex.UpperBound(upAccount);
+	for (auto& it = startIt; it != endIt; it++)
+	{
+		cout << (*it)->GetDebugString() << endl;
+	}
+}
+void TestSelectFromEqualRange(Mdb* mdb)
+{
+	cout << "TestSelectFromEqualRange" << endl;
+
+	auto account = mdb->t_Account->Alloc();
+	PrepareAccount(account, 1);
+	strcpy(account->CurrencyID, "USD");
+
+	auto p = mdb->t_Account->m_PrimaryAccountIndex.EqualRange(account);
+	for (auto& it = p.first; it != p.second; it++)
+	{
+		cout << (*it)->GetDebugString() << endl;
+	}
+}
+
 
 int main()
 {
@@ -87,6 +122,10 @@ int main()
 	SelectAccount(mdb, 3, CAccountIDType("3"), CAccountClassType::Future);
 
 	TestUpdateAccount(mdb);
+
+	TestSelectFromIndex(mdb);
+
+	TestSelectFromEqualRange(mdb);
 
 	return 0;
 }
