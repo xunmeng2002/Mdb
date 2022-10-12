@@ -74,3 +74,40 @@ const Account* AccountPrimaryKeyPrimaryAccount::Select(const CBrokerIDType& Brok
 }
 
 
+OrderPrimaryKeyDefault::OrderPrimaryKeyDefault(size_t buckets)
+	:m_Index(buckets), m_SelectOrder()
+{
+}
+bool OrderPrimaryKeyDefault::Insert(Order* const record)
+{
+	return m_Index.insert(record).second;
+}
+bool OrderPrimaryKeyDefault::Erase(Order* const  record)
+{
+	return  m_Index.erase(record) > 0;
+}
+bool OrderPrimaryKeyDefault::CheckInsert(Order* const record)
+{
+	return m_Index.find(record) == m_Index.end();
+}
+bool OrderPrimaryKeyDefault::CheckUpdate(const Order* const oldRecord, const Order* const newRecord)
+{
+	return OrderEqualForDefaultPrimaryKey()(oldRecord, newRecord);
+}
+const Order* OrderPrimaryKeyDefault::Select(const CBrokerIDType& BrokerID, const CAccountIDType& AccountID, const CAccountClassType& AccountClass, const CDateType& InsertDate, const COrderLocalIDType& OrderLocalID)
+{
+	m_SelectOrder.BrokerID = BrokerID;
+	strcpy(m_SelectOrder.AccountID, AccountID);
+	m_SelectOrder.AccountClass = AccountClass;
+	strcpy(m_SelectOrder.InsertDate, InsertDate);
+	m_SelectOrder.OrderLocalID = OrderLocalID;
+
+	auto it = m_Index.find(&m_SelectOrder);
+	if (it == m_Index.end())
+	{
+		return nullptr;
+	}
+	return *it;
+}
+
+

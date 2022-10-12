@@ -9,7 +9,9 @@ AccountTable::AccountTable()
 }
 Account* AccountTable::Alloc()
 {
-	return m_MemCache.Allocate();
+	Account* record = m_MemCache.Allocate();
+	::memset(record, 0, sizeof(Account));
+	return record;
 }
 void AccountTable::Free(Account* record)
 {
@@ -96,6 +98,97 @@ void AccountTable::Dump(const char* dir)
 	}
 
 	fprintf(dumpFile, "OrgID, BrokerID, AccountID, AccountName, AccountClass, AccountType, PrimaryAccountID, AccountStatus, CurrencyID, DeleteFlag\n");
+	char buff[4096] = { 0 };
+	for (auto it = m_DefaultPrimaryKey.m_Index.begin(); it != m_DefaultPrimaryKey.m_Index.end(); ++it)
+	{
+		fprintf(dumpFile, "%s\n", (*it)->GetString());
+	}
+	fclose(dumpFile);
+}
+
+OrderTable::OrderTable()
+{
+}
+Order* OrderTable::Alloc()
+{
+	Order* record = m_MemCache.Allocate();
+	::memset(record, 0, sizeof(Order));
+	return record;
+}
+void OrderTable::Free(Order* record)
+{
+	m_MemCache.Free(record);
+}
+bool OrderTable::Insert(Order* record)
+{
+	if ((!m_DefaultPrimaryKey.CheckInsert(record)))
+	{
+		printf("OrderTable Insert Failed for Order:[%s]\n", record->GetString());
+		return false;
+	}
+	m_DefaultPrimaryKey.Insert(record);
+
+	m_PrimaryAccountIndex.Insert(record);
+	m_InstrumentIndex.Insert(record);
+
+	return true;
+}
+bool OrderTable::Erase(Order* record)
+{
+	if (!m_DefaultPrimaryKey.Erase(record))
+	{
+		printf("OrderTable Erase Failed for Order:[%s]\n", record->GetString());
+		return false;
+	}
+
+	m_PrimaryAccountIndex.Erase(record);
+	m_InstrumentIndex.Erase(record);
+
+	return true;
+}
+bool OrderTable::Update(const Order* oldRecord, const Order* newRecord)
+{
+	if (!m_DefaultPrimaryKey.CheckUpdate(oldRecord, newRecord))
+	{
+		printf("OrderTable Update Failed for Order:[%s], [%s]\n", oldRecord->GetString(), newRecord->GetString());
+		return false;
+	}
+
+	bool PrimaryAccountIndexUpdate = m_PrimaryAccountIndex.NeedUpdate(oldRecord, newRecord);
+	if (PrimaryAccountIndexUpdate)
+	{
+		m_PrimaryAccountIndex.Erase((Order*)oldRecord);
+	}
+	bool InstrumentIndexUpdate = m_InstrumentIndex.NeedUpdate(oldRecord, newRecord);
+	if (InstrumentIndexUpdate)
+	{
+		m_InstrumentIndex.Erase((Order*)oldRecord);
+	}
+
+	::memcpy((void*)oldRecord, newRecord, sizeof(Order));
+	
+	if (PrimaryAccountIndexUpdate)
+	{
+		m_PrimaryAccountIndex.Insert((Order*)oldRecord);
+	}
+	if (InstrumentIndexUpdate)
+	{
+		m_InstrumentIndex.Insert((Order*)oldRecord);
+	}
+	
+	m_MemCache.Free((Order*)newRecord);
+	return true;
+}
+void OrderTable::Dump(const char* dir)
+{
+	string fileName = string(dir) + "//t_Order.csv";
+	FILE* dumpFile = fopen(fileName.c_str(), "w");
+	if (dumpFile == nullptr)
+	{
+		return;
+	}
+
+	fprintf(dumpFile, "OrgID, BrokerID, AccountID, PrimaryAccountID, AccountClass, AccountType, ExchangeID, InstrumentID, Direction, OffsetFlag, HedgeFlag, OrderSysID, OrderLocalID, BrokerOrderID, OrderStatus, OrderType, Volume, VolumeTraded, InsertDate, InsertTime\n");
 	char buff[4096] = { 0 };
 	for (auto it = m_DefaultPrimaryKey.m_Index.begin(); it != m_DefaultPrimaryKey.m_Index.end(); ++it)
 	{

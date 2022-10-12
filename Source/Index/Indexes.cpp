@@ -52,3 +52,54 @@ std::pair<AccountIndexBroker::iterator, AccountIndexBroker::iterator> AccountInd
 }
 
 
+void OrderIndexPrimaryAccount::Insert(Order* const record)
+{
+	m_Index.insert(record);
+}
+void OrderIndexPrimaryAccount::Erase(Order* const record)
+{
+	m_Index.erase(record);
+}
+bool OrderIndexPrimaryAccount::NeedUpdate(const Order* const oldRecord, const Order* const newRecord)
+{
+	return !(OrderEqualForPrimaryAccountIndex()(oldRecord, newRecord));
+}
+OrderIndexPrimaryAccount::iterator OrderIndexPrimaryAccount::LowerBound(Order* const record)
+{
+	return m_Index.lower_bound(record);
+}
+OrderIndexPrimaryAccount::iterator OrderIndexPrimaryAccount::UpperBound(Order* const record)
+{
+	return m_Index.upper_bound(record);
+}
+std::pair<OrderIndexPrimaryAccount::iterator, OrderIndexPrimaryAccount::iterator> OrderIndexPrimaryAccount::EqualRange(Order* const record)
+{
+	return m_Index.equal_range(record);
+}
+
+void OrderIndexInstrument::Insert(Order* const record)
+{
+	m_Index.insert(record);
+}
+void OrderIndexInstrument::Erase(Order* const record)
+{
+	m_Index.erase(record);
+}
+bool OrderIndexInstrument::NeedUpdate(const Order* const oldRecord, const Order* const newRecord)
+{
+	return !(OrderEqualForInstrumentIndex()(oldRecord, newRecord));
+}
+OrderIndexInstrument::iterator OrderIndexInstrument::LowerBound(Order* const record)
+{
+	return m_Index.lower_bound(record);
+}
+OrderIndexInstrument::iterator OrderIndexInstrument::UpperBound(Order* const record)
+{
+	return m_Index.upper_bound(record);
+}
+std::pair<OrderIndexInstrument::iterator, OrderIndexInstrument::iterator> OrderIndexInstrument::EqualRange(Order* const record)
+{
+	return m_Index.equal_range(record);
+}
+
+

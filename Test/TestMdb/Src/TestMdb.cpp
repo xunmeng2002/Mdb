@@ -25,7 +25,6 @@ const Account* SelectAccount(Mdb* mdb, const CBrokerIDType& brokerID, const CAcc
 	auto account = mdb->t_Account->m_DefaultPrimaryKey.Select(brokerID, accountID, accountClass);
 	if (account)
 	{
-		printf("Select Account: %s\n", account->GetString());
 		printf("Select Account: %s\n", account->GetDebugString());
 	}
 	else
@@ -34,7 +33,6 @@ const Account* SelectAccount(Mdb* mdb, const CBrokerIDType& brokerID, const CAcc
 	}
 	return account;
 }
-
 void TestUpdateAccount(Mdb* mdb)
 {
 	auto newAccount = mdb->t_Account->Alloc();
@@ -53,13 +51,13 @@ void TestUpdateAccount(Mdb* mdb)
 	auto account = SelectAccount(mdb, newAccount->BrokerID, newAccount->AccountID, newAccount->AccountClass);
 	printf("Account After Update, Account:%s\n", account->GetDebugString());
 }
-void TestSelectFromIndex(Mdb* mdb)
+void TestSelectAccountFromIndex(Mdb* mdb)
 {
-	cout << "TestSelectFromIndex" << endl;
+	cout << "TestSelectAccountFromIndex" << endl;
 
 	auto lowAccount = mdb->t_Account->Alloc();
 	PrepareAccount(lowAccount, 1);
-	strcpy(lowAccount->CurrencyID, "USD");
+	//strcpy(lowAccount->CurrencyID, "USD");
 	cout << "lowAccount: " << lowAccount->GetDebugString() << endl;
 	auto upAccount = mdb->t_Account->Alloc();
 	PrepareAccount(upAccount, 10);
@@ -73,13 +71,13 @@ void TestSelectFromIndex(Mdb* mdb)
 		cout << (*it)->GetDebugString() << endl;
 	}
 }
-void TestSelectFromEqualRange(Mdb* mdb)
+void TestSelectAccountFromEqualRange(Mdb* mdb)
 {
-	cout << "TestSelectFromEqualRange" << endl;
+	cout << "TestSelectAccountFromEqualRange" << endl;
 
 	auto account = mdb->t_Account->Alloc();
 	PrepareAccount(account, 1);
-	strcpy(account->CurrencyID, "USD");
+	//strcpy(account->CurrencyID, "USD");
 
 	auto p = mdb->t_Account->m_PrimaryAccountIndex.EqualRange(account);
 	for (auto& it = p.first; it != p.second; it++)
@@ -87,12 +85,8 @@ void TestSelectFromEqualRange(Mdb* mdb)
 		cout << (*it)->GetDebugString() << endl;
 	}
 }
-
-
-int main()
+void TestAccountTable(Mdb* mdb)
 {
-	Mdb* mdb = new Mdb();
-
 	for (auto i = 0; i < 10; i++)
 	{
 		auto account = mdb->t_Account->Alloc();
@@ -105,6 +99,145 @@ int main()
 		mdb->t_Account->Insert(account);
 	}
 
+	SelectAccount(mdb, 1, CAccountIDType("1"), CAccountClassType::Future);
+	SelectAccount(mdb, 2, CAccountIDType("3"), CAccountClassType::Future);
+	SelectAccount(mdb, 3, CAccountIDType("3"), CAccountClassType::Future);
+
+	TestUpdateAccount(mdb);
+
+	TestSelectAccountFromIndex(mdb);
+
+	TestSelectAccountFromEqualRange(mdb);
+}
+
+void PrepareOrder(Order* order, int index)
+{
+	strcpy(order->OrgID, "Pobo");
+	order->BrokerID = index;
+	strcpy(order->AccountID, to_string(index).c_str());
+	strcpy(order->PrimaryAccountID, to_string(index).c_str());
+	order->AccountClass = CAccountClassType::Future;
+	order->AccountType = CAccountTypeType::Primary;
+	strcpy(order->ExchangeID, "CFFEX");
+	strcpy(order->InstrumentID, "IF2212");
+	order->Direction = CDirectionType::Buy;
+	order->OffsetFlag = COffsetFlagType::Open;
+	order->HedgeFlag = CHedgeFlagType::Speculation;
+	strcpy(order->OrderSysID, to_string(index).c_str());
+	order->OrderLocalID = index;
+	strcpy(order->BrokerOrderID, to_string(index).c_str());
+	order->OrderStatus = COrderStatusType::BrokerAccepted;
+	order->OrderType = COrderTypeType::Normal;
+	order->Volume = index;
+	order->VolumeTraded = 0;
+	strcpy(order->InsertDate, "20221012");
+	strcpy(order->InsertTime, "10:11:12");
+}
+const Order* SelectOrder(Mdb* mdb, const CBrokerIDType& brokerID, const CAccountIDType& accountID, const CAccountClassType& accountClass, const CDateType& insertDate, const COrderLocalIDType& orderLocalID)
+{
+	auto order = mdb->t_Order->m_DefaultPrimaryKey.Select(brokerID, accountID, accountClass, insertDate, orderLocalID);
+	if (order)
+	{
+		printf("Select Order: %s\n", order->GetDebugString());
+	}
+	else
+	{
+		printf("Not Find Order For BrokerID:[%lld], AccountID:[%s], AccountClass:[%c], InsertDate:[%s], OrderLocalID:[%lld]\n", brokerID, accountID, accountClass, insertDate, orderLocalID);
+	}
+	return order;
+}
+void TestUpdateOrder(Mdb* mdb)
+{
+	auto newOrder = mdb->t_Order->Alloc();
+	PrepareOrder(newOrder, 1);
+	auto oldOrder = SelectOrder(mdb, newOrder->BrokerID, newOrder->AccountID, newOrder->AccountClass, newOrder->InsertDate, newOrder->OrderLocalID);
+	if (!oldOrder)
+	{
+		return;
+	}
+	newOrder->OrderLocalID = 10;
+	mdb->t_Order->Update(oldOrder, newOrder);
+
+	newOrder->OrderLocalID = 1;
+	strcpy(newOrder->OrderSysID, "10");
+	mdb->t_Order->Update(oldOrder, newOrder);
+
+	auto order = SelectOrder(mdb, newOrder->BrokerID, newOrder->AccountID, newOrder->AccountClass, newOrder->InsertDate, newOrder->OrderLocalID);
+	printf("Order After Update, Order:%s\n", order->GetDebugString());
+}
+void TestSelectOrderFromIndex(Mdb* mdb)
+{
+	cout << "TestSelectOrderFromIndex" << endl;
+
+	auto lowOrder = mdb->t_Order->Alloc();
+	PrepareOrder(lowOrder, 1);
+	cout << "lowOrder: " << lowOrder->GetDebugString() << endl;
+	auto upOrder = mdb->t_Order->Alloc();
+	PrepareOrder(upOrder, 10);
+	cout << "upOrder: " << upOrder->GetDebugString() << endl;
+
+
+	auto startIt = mdb->t_Order->m_PrimaryAccountIndex.LowerBound(lowOrder);
+	auto endIt = mdb->t_Order->m_PrimaryAccountIndex.UpperBound(upOrder);
+	for (auto& it = startIt; it != endIt; it++)
+	{
+		cout << (*it)->GetDebugString() << endl;
+	}
+}
+void TestSelectOrderFromEqualRange(Mdb* mdb)
+{
+	cout << "TestSelectOrderFromEqualRange" << endl;
+
+	auto order = mdb->t_Order->Alloc();
+	PrepareOrder(order, 2);
+
+	cout << "EqualRange of InstrumentIndex" << endl;
+	auto p = mdb->t_Order->m_InstrumentIndex.EqualRange(order);
+	for (auto& it = p.first; it != p.second; it++)
+	{
+		cout << (*it)->GetDebugString() << endl;
+	}
+
+	cout << "EqualRange of PrimaryAccountIndex" << endl;
+	auto p2 = mdb->t_Order->m_PrimaryAccountIndex.EqualRange(order);
+	for (auto& it = p2.first; it != p2.second; it++)
+	{
+		cout << (*it)->GetDebugString() << endl;
+	}
+}
+void TestOrderTable(Mdb* mdb)
+{
+	for (auto i = 0; i < 10; i++)
+	{
+		auto order = mdb->t_Order->Alloc();
+		PrepareOrder(order, i);
+		mdb->t_Order->Insert(order);
+	}
+	{
+		auto order = mdb->t_Order->Alloc();
+		PrepareOrder(order, 1);
+		mdb->t_Order->Insert(order);
+	}
+
+
+	SelectOrder(mdb, 1, CAccountIDType("1"), CAccountClassType::Future, "20221012", 1);
+	SelectOrder(mdb, 2, CAccountIDType("3"), CAccountClassType::Future, "20221012", 2);
+	SelectOrder(mdb, 3, CAccountIDType("3"), CAccountClassType::Future, "20221012", 3);
+
+	TestUpdateOrder(mdb);
+
+	TestSelectOrderFromIndex(mdb);
+
+	TestSelectOrderFromEqualRange(mdb);
+}
+
+int main()
+{
+	Mdb* mdb = new Mdb();
+	TestAccountTable(mdb);
+	TestOrderTable(mdb);
+
+
 	auto dateTime = GetLocalDate();
 	char path[128] = { 0 };
 	sprintf(path, "%s", dateTime.c_str());
@@ -114,19 +247,7 @@ int main()
 	{
 		printf("mkdir Failed for: %s, ret:%d\n", path, ret);
 	}
-
 	mdb->Dump(dateTime.c_str());
-
-	SelectAccount(mdb, 1, CAccountIDType("1"), CAccountClassType::Future);
-	SelectAccount(mdb, 2, CAccountIDType("3"), CAccountClassType::Future);
-	SelectAccount(mdb, 3, CAccountIDType("3"), CAccountClassType::Future);
-
-	TestUpdateAccount(mdb);
-
-	TestSelectFromIndex(mdb);
-
-	TestSelectFromEqualRange(mdb);
-
 	return 0;
 }
 

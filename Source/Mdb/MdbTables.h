@@ -27,4 +27,25 @@ private:
 	MemCacheTemplate<Account> m_MemCache;
 };
 
+class OrderTable
+{
+public:
+	OrderTable();
+	Order* Alloc();
+	void Free(Order* record);
+	bool Insert(Order* record);
+	bool Erase(Order* record);
+	bool Update(const Order* oldRecord, const Order* newRecord);
+	void Dump(const char* dir);
+
+public:
+	OrderPrimaryKeyDefault m_DefaultPrimaryKey;
+
+	OrderIndexPrimaryAccount m_PrimaryAccountIndex;
+	OrderIndexInstrument m_InstrumentIndex;
+
+private:
+	MemCacheTemplate<Order> m_MemCache;
+};
+
 

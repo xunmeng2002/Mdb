@@ -11,5 +11,6 @@ public:
 
 public:
 	AccountTable* t_Account;
+	OrderTable* t_Order;
 };
 
