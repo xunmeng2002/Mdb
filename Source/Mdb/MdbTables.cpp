@@ -19,13 +19,14 @@ void AccountTable::Free(Account* record)
 }
 bool AccountTable::Insert(Account* record)
 {
-	if ((!m_DefaultPrimaryKey.CheckInsert(record)) && (!m_PrimaryAccountPrimaryKey.CheckInsert(record)))
+	if (!m_PrimaryKey.CheckInsert(record) && !m_PrimaryAccountUniqueKey.CheckInsert(record))
 	{
-		printf("AccountTable Insert Failed for Account:[%s]\n", record->GetString());
+		printf("Insert Failed for Account:[%s]\n", record->GetString());
 		return false;
 	}
-	m_DefaultPrimaryKey.Insert(record);
-	m_PrimaryAccountPrimaryKey.Insert(record);
+
+	m_PrimaryKey.Insert(record);
+	m_PrimaryAccountUniqueKey.Insert(record);
 
 	m_PrimaryAccountIndex.Insert(record);
 	m_BrokerIndex.Insert(record);
@@ -34,14 +35,9 @@ bool AccountTable::Insert(Account* record)
 }
 bool AccountTable::Erase(Account* record)
 {
-	if (!m_DefaultPrimaryKey.Erase(record))
+	if (!m_PrimaryKey.Erase(record) && !m_PrimaryAccountUniqueKey.Erase(record))
 	{
-		printf("AccountTable Erase Failed for Account:[%s]\n", record->GetString());
-		return false;
-	}
-	if (!m_PrimaryAccountPrimaryKey.Erase(record))
-	{
-		printf("AccountTable Erase Failed for Account:[%s]\n", record->GetString());
+		printf("Erase Failed for Account:[%s]\n", record->GetString());
 		return false;
 	}
 
@@ -52,14 +48,9 @@ bool AccountTable::Erase(Account* record)
 }
 bool AccountTable::Update(const Account* oldRecord, const Account* newRecord)
 {
-	if (!m_DefaultPrimaryKey.CheckUpdate(oldRecord, newRecord))
+	if (!m_PrimaryKey.CheckUpdate(oldRecord, newRecord) && !m_PrimaryAccountUniqueKey.CheckUpdate(oldRecord, newRecord))
 	{
-		printf("AccountTable Update Failed for Account:[%s], [%s]\n", oldRecord->GetString(), newRecord->GetString());
-		return false;
-	}
-	if (!m_PrimaryAccountPrimaryKey.CheckUpdate(oldRecord, newRecord))
-	{
-		printf("AccountTable Update Failed for Account:[%s], [%s]\n", oldRecord->GetString(), newRecord->GetString());
+		printf("Update Failed for Account:[%s], [%s]\n", oldRecord->GetString(), newRecord->GetString());
 		return false;
 	}
 
@@ -99,7 +90,7 @@ void AccountTable::Dump(const char* dir)
 
 	fprintf(dumpFile, "OrgID, BrokerID, AccountID, AccountName, AccountClass, AccountType, PrimaryAccountID, AccountStatus, CurrencyID, DeleteFlag\n");
 	char buff[4096] = { 0 };
-	for (auto it = m_DefaultPrimaryKey.m_Index.begin(); it != m_DefaultPrimaryKey.m_Index.end(); ++it)
+	for (auto it = m_PrimaryKey.m_Index.begin(); it != m_PrimaryKey.m_Index.end(); ++it)
 	{
 		fprintf(dumpFile, "%s\n", (*it)->GetString());
 	}
@@ -121,12 +112,13 @@ void OrderTable::Free(Order* record)
 }
 bool OrderTable::Insert(Order* record)
 {
-	if ((!m_DefaultPrimaryKey.CheckInsert(record)))
+	if (!m_PrimaryKey.CheckInsert(record))
 	{
-		printf("OrderTable Insert Failed for Order:[%s]\n", record->GetString());
+		printf("Insert Failed for Order:[%s]\n", record->GetString());
 		return false;
 	}
-	m_DefaultPrimaryKey.Insert(record);
+
+	m_PrimaryKey.Insert(record);
 
 	m_PrimaryAccountIndex.Insert(record);
 	m_InstrumentIndex.Insert(record);
@@ -135,9 +127,9 @@ bool OrderTable::Insert(Order* record)
 }
 bool OrderTable::Erase(Order* record)
 {
-	if (!m_DefaultPrimaryKey.Erase(record))
+	if (!m_PrimaryKey.Erase(record))
 	{
-		printf("OrderTable Erase Failed for Order:[%s]\n", record->GetString());
+		printf("Erase Failed for Order:[%s]\n", record->GetString());
 		return false;
 	}
 
@@ -148,9 +140,9 @@ bool OrderTable::Erase(Order* record)
 }
 bool OrderTable::Update(const Order* oldRecord, const Order* newRecord)
 {
-	if (!m_DefaultPrimaryKey.CheckUpdate(oldRecord, newRecord))
+	if (!m_PrimaryKey.CheckUpdate(oldRecord, newRecord))
 	{
-		printf("OrderTable Update Failed for Order:[%s], [%s]\n", oldRecord->GetString(), newRecord->GetString());
+		printf("Update Failed for Order:[%s], [%s]\n", oldRecord->GetString(), newRecord->GetString());
 		return false;
 	}
 
@@ -190,7 +182,7 @@ void OrderTable::Dump(const char* dir)
 
 	fprintf(dumpFile, "OrgID, BrokerID, AccountID, PrimaryAccountID, AccountClass, AccountType, ExchangeID, InstrumentID, Direction, OffsetFlag, HedgeFlag, OrderSysID, OrderLocalID, BrokerOrderID, OrderStatus, OrderType, Volume, VolumeTraded, InsertDate, InsertTime\n");
 	char buff[4096] = { 0 };
-	for (auto it = m_DefaultPrimaryKey.m_Index.begin(); it != m_DefaultPrimaryKey.m_Index.end(); ++it)
+	for (auto it = m_PrimaryKey.m_Index.begin(); it != m_PrimaryKey.m_Index.end(); ++it)
 	{
 		fprintf(dumpFile, "%s\n", (*it)->GetString());
 	}

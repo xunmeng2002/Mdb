@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "DataStruct.h"
 #include "PrimaryKeys.h"
+#include "UniqueKeys.h"
 #include "Indexes.h"
 #include "MemCacheTemplate.h"
 
@@ -17,8 +18,9 @@ public:
 	void Dump(const char* dir);
 
 public:
-	AccountPrimaryKeyDefault m_DefaultPrimaryKey;
-	AccountPrimaryKeyPrimaryAccount m_PrimaryAccountPrimaryKey;
+	AccountPrimaryKey m_PrimaryKey;
+
+	AccountUniqueKeyPrimaryAccount m_PrimaryAccountUniqueKey;
 
 	AccountIndexPrimaryAccount m_PrimaryAccountIndex;
 	AccountIndexBroker m_BrokerIndex;
@@ -39,7 +41,8 @@ public:
 	void Dump(const char* dir);
 
 public:
-	OrderPrimaryKeyDefault m_DefaultPrimaryKey;
+	OrderPrimaryKey m_PrimaryKey;
+
 
 	OrderIndexPrimaryAccount m_PrimaryAccountIndex;
 	OrderIndexInstrument m_InstrumentIndex;

@@ -2,29 +2,20 @@
 #include "DataStruct.h"
 
 
-struct AccountEqualForDefaultPrimaryKey
+struct AccountEqualForAccountPrimaryKey
 {
 	bool operator()(const Account* const left, const Account* const right) const;
 };
-struct AccountHashForDefaultPrimaryKey
+struct AccountHashForAccountPrimaryKey
 {
 	size_t operator()(const Account* const record) const;
 };
 
-struct AccountEqualForPrimaryAccountPrimaryKey
-{
-	bool operator()(const Account* const left, const Account* const right) const;
-};
-struct AccountHashForPrimaryAccountPrimaryKey
-{
-	size_t operator()(const Account* const record) const;
-};
-
-struct OrderEqualForDefaultPrimaryKey
+struct OrderEqualForOrderPrimaryKey
 {
 	bool operator()(const Order* const left, const Order* const right) const;
 };
-struct OrderHashForDefaultPrimaryKey
+struct OrderHashForOrderPrimaryKey
 {
 	size_t operator()(const Order* const record) const;
 };

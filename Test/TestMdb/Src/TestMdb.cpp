@@ -22,7 +22,7 @@ void PrepareAccount(Account* account, int index)
 }
 const Account* SelectAccount(Mdb* mdb, const CBrokerIDType& brokerID, const CAccountIDType& accountID, const CAccountClassType& accountClass)
 {
-	auto account = mdb->t_Account->m_DefaultPrimaryKey.Select(brokerID, accountID, accountClass);
+	auto account = mdb->t_Account->m_PrimaryKey.Select(brokerID, accountID, accountClass);
 	if (account)
 	{
 		printf("Select Account: %s\n", account->GetDebugString());
@@ -135,7 +135,7 @@ void PrepareOrder(Order* order, int index)
 }
 const Order* SelectOrder(Mdb* mdb, const CBrokerIDType& brokerID, const CAccountIDType& accountID, const CAccountClassType& accountClass, const CDateType& insertDate, const COrderLocalIDType& orderLocalID)
 {
-	auto order = mdb->t_Order->m_DefaultPrimaryKey.Select(brokerID, accountID, accountClass, insertDate, orderLocalID);
+	auto order = mdb->t_Order->m_PrimaryKey.Select(brokerID, accountID, accountClass, insertDate, orderLocalID);
 	if (order)
 	{
 		printf("Select Order: %s\n", order->GetDebugString());

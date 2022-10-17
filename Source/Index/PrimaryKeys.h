@@ -4,11 +4,11 @@
 #include "PrimaryKeyComp.h"
 
 
-class AccountPrimaryKeyDefault
+class AccountPrimaryKey
 {
 	friend class AccountTable;
 public:
-	AccountPrimaryKeyDefault(size_t buckets = 1000);
+	AccountPrimaryKey(size_t buckets = 1000);
 	bool Insert(Account* const record);
 	bool Erase(Account* const record);
 	bool CheckInsert(Account* const record);
@@ -17,30 +17,14 @@ public:
 
 private:
 	Account m_SelectAccount;
-	std::unordered_set<Account*, AccountHashForDefaultPrimaryKey, AccountEqualForDefaultPrimaryKey> m_Index;
+	std::unordered_set<Account*, AccountHashForAccountPrimaryKey, AccountEqualForAccountPrimaryKey> m_Index;
 };
 
-class AccountPrimaryKeyPrimaryAccount
-{
-	friend class AccountTable;
-public:
-	AccountPrimaryKeyPrimaryAccount(size_t buckets = 1000);
-	bool Insert(Account* const record);
-	bool Erase(Account* const record);
-	bool CheckInsert(Account* const record);
-	bool CheckUpdate(const Account* const oldRecord, const Account* const newRecord);
-	const Account* Select(const CBrokerIDType& BrokerID, const CAccountIDType& PrimaryAccountID, const CAccountClassType& AccountClass);
-
-private:
-	Account m_SelectAccount;
-	std::unordered_set<Account*, AccountHashForPrimaryAccountPrimaryKey, AccountEqualForPrimaryAccountPrimaryKey> m_Index;
-};
-
-class OrderPrimaryKeyDefault
+class OrderPrimaryKey
 {
 	friend class OrderTable;
 public:
-	OrderPrimaryKeyDefault(size_t buckets = 1000);
+	OrderPrimaryKey(size_t buckets = 1000);
 	bool Insert(Order* const record);
 	bool Erase(Order* const record);
 	bool CheckInsert(Order* const record);
@@ -49,6 +33,6 @@ public:
 
 private:
 	Order m_SelectOrder;
-	std::unordered_set<Order*, OrderHashForDefaultPrimaryKey, OrderEqualForDefaultPrimaryKey> m_Index;
+	std::unordered_set<Order*, OrderHashForOrderPrimaryKey, OrderEqualForOrderPrimaryKey> m_Index;
 };
 
