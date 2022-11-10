@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "DataStruct.h"
+#include <stddef.h>
 
 
 struct AccountEqualForAccountPrimaryKey
