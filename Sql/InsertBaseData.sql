@@ -1,0 +1,37 @@
+CREATE TABLE IF NOT EXISTS t_MdbCmeProduct(ExchangeID char(32), ProductID char(32), MarketSegmentID char(32), PRIMARY KEY(ExchangeID, ProductID));
+REPLACE INTO t_MdbCmeProduct VALUES
+("CME", "MES", "68"),
+("CME", "ES", "64"),
+("CME", "MNQ", "68"),
+("CME", "6A", "88"),
+("CME", "6B", "88"),
+("CME", "6C", "52"),
+("CME", "6E", "52"),
+("CME", "6J", "88"),
+("CME", "6N", "52"),
+("CME", "6S", "88"),
+("CME", "GF", "70"),
+("CME", "HE", "70"),
+("CME", "LE", "70"),
+("CME", "LBS", "70"),
+
+("CBT", "ZC", "70"),
+("CBT", "ZL", "70"),
+("CBT", "ZM", "70"),
+("CBT", "ZS", "70"),
+("CBT", "ZW", "70"),
+("CBT", "MYM", "68"),
+("CBT", "YM", "68"),
+
+("COMEX", "GC", "76"),
+("COMEX", "HG", "76"),
+("COMEX", "SI", "76"),
+("COMEX", "MGC", "76"),
+
+("NYMEX", "CL", "80"),
+("NYMEX", "HO", "80"),
+("NYMEX", "NG", "78"),
+("NYMEX", "QM", "80"),
+("NYMEX", "RB", "80"),
+("NYMEX", "PA", "76"),
+("NYMEX", "PL", "76");

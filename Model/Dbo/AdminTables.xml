@@ -1,0 +1,1035 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tables>
+	<table name="AdjustedSettlementDay">
+		<fields>
+			<field name="ID" type="ID" autoinc="1" desc=""/>
+			<field name="TradingDay" type="Date" desc=""/>
+			<field name="AuditTime" type="DateTime" desc=""/>
+			<field name="OperationTime" type="DateTime" desc=""/>
+			<field name="Remark" type="Remark" desc=""/>
+			<field name="Status" type="Status" desc=""/>
+			<field name="SettlementDay" type="Date" desc=""/>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+			<field name="OperatorID" type="OperatorID" desc=""/>
+			<field name="AuditorID" type="AuditorID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="AuthorizedSoftware">
+		<fields>
+			<field name="Software" type="Software" desc=""/>
+			<field name="AuthCode" type="AuthCode" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="Account"/>
+			<field name="Software"/>
+		</primarykey>
+		<uniquekeys>
+			<uniquekey name="AuthCode">
+				<field name="Software"/>
+				<field name="AuthCode"/>
+			</uniquekey>
+		</uniquekeys>
+		<indexes>
+			<index name="Account">
+				<field name="AuthCode"/>
+				<field name="Account"/>
+			</index>
+		</indexes>
+	</table>
+	<table name="Bank">
+		<fields>
+			<field name="ID" type="ID" autoinc="1" desc=""/>
+			<field name="Code" type="Code" desc=""/>
+			<field name="Nation" type="Nation" desc=""/>
+			<field name="Name" type="Name" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Close">
+		<fields>
+			<field name="OpenDate" type="Date" desc=""/>
+			<field name="OpenOrderID" type="OrderID" desc=""/>
+			<field name="OpenTradeID" type="TradeID" desc=""/>
+			<field name="CloseDate" type="Date" desc=""/>
+			<field name="CloseOrderID" type="OrderID" desc=""/>
+			<field name="CloseTradeID" type="TradeID" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+			<field name="ContractID" type="ContractID" desc=""/>
+			<field name="BS" type="Direction" desc=""/>
+			<field name="Hedge" type="HedgeFlag" desc=""/>
+			<field name="OpenPrice" type="Price" desc=""/>
+			<field name="LastSettle" type="Price" desc=""/>
+			<field name="ClosePrice" type="Price" desc=""/>
+			<field name="Volume" type="Volume" desc=""/>
+			<field name="RealOpenDate" type="Date" desc=""/>
+			<field name="RealCloseDate" type="Date" desc=""/>
+			<field name="OpenTime" type="Time" desc=""/>
+			<field name="CloseTime" type="Time" desc=""/>
+			<field name="CloseProfitFloat" type="Money" desc=""/>
+			<field name="CloseProfit" type="Money" desc=""/>
+			<field name="CurrencyGroup" type="CurrencyGroup" desc=""/>
+			<field name="CurrencyID" type="CurrencyID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="OpenDate"/>
+			<field name="OpenOrderID"/>
+			<field name="OpenTradeID"/>
+			<field name="CloseDate"/>
+			<field name="CloseOrderID"/>
+			<field name="CloseTradeID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Commission">
+		<fields>
+			<field name="GroupID" type="GroupID" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+			<field name="ProductID" type="ProductID" desc=""/>
+			<field name="ContractID" type="ContractID" desc=""/>
+			<field name="OpenByVolume" type="Rate" desc=""/>
+			<field name="CloseByVolume" type="Rate" desc=""/>
+			<field name="OpenByMoney" type="Rate" desc=""/>
+			<field name="CloseByMoney" type="Rate" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="GroupID"/>
+			<field name="Account"/>
+			<field name="ExchangeID"/>
+			<field name="ProductID"/>
+			<field name="ContractID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Contract">
+		<fields>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+			<field name="ProductID" type="ProductID" desc=""/>
+			<field name="ContractID" type="ContractID" desc=""/>
+			<field name="ContractName" type="ContractName" desc=""/>
+			<field name="DeliveryYear" type="Year" desc=""/>
+			<field name="DeliveryMonth" type="Month" desc=""/>
+			<field name="OpenDate" type="Date" desc=""/>
+			<field name="ExpireDate" type="Date" desc=""/>
+			<field name="FirstNoticeDate" type="Date" desc=""/>
+			<field name="StartDelivDate" type="Date" desc=""/>
+			<field name="EndDelivDate" type="Date" desc=""/>
+			<field name="TradeStatus" type="TradeStatus" desc=""/>
+			<field name="Margin" type="Money" desc=""/>
+			<field name="MinMargin" type="Money" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ExchangeID"/>
+			<field name="ContractID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="CreditAmount">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="AuditTime" type="DateTime" desc=""/>
+			<field name="OperationTime" type="DateTime" desc=""/>
+			<field name="Remark" type="Remark" desc=""/>
+			<field name="Status" type="Status" desc=""/>
+			<field name="Amount" type="Money" desc=""/>
+			<field name="CurrencyGroup" type="CurrencyGroup" desc=""/>
+			<field name="Direction" type="Direction" desc=""/>
+			<field name="TradingDay" type="Date" desc=""/>
+			<field name="OperatorID" type="OperatorID" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="CurrencyID" type="CurrencyID" desc=""/>
+			<field name="AuditorID" type="AuditorID" desc=""/>
+			<field name="Flag" type="Flag" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="CurrencyRate">
+		<fields>
+			<field name="CurrencyGroup" type="CurrencyGroup" desc=""/>
+			<field name="CurrencyID" type="CurrencyID" desc=""/>
+			<field name="TradeRate" type="Rate" desc=""/>
+			<field name="SettlementRate" type="Rate" desc=""/>
+			<field name="IsBaseCurrency" type="Bool" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="CurrencyGroup"/>
+			<field name="CurrencyID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="CurrencyRateRecord">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="AuditTime" type="DateTime" desc=""/>
+			<field name="OperationTime" type="DateTime" desc=""/>
+			<field name="Remark" type="Remark" desc=""/>
+			<field name="Status" type="Status" desc=""/>
+			<field name="CurrencyGroup" type="CurrencyGroup" desc=""/>
+			<field name="IsBaseCurrency" type="Bool" desc=""/>
+			<field name="SettlementRate" type="Rate" desc=""/>
+			<field name="TradeRate" type="Rate" desc=""/>
+			<field name="OperatorID" type="OperatorID" desc=""/>
+			<field name="CurrencyID" type="CurrencyID" desc=""/>
+			<field name="AuditorID" type="AuditorID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="DepositWithdrawal">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="AuditTime" type="Time" desc=""/>
+			<field name="OperationTime" type="Time" desc=""/>
+			<field name="Remark" type="Remark" desc=""/>
+			<field name="Status" type="Status" desc=""/>
+			<field name="Amount" type="Money" desc=""/>
+			<field name="BankCardID" type="Remark" desc=""/>
+			<field name="CurrencyID" type="CurrencyID" desc=""/>
+			<field name="CurrencyGroup" type="CurrencyGroup" desc=""/>
+			<field name="Direction" type="Direction" desc=""/>
+			<field name="Method" type="Method" desc=""/>
+			<field name="TradingDay" type="Date" desc=""/>
+			<field name="OperatorID" type="OperatorID" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="AuditorID" type="AuditorID" desc=""/>
+			<field name="Flag" type="Flag" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Exchange">
+		<fields>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+			<field name="ExchangeName" type="ExchangeName" desc=""/>
+			<field name="TradeStatus" type="TradeStatus" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ExchangeID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Group">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Name" type="GroupName" desc=""/>
+			<field name="Type" type="GroupType" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Invertor">
+		<fields>
+			<field name="Account" type="Account" desc=""/>
+			<field name="AccountStatus" type="AccountStatus" desc=""/>
+			<field name="AccountType" type="AccountType" desc=""/>
+			<field name="AgentType" type="AgentType" desc=""/>
+			<field name="CloseDate" type="Date" desc=""/>
+			<field name="OrderType" type="OrderType" desc=""/>
+			<field name="InvestorType" type="InvestorType" desc=""/>
+			<field name="IsEmployee" type="Bool" desc=""/>
+			<field name="LoginStatus" type="LoginStatus" desc=""/>
+			<field name="maxOnLine" type="Num" desc=""/>
+			<field name="Name" type="InvestorName" desc=""/>
+			<field name="OpenDate" type="Date" desc=""/>
+			<field name="Password" type="Password" desc=""/>
+			<field name="PasswordDate" type="Date" desc=""/>
+			<field name="PasswordExpired" type="Bool" desc=""/>
+			<field name="PasswordValidDays" type="Date" desc=""/>
+			<field name="RiskLevel" type="Num" desc=""/>
+			<field name="TradeStatus" type="TradeStatus" desc=""/>
+			<field name="TwoStepCode" type="TwoStepCode" desc=""/>
+			<field name="TwoStepCodeTime" type="TwoStepCodeTime" desc=""/>
+			<field name="TwoStepLogin" type="Bool" desc=""/>
+			<field name="CommissionGroupID" type="GroupID" desc=""/>
+			<field name="MarginGroupID" type="GroupID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="Account"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvestorAddress">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Address" type="Address" desc=""/>
+			<field name="Nation" type="Nation" desc=""/>
+			<field name="PostCode" type="PostCode" desc=""/>
+			<field name="AddressType" type="AddressType" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvestorBankCard">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Branch" type="Branch" desc=""/>
+			<field name="CardNo" type="CardNo" desc=""/>
+			<field name="CurrencyID" type="CurrencyID" desc=""/>
+			<field name="DomesticAccountType" type="DomesticAccountType" desc=""/>
+			<field name="DomesticCurrencyType" type="DomesticCurrencyType" desc=""/>
+			<field name="OpeningID" type="OpeningID" desc=""/>
+			<field name="Owner" type="Owner" desc=""/>
+			<field name="BankID" type="BankID" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="IdentityID" type="IdentityID" desc="开户证件信息"/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvestorEmail">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Email" type="Email" desc=""/>
+			<field name="EmailType" type="EmailType" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvestorExt">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="BillLanguage" type="BillLanguage" desc=""/>
+			<field name="BillType" type="BillType" desc=""/>
+			<field name="BirthDate" type="Date" desc=""/>
+			<field name="BirthNation" type="Nation" desc=""/>
+			<field name="Career" type="Career" desc=""/>
+			<field name="EmployeeName" type="EmployeeName" desc=""/>
+			<field name="EmployeeNo" type="EmployeeNo" desc=""/>
+			<field name="EnName" type="EnName" desc=""/>
+			<field name="ExchangeMethod" type="ExchangeMethod" desc=""/>
+			<field name="FatcaStatus" type="ID" desc=""/>
+			<field name="GinTaxNumber" type="GinTaxNumber" desc=""/>
+			<field name="Nation" type="Nation" desc=""/>
+			<field name="RecoveryCriteria" type="RecoveryCriteria" desc=""/>
+			<field name="Remark" type="Remark" desc=""/>
+			<field name="Sex" type="Sex" desc=""/>
+			<field name="TaxTableDate" type="Date" desc=""/>
+			<field name="TaxTableType" type="TaxTableType" desc=""/>
+			<field name="TinTaxNumber" type="TinTaxNumber" desc=""/>
+			<field name="ZhName" type="ZhName" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvertorFatca">
+		<fields>
+			<field name="FatcaStatus" type="FatcaStatus" desc=""/>
+			<field name="FatcaType" type="FatcaType" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="Account"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvestorFax">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Fax" type="Fax" desc=""/>
+			<field name="FaxType" type="FaxType" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="AreaCode" type="AreaCode" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvestorGroup">
+		<fields>
+			<field name="Account" type="Account" desc=""/>
+			<field name="GroupID" type="GroupID" desc=""/>
+			<field name="GroupType" type="GroupType" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="GroupID"/>
+			<field name="Account"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvertorIdentity">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="IDExpireDate" type="Date" desc=""/>
+			<field name="IDIssueDate" type="Date" desc=""/>
+			<field name="IDIssuePlace" type="IDIssuePlace" desc=""/>
+			<field name="IDNumber" type="IDNumber" desc=""/>
+			<field name="IdRemark" type="Remark" desc=""/>
+			<field name="IDType" type="IDType" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvestorMobile">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Mobile" type="Mobile" desc=""/>
+			<field name="MobileType" type="MobileType" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="AreaCode" type="AreaCode" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvestorOrganization">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="BusinessLicenseNo" type="BusinessLicenseNo" desc=""/>
+			<field name="LegalPerson" type="LegalPerson" desc=""/>
+			<field name="LicenseExpireDate" type="Date" desc=""/>
+			<field name="OrganizationalNature" type="OrganizationalNature" desc=""/>
+			<field name="Remark" type="Remark" desc=""/>
+			<field name="RegisteredCapital" type="Money" desc=""/>
+			<field name="TaxNumber" type="TaxNumber" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvestorParam">
+		<fields>
+			<field name="Account" type="Account" desc=""/>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+			<field name="ProductID" type="ProductID" desc=""/>
+			<field name="ContractID" type="ContractID" desc=""/>
+			<field name="TradeStatus" type="TradeStatus" desc=""/>
+			<field name="MaxPosition" type="Volume" desc=""/>
+			<field name="MaxOrderVolume" type="Volume" desc=""/>
+			<field name="CloseAdvanceDays" type="Num" desc=""/>
+			<field name="ChannelID" type="ChannelID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="Account"/>
+			<field name="ExchangeID"/>
+			<field name="ProductID"/>
+			<field name="ContractID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvestorTag50">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="Name" type="Name" desc=""/>
+			<field name="IDType" type="IDType" desc=""/>
+			<field name="IDNumber" type="IDNumber" desc=""/>
+			<field name="Remark" type="Remark" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="InvestorTel">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Tel" type="Tel" desc=""/>
+			<field name="TelType" type="TelType" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="AreaCode" type="AreaCode" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="JournalSwap">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="OutCurrencyID" type="CurrencyID" desc=""/>
+			<field name="OutCurrencyGroup" type="CurrencyGroup" desc=""/>
+			<field name="OutAmount" type="Money" desc=""/>
+			<field name="InCurrencyID" type="CurrencyID" desc=""/>
+			<field name="InCurrencyGroup" type="CurrencyGroup" desc=""/>
+			<field name="InAmount" type="Money" desc=""/>
+			<field name="Status" type="Status" desc=""/>
+			<field name="TradingDay" type="Date" desc=""/>
+			<field name="OperationTime" type="DateTime" desc=""/>
+			<field name="AuditTime" type="DateTime" desc=""/>
+			<field name="Remark" type="Remark" desc=""/>
+			<field name="OperatorID" type="OperatorID" desc=""/>
+			<field name="AuditorID" type="AuditorID" desc=""/>
+			<field name="Rate" type="Rate" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Login">
+		<fields>
+			<field name="TradeDate" type="Date" desc=""/>
+			<field name="FrontID" type="FrontID" desc=""/>
+			<field name="SessionID" type="SessionID" desc=""/>
+			<field name="RealDate" type="Date" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="Admin" type="Admin" desc=""/>
+			<field name="TwoStepLogin" type="Bool" desc=""/>
+			<field name="Time" type="Time" desc=""/>
+			<field name="IP" type="IP" desc=""/>
+			<field name="MAC" type="MAC" desc=""/>
+			<field name="UserProduct" type="UserProduct" desc=""/>
+			<field name="Hardware" type="Hardware" desc=""/>
+			<field name="OS" type="OS" desc=""/>
+			<field name="LogoutDate" type="Date" desc=""/>
+			<field name="LogoutTime" type="Time" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="TradeDate"/>
+			<field name="FrontID"/>
+			<field name="SessionID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Margin">
+		<fields>
+			<field name="GroupID" type="GroupID" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+			<field name="ProductID" type="ProductID" desc=""/>
+			<field name="ContractID" type="ContractID" desc=""/>
+			<field name="MarginType" type="MarginType" desc=""/>
+			<field name="Margin" type="Money" desc=""/>
+			<field name="MinMargin" type="Money" desc=""/>
+			<field name="SettleMargin" type="Money" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="GroupID"/>
+			<field name="Account"/>
+			<field name="ExchangeID"/>
+			<field name="ProductID"/>
+			<field name="ContractID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="MaxBalance">
+		<fields>
+			<field name="Account" type="Account" desc=""/>
+			<field name="MaxBalance" type="Money" desc=""/>
+			<field name="EverMaxBalance" type="Money" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="Account"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Order">
+		<fields>
+			<field name="TradeDate" type="DateTime" desc=""/>
+			<field name="OrderID" type="OrderID" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="InsertAccount" type="OperatorID" desc=""/>
+			<field name="CancelAccount" type="OperatorID" desc=""/>
+			<field name="RequestID" type="RequestID" desc=""/>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+			<field name="ContractID" type="ContractID" desc=""/>
+			<field name="BS" type="Direction" desc=""/>
+			<field name="OC" type="OffsetFlag" desc=""/>
+			<field name="Hedge" type="HedgeFlag" desc=""/>
+			<field name="PriceType" type="OrderPriceType" desc=""/>
+			<field name="Price" type="Price" desc=""/>
+			<field name="Volume" type="Volume" desc=""/>
+			<field name="TradeVolume" type="Volume" desc=""/>
+			<field name="Status" type="Status" desc=""/>
+			<field name="RealDate" type="Date" desc=""/>
+			<field name="InsertTime" type="Time" desc=""/>
+			<field name="CancelTime" type="Time" desc=""/>
+			<field name="ForceClose" type="ForceCloseReason" desc=""/>
+			<field name="ForceReason" type="ForceReason" desc=""/>
+			<field name="OrderSysID" type="OrderSysID" desc=""/>
+			<field name="Remark" type="OrderRemark" desc=""/>
+			<field name="FrontID" type="FrontID" desc=""/>
+			<field name="SessionID" type="SessionID" desc=""/>
+			<field name="OrderRef" type="OrderRef" desc=""/>
+			<field name="TimeCondition" type="TimeCondition" desc=""/>
+			<field name="GTDDate" type="Date" desc=""/>
+			<field name="VolumeCondition" type="VolumeCondition" desc=""/>
+			<field name="MinVolume" type="Volume" desc=""/>
+			<field name="ContingentCondition" type="ContingentCondition" desc=""/>
+			<field name="StopPrice" type="Price" desc=""/>
+			<field name="SwapOrder" type="SwapOrder" desc=""/>
+			<field name="ChannelID" type="ChannelID" desc=""/>
+			<field name="Tag50" type="Tag50" desc=""/>
+			<field name="CancelFrontID" type="FrontID" desc=""/>
+			<field name="CancelSessionID" type="SessionID" desc=""/>
+			<field name="ChannelFrontID" type="FrontID" desc=""/>
+			<field name="ChannelSessionID" type="SessionID" desc=""/>
+			<field name="ChannelOrderRef" type="OrderRef" desc=""/>
+			<field name="ChannelOrderID" type="ChannelOrderID" desc=""/>
+			<field name="T1Valid" type="T1Valid" desc=""/>
+			<field name="Deleted" type="Bool" desc=""/>
+			<field name="DeleteAccount" type="OperatorID" desc=""/>
+			<field name="DeleteTime" type="Time" desc=""/>
+			<field name="InsertDate" type="Date" desc=""/>
+			<field name="InsertID" type="InsertID" desc=""/>
+			<field name="PatchOrder" type="PatchOrder" desc=""/>
+			<field name="CancelDate" type="Date" desc=""/>
+			<field name="UserOrderID" type="UserOrderID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="TradeDate"/>
+			<field name="OrderID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="OrderCheck">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="GroupID" type="GroupID" desc=""/>
+			<field name="Item" type="Item" desc=""/>
+			<field name="Param1" type="Param" desc=""/>
+			<field name="ProductID" type="ProductID" desc=""/>
+			<field name="Result" type="Result" desc=""/>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Position">
+		<fields>
+			<field name="Account" type="Account" desc=""/>
+			<field name="TradeDate" type="Date" desc=""/>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+			<field name="ContractID" type="ContractID" desc=""/>
+			<field name="BS" type="Direction" desc=""/>
+			<field name="Hedge" type="HedgeFlag" desc=""/>
+			<field name="OpenDate" type="Date" desc=""/>
+			<field name="TradeID" type="TradeID" desc=""/>
+			<field name="OrderID" type="OrderID" desc=""/>
+			<field name="LocalTradeID" type="LocalTradeID" desc=""/>
+			<field name="RealOpenDate" type="Date" desc=""/>
+			<field name="TradeTime" type="Time" desc=""/>
+			<field name="Volume" type="Volume" desc=""/>
+			<field name="OpenPrice" type="Price" desc=""/>
+			<field name="SettlePrice" type="Price" desc=""/>
+			<field name="LastSettle" type="Price" desc=""/>
+			<field name="VolumeMultiple" type="VolumeMultiple" desc=""/>
+			<field name="Margin" type="Money" desc=""/>
+			<field name="PositionProfitFloat" type="Money" desc=""/>
+			<field name="PositionProfit" type="Money" desc=""/>
+			<field name="CloseVolume" type="Volume" desc=""/>
+			<field name="CloseProfitFloat" type="Money" desc=""/>
+			<field name="CloseProfit" type="Money" desc=""/>
+			<field name="CloseAmount" type="Money" desc=""/>
+			<field name="TradeType" type="TradeType" desc=""/>
+			<field name="CombineContractID" type="ContractID" desc=""/>
+			<field name="CombineTradeID" type="TradeID" desc=""/>
+			<field name="CurrencyGroup" type="CurrencyGroup" desc=""/>
+			<field name="CurrencyID" type="CurrencyID" desc=""/>
+			<field name="MinMargin" type="Money" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="Account"/>
+			<field name="TradeDate"/>
+			<field name="OpenDate"/>
+			<field name="TradeID"/>
+			<field name="OrderID"/>
+			<field name="CombineTradeID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Product">
+		<fields>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+			<field name="ProductID" type="ProductID" desc=""/>
+			<field name="ProductClass" type="ProductClass" desc=""/>
+			<field name="ProductName" type="ProductName" desc=""/>
+			<field name="CurrencyGroup" type="CurrencyGroup" desc=""/>
+			<field name="CurrencyID" type="CurrencyID" desc=""/>
+			<field name="VolumeMultiple" type="VolumeMultiple" desc=""/>
+			<field name="PriceTick" type="PriceTick" desc=""/>
+			<field name="DecimalDigits" type="DecimalDigits" desc=""/>
+			<field name="T1SplitTime" type="T1SplitTime" desc=""/>
+			<field name="MaxPosition" type="Volume" desc=""/>
+			<field name="MaxOrderVolume" type="Volume" desc=""/>
+			<field name="CloseAdvanceDays" type="Num" desc=""/>
+			<field name="DeliveryMethod" type="DeliveryMethod" desc=""/>
+			<field name="TradeChannel" type="ChannelID" desc=""/>
+			<field name="TradeStatus" type="TradeStatus" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ExchangeID"/>
+			<field name="ProductID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="RiskControl">
+		<fields>
+			<field name="RiskID" type="RiskID" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="GroupID" type="GroupID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="RiskID"/>
+			<field name="Account"/>
+			<field name="GroupID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="RiskControlTemplate">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="RiskClass" type="RiskClass" desc=""/>
+			<field name="RiskItem" type="RiskItem" desc=""/>
+			<field name="Product" type="ProductCombination" desc=""/>
+			<field name="OpenDenied" type="Bool" desc=""/>
+			<field name="CloseDenied" type="Bool" desc=""/>
+			<field name="Notice" type="Notice" desc=""/>
+			<field name="Position" type="Volume" desc=""/>
+			<field name="Contents" type="Contents" desc=""/>
+			<field name="TimeFrom" type="Time" desc=""/>
+			<field name="TimeTo" type="Time" desc=""/>
+			<field name="Param1" type="Param" desc=""/>
+			<field name="Param2" type="Param" desc=""/>
+			<field name="Param3" type="Param" desc=""/>
+			<field name="Param4" type="Param" desc=""/>
+			<field name="Param5" type="Param" desc=""/>
+			<field name="Param6" type="Param" desc=""/>
+			<field name="CreateTime" type="Time" desc=""/>
+			<field name="UpdateTime" type="Time" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Session">
+		<fields>
+			<field name="TradeDate" type="Date" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="FrontID" type="FrontID" desc=""/>
+			<field name="SessionID" type="SessionID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="TradeDate"/>
+			<field name="Account"/>
+			<field name="FrontID"/>
+			<field name="SessionID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="SettlePrice">
+		<fields>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+			<field name="ContractID" type="ContractID" desc=""/>
+			<field name="TradingDay" type="Date" desc=""/>
+			<field name="SettlePrice" type="Price" desc=""/>
+			<field name="PrevSettlePrice" type="Price" desc=""/>
+			<field name="Margin" type="Money" desc=""/>
+			<field name="MinMargin" type="Money" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ExchangeID"/>
+			<field name="ContractID"/>
+			<field name="TradingDay"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Summary">
+		<fields>
+			<field name="Account" type="Account" desc=""/>
+			<field name="TradeDate" type="Date" desc=""/>
+			<field name="CurrencyGroup" type="CurrencyGroup" desc=""/>
+			<field name="CurrencyID" type="CurrencyID" desc=""/>
+			<field name="CurrencyRate" type="Rate" desc=""/>
+			<field name="Balance" type="Money" desc=""/>
+			<field name="LastBalance" type="Money" desc=""/>
+			<field name="Available" type="Money" desc=""/>
+			<field name="Margin" type="Money" desc=""/>
+			<field name="Commission" type="Money" desc=""/>
+			<field name="PositionProfitFloat" type="Money" desc=""/>
+			<field name="PositionProfit" type="Money" desc=""/>
+			<field name="CloseProfitFloat" type="Money" desc=""/>
+			<field name="CloseProfit" type="Money" desc=""/>
+			<field name="Deposit" type="Money" desc=""/>
+			<field name="Withdraw" type="Money" desc=""/>
+			<field name="Risk" type="Rate" desc=""/>
+			<field name="CloseBalance" type="Money" desc=""/>
+			<field name="CashInOutTotal" type="Money" desc=""/>
+			<field name="BalanceFloat" type="Money" desc=""/>
+			<field name="LastBalanceFloat" type="Money" desc=""/>
+			<field name="Credit" type="Money" desc=""/>
+			<field name="MinMargin" type="Money" desc=""/>
+			<field name="Stage" type="Stage" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="Account"/>
+			<field name="TradeDate"/>
+			<field name="CurrencyGroup"/>
+			<field name="CurrencyID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="SysLog">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="OperatorID" type="OperatorID" desc=""/>
+			<field name="Title" type="Title" desc=""/>
+			<field name="Comment" type="Comment" desc=""/>
+			<field name="CreateTime" type="DateTime" desc=""/>
+			<field name="IP" type="IP" desc=""/>
+			<field name="MAC" type="MAC" desc=""/>
+			<field name="Action" type="Action" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="SysMenu">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Icon" type="Icon" desc=""/>
+			<field name="Name" type="Name" desc=""/>
+			<field name="Permission" type="Permission" desc=""/>
+			<field name="Remark" type="Remark" desc=""/>
+			<field name="TargetUrl" type="TargetUrl" desc=""/>
+			<field name="ParentID" type="ParentID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="SysOperator">
+		<fields>
+			<field name="OperatorID" type="OperatorID" desc=""/>
+			<field name="Avatar" type="Avatar" desc=""/>
+			<field name="Email" type="Email" desc=""/>
+			<field name="LoginStatus" type="LoginStatus" desc=""/>
+			<field name="Mobile" type="Mobile" desc=""/>
+			<field name="Name" type="Name" desc=""/>
+			<field name="Password" type="Password" desc=""/>
+			<field name="PasswordDate" type="Date" desc=""/>
+			<field name="PasswordExpired" type="Bool" desc=""/>
+			<field name="PasswordValidDays" type="Num" desc=""/>
+			<field name="RoleID" type="RoleID" desc=""/>
+			<field name="LastLoginTime" type="DateTime" desc=""/>
+			<field name="LoginTime" type="DateTime" desc=""/>
+			<field name="LastLoginIp" type="IP" desc=""/>
+			<field name="LastLoginMac" type="MAC" desc=""/>
+			<field name="LoginIp" type="IP" desc=""/>
+			<field name="LoginMac" type="MAC" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="OperatorID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="SysOperatorGroup">
+		<fields>
+			<field name="OperatorID" type="OperatorID" desc=""/>
+			<field name="GroupID" type="GroupID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="OperatorID"/>
+			<field name="GroupID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="SysParam">
+		<fields>
+			<field name="Param" type="SysParam" desc=""/>
+			<field name="Value" type="SysParamValue" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="Param"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="SysPermission">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Name" type="Name" desc=""/>
+			<field name="Permission" type="Permission" desc=""/>
+			<field name="Remark" type="Remark" desc=""/>
+			<field name="MenuID" type="MenuID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="SysRole">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Name" type="Name" desc=""/>
+			<field name="Remark" type="Remark" desc=""/>
+			<field name="Status" type="Bool" desc=""/>
+			<field name="IsAdmin" type="Bool" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="SysRoleMenu">
+		<fields>
+			<field name="RoleID" type="RoleID" desc=""/>
+			<field name="MenuID" type="MenuID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="RoleID"/>
+			<field name="MenuID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="SysRolePermission">
+		<fields>
+			<field name="RoleID" type="RoleID" desc=""/>
+			<field name="PermissionID" type="PermissionID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="RoleID"/>
+			<field name="PermissionID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Trade">
+		<fields>
+			<field name="TradeDate" type="Date" desc=""/>
+			<field name="OrderID" type="OrderID" desc=""/>
+			<field name="TradeID" type="TradeID" desc=""/>
+			<field name="Account" type="Account" desc=""/>
+			<field name="RequestID" type="RequestID" desc=""/>
+			<field name="ExchangeID" type="ExchangeID" desc=""/>
+			<field name="ContractID" type="ContractID" desc=""/>
+			<field name="BS" type="Direction" desc=""/>
+			<field name="Hedge" type="HedgeFlag" desc=""/>
+			<field name="Price" type="Price" desc=""/>
+			<field name="Volume" type="Volume" desc=""/>
+			<field name="Turnover" type="Money" desc=""/>
+			<field name="RealDate" type="Date" desc=""/>
+			<field name="TradeTime" type="Time" desc=""/>
+			<field name="OrderSysID" type="OrderSysID" desc=""/>
+			<field name="Commission" type="Money" desc=""/>
+			<field name="CloseProfitFloat" type="Money" desc=""/>
+			<field name="CloseProfit" type="Money" desc=""/>
+			<field name="OrderRef" type="OrderRef" desc=""/>
+			<field name="TradeType" type="TradeType" desc=""/>
+			<field name="CombineContractID" type="ContractID" desc=""/>
+			<field name="LocalTradeID" type="LocalTradeID" desc=""/>
+			<field name="CurrencyGroup" type="CurrencyGroup" desc=""/>
+			<field name="CurrencyID" type="CurrencyID" desc=""/>
+			<field name="ExchangeTradeID" type="ExchangeTradeID" desc=""/>
+			<field name="OpenVolume" type="Volume" desc=""/>
+			<field name="CloseVolume" type="Volume" desc=""/>
+			<field name="Deleted" type="Bool" desc=""/>
+			<field name="DeleteAccount" type="OperatorID" desc=""/>
+			<field name="DeleteTime" type="Time" desc=""/>
+			<field name="ExchangeFee" type="Money" desc=""/>
+			<field name="Levy" type="Money" desc=""/>
+			<field name="PatchAccount" type="OperatorID" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="TradeDate"/>
+			<field name="OrderID"/>
+			<field name="TradeID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="TradeChannel">
+		<fields>
+			<field name="ID" type="ID" desc=""/>
+			<field name="Name" type="ChannelName" desc=""/>
+			<field name="UserID" type="UserID" desc=""/>
+			<field name="Password" type="Password" desc=""/>
+			<field name="IP" type="IP" desc=""/>
+			<field name="Port" type="Port" desc=""/>
+		</fields>
+		<primarykey>
+			<field name="ID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+</tables>

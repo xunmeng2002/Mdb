@@ -1,0 +1,3 @@
+<pumplist>
+	<pump dest="./Source/Types/Types.h" tpl="../Templates/Types/Types.h.tpl" model="./Model/Types.xml"/>
+</pumplist>
