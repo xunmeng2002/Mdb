@@ -142,7 +142,7 @@ if __name__ == "__main__":
     #打开模板文件
     pattern = re.compile(expr)        
     tpl_content = ""
-    for line in open(tpl_file_name, "rU"):
+    for line in open(tpl_file_name, "r"):
         word = line[:-1].split("!!")
         if len(word) < 3:
             tpl_content += line
@@ -163,8 +163,6 @@ if __name__ == "__main__":
     out_content += "#coding:utf-8\n" 
     out_content += "import xml.etree.cElementTree as ET\n"
     out_content += "import codecs,sys\n\n"
-    out_content += "reload(sys)\n" 
-    out_content += "sys.setdefaultencoding(\"utf-8-sig\")\n"
     out_content += "out_file = codecs.open(\"%s\",\"w+\",\"utf-8-sig\")\n\n" % out_file_name
     #xml文件可以大于1，如果有多个xml文件，添加一个根节点，把每个xml文件的根节点挂在新加的根节点下面，新加的根节点作为当前节点
     out_content += "curr_node = ET.Element(\"root\")\n"
