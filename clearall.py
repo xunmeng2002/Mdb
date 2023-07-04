@@ -17,13 +17,26 @@ def Search(path, destFileName, excludes, destPaths):
         if os.path.isdir(fullFileName):
             Search(fullFileName, destFileName, excludes, destPaths)
 			
-def clear(pumpfile):
+def Clear(pumpfile):
     root = ET.parse(pumpfile).getroot()
     for node in root:
         dest = node.get("dest")
-        if os.path.exists(dest):
-            print("delete %s" % dest)
-            os.remove(dest)
+        split = node.get("split")
+        if split == "true":
+            type = node.get("type")
+            targetsFile = node.get("targets")
+            targetsRoot = ET.parse(targetsFile).getroot()
+            for targetNode in targetsRoot:
+                targetName = targetNode.get("name")
+                split_dest = dest + targetName + "." + type
+                Remove(split_dest)
+        else:
+            Remove(dest)
+
+def Remove(destFile):
+    if os.path.exists(destFile):
+        print("delete %s" % destFile)
+        os.remove(destFile)
 	
 if __name__ == "__main__":
     excludes = ['.sv', '.vs', 'build', 'out', "Branches"]
@@ -33,11 +46,11 @@ if __name__ == "__main__":
     for include in includes:
         Search(include, "parselist.xml", excludes, parsefiles)
     for parsefile in parsefiles:
-        clear(parsefile)
+        Clear(parsefile)
 
     pumpfiles = []
     Search(".","pumplist.xml", excludes, pumpfiles)
     for include in includes:
         Search(include, "pumplist.xml", excludes, pumpfiles)
     for pumpfile in pumpfiles:
-        clear(pumpfile)
+        Clear(pumpfile)

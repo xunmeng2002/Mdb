@@ -28,16 +28,31 @@ def Search(path, destFileName, excludes, destPaths):
         if os.path.isdir(fullFileName):
             Search(fullFileName, destFileName, excludes, destPaths)
 
-def DoPump(fileName):
-    root = ET.parse(fileName).getroot()
+def HandlePumpFile(pumpFile):
+    root = ET.parse(pumpFile).getroot()
     for node in root:
         model = node.get("model")
         tpl = node.get("tpl")
         dest = node.get("dest")
-        if NeedPump(model, tpl, dest):
-            print("pump.py %s %s %s" % (dest, tpl, model))
-            if os.system("python pump.py %s %s %s" % (dest, tpl, model)) != 0:
-                exit()
+        split = node.get("split")
+        #print(node.attrib)
+        if split == "true":
+            type = node.get("type")
+            targetsFile = node.get("targets")
+            targetsRoot = ET.parse(targetsFile).getroot()
+            for targetNode in targetsRoot:
+                targetName = targetNode.get("name")
+                split_dest = dest + targetName + "." + type
+                DoPump(split_dest, tpl, targetName, model)
+        else:
+            DoPump(dest, tpl, "target", model)
+
+def DoPump(dest, tpl, target, model):
+    if NeedPump(model, tpl, dest):
+        print("pump.py %s %s %s %s" % (dest, tpl, target, model))
+        if os.system("python pump.py %s %s %s %s" % (dest, tpl, target, model)) != 0:
+            exit()
+
 
 if __name__ == "__main__":
     excludes = ['.sv', '.vs', 'build', 'out', "Branches"]
@@ -47,4 +62,4 @@ if __name__ == "__main__":
     for include in includes:
         Search(include, "pumplist.xml", excludes, pumpfiles)
     for pumpfile in pumpfiles:
-        DoPump(pumpfile)
+        HandlePumpFile(pumpfile)

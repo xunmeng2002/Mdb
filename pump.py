@@ -122,19 +122,21 @@ if __name__ == "__main__":
     #缩进量
     _indent_cnt = 0                
         
-    if len(sys.argv) < 4:
-        print("usage: pump destFile templateFile modelFile")
+    if len(sys.argv) < 5:
+        print("usage: pump destFile templateFile target modelFile")
         
     #第一个参数：输出文件名
     #第二个参数：模板文件 
-    #第三个参数：xml文件
+    #第三个参数：目标
+    #第四个参数：xml文件
     out_file_name = sys.argv[1]
     tpl_file_name = sys.argv[2]
+    target = sys.argv[3]
     
     #tpl文件中的python代码嵌入标记
     expr = "!!.*?!!"
     #临时python文件
-    pump_file = open("pumptemp.py", "w+")
+    pump_file = open("pumptemp.py", "w+", encoding="UTF-8-SIG")
 
     #entry列表
     entry_list = []
@@ -142,7 +144,7 @@ if __name__ == "__main__":
     #打开模板文件
     pattern = re.compile(expr)        
     tpl_content = ""
-    for line in open(tpl_file_name, "r"):
+    for line in open(tpl_file_name, "r", encoding="UTF-8-SIG"):
         word = line[:-1].split("!!")
         if len(word) < 3:
             tpl_content += line
@@ -163,14 +165,15 @@ if __name__ == "__main__":
     out_content += "#coding:utf-8\n" 
     out_content += "import xml.etree.cElementTree as ET\n"
     out_content += "import codecs,sys\n\n"
-    out_content += "out_file = codecs.open(\"%s\",\"w+\",\"utf-8-sig\")\n\n" % out_file_name
+    out_content += "out_file = codecs.open(\"%s\", \"w+\", encoding=\"UTF-8-SIG\")\n\n" % out_file_name
     #xml文件可以大于1，如果有多个xml文件，添加一个根节点，把每个xml文件的根节点挂在新加的根节点下面，新加的根节点作为当前节点
     out_content += "curr_node = ET.Element(\"root\")\n"
-    for i in range(3, len(sys.argv)):
+    for i in range(4, len(sys.argv)):
         out_content += "curr_node.append(ET.parse(\"%s\").getroot())\n" % sys.argv[i]
     out_content += "parent_map = {}\n"
     out_content += "pumpid = 0\n"
     out_content += "parentpumpid = 0\n"
+    out_content += "target = '%s'\n" % target
     
     #定义获取属性的方法，如果在当前节点无法取得，就去父节点取，知道根节点
     out_content += "def get_attr(node, name):\n"
