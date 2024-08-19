@@ -31,5 +31,6 @@
 *.out
 *.app
 
-.vs/*
-out/*
+**/.vs
+**/out
+pumptemp.py
