@@ -1,0 +1,10 @@
+<pumplist>
+	<pump dest="./Sql/Mysql/CreateSimExchangeDBTables.sql" tpl="../Templates/Sql/Mysql/CreateTables.sql.tpl" model="./Model/Tables/SimExchange.xml ../Model/Types.xml"/>
+	<pump dest="./Sql/Mysql/DropSimExchangeDBTables.sql" tpl="../Templates/Sql/Mysql/DropTables.sql.tpl" model="./Model/Tables/SimExchange.xml"/>
+	
+	<pump dest="./Sql/Sqlite/CreateSimExchangeDBTables.sql" tpl="../Templates/Sql/Sqlite/CreateTables.sql.tpl" model="./Model/Tables/SimExchange.xml ../Model/Types.xml"/>
+	<pump dest="./Sql/Sqlite/DropSimExchangeDBTables.sql" tpl="../Templates/Sql/Sqlite/DropTables.sql.tpl" model="./Model/Tables/SimExchange.xml"/>
+	
+	<pump dest="./Sql/Duckdb/CreateSimExchangeDBTables.sql" tpl="../Templates/Sql/Duckdb/CreateTables.sql.tpl" model="./Model/Tables/SimExchange.xml ../Model/Types.xml"/>
+	<pump dest="./Sql/Duckdb/DropSimExchangeDBTables.sql" tpl="../Templates/Sql/Duckdb/DropTables.sql.tpl" model="./Model/Tables/SimExchange.xml"/>
+</pumplist>

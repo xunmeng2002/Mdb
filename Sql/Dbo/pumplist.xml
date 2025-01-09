@@ -1,4 +1,0 @@
-<pumplist>
-	<pump dest="./Sql/Dbo/CreateTradeTables.sql" tpl="../Templates/SQL/CreateTables.sql.tpl" model="./Model/Dbo/TradeTables.xml ./Model/Types.xml"/>
-	<pump dest="./Sql/Dbo/CreateAdminTables.sql" tpl="../Templates/SQL/CreateTables.sql.tpl" model="./Model/Dbo/AdminTables.xml ./Model/Types.xml"/>
-</pumplist>

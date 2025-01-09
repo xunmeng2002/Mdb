@@ -1,6 +1,0 @@
-<pumplist>
-	<pump dest="./Source/Dbo/DboStructs.h" tpl="../Templates/Structs/Structs.h.tpl" model="./Model/Dbo/TradeTables.xml"/>
-	<pump dest="./Source/Dbo/DboStructs.cpp" tpl="../Templates/Structs/Structs.cpp.tpl" model="./Model/Dbo/TradeTables.xml ./Model/Types.xml"/>
-	<pump dest="./Source/Dbo/DboDB.h" tpl="../Templates/DB/DB.h.tpl" model="./Model/Dbo/TradeTables.xml"/>
-	<pump dest="./Source/Dbo/DboDB.cpp" tpl="../Templates/DB/DB.cpp.tpl" model="./Model/Dbo/TradeTables.xml ./Model/Types.xml"/>
-</pumplist>

@@ -1,0 +1,244 @@
+<tables prefix="" tail="">
+	<table name="TradingDay" 					tid="0x0001" desc="交易日" session="true">
+		<fields>
+			<field name="PK" type="Int" desc="主键"/>
+			<field name="CurrTradingDay" type="Date" desc="当前交易日"/>
+			<field name="PreTradingDay" type="Date" desc="上一交易日"/>
+		</fields>
+		<primarykey>
+			<field name="PK"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Exchange" 						tid="0x0002" desc="交易所">
+		<fields>
+			<field name="ExchangeID" type="ExchangeID" desc="交易所代码"/>
+			<field name="ExchangeName" type="ExchangeName" desc="交易所名称"/>
+		</fields>
+		<primarykey>
+			<field name="ExchangeID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Product" 						tid="0x0003" desc="品种表">
+		<fields>
+			<field name="ExchangeID" type="ExchangeID" desc="交易所代码"/>
+			<field name="ProductID" type="ProductID" desc="品种代码"/>
+			<field name="ProductName" type="ProductName" desc="品种名称"/>
+			<field name="ProductClass" type="ProductClass" desc="产品类型"/>
+			<field name="VolumeMultiple" type="VolumeMultiple" desc="数量乘数"/>
+			<field name="PriceTick" type="Price" desc="报价单位"/>
+			<field name="MaxMarketOrderVolume" type="Volume" desc="市价单最大下单量"/>
+			<field name="MinMarketOrderVolume" type="Volume" desc="市价单最小下单量"/>
+			<field name="MaxLimitOrderVolume" type="Volume" desc="限价单最大下单量"/>
+			<field name="MinLimitOrderVolume" type="Volume" desc="限价单最小下单量"/>
+			<field name="SessionName" type="SessionName" desc="交易节名称"/>
+		</fields>
+		<primarykey>
+			<field name="ExchangeID"/>
+			<field name="ProductID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Instrument" 					tid="0x0004" desc="合约">
+		<fields>
+			<field name="ExchangeID" type="ExchangeID" desc="交易所代码"/>
+			<field name="InstrumentID" type="InstrumentID" desc="合约代码"/>
+			<field name="InstrumentName" type="InstrumentName" desc="合约名称"/>
+			<field name="ProductID" type="ProductID" desc="品种代码"/>
+			<field name="ProductClass" type="ProductClass" desc="产品类型"/>
+			<field name="VolumeMultiple" type="VolumeMultiple" desc="合约数量乘数"/>
+			<field name="PriceTick" type="Price" desc="报价单位"/>
+			<field name="MaxMarketOrderVolume" type="Volume" desc="市价单最大下单量"/>
+			<field name="MinMarketOrderVolume" type="Volume" desc="市价单最小下单量"/>
+			<field name="MaxLimitOrderVolume" type="Volume" desc="限价单最大下单量"/>
+			<field name="MinLimitOrderVolume" type="Volume" desc="限价单最小下单量"/>
+			<field name="SessionName" type="SessionName" desc="交易节名称"/>
+			<field name="DeliveryYear" type="Int" desc="交割年份"/>
+			<field name="DeliveryMonth" type="Int" desc="交割月"/>
+		</fields>
+		<primarykey>
+			<field name="ExchangeID"/>
+			<field name="InstrumentID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Account" 						tid="0x0005" desc="账户">
+		<fields>
+			<field name="TradingDay" type="Date" desc="交易日"/>
+			<field name="AccountID" type="AccountID" desc="账户代码"/>
+			<field name="AccountName" type="AccountName" desc="账户名称"/>
+			<field name="Password" type="Password" desc="密码"/>
+			<field name="PreBalance" type="Money" desc="上次结算准备金"/>
+			<field name="Balance" type="Money" desc="结算准备金"/>
+			<field name="CloseProfitByDate" type="Money" desc="逐日平仓盈亏"/>
+			<field name="PositionProfitByDate" type="Money" desc="逐日持仓盈亏"/>
+			<field name="PositionProfitByTrade" type="Money" desc="逐笔持仓盈亏"/>
+			<field name="PremiumIn" type="Money" desc="期权权利金收入"/>
+			<field name="PremiumOut" type="Money" desc="期权权利金支出"/>
+			<field name="MarketValue" type="Money" desc="市值"/>
+		</fields>
+		<primarykey>
+			<field name="AccountID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Position" 						tid="0x0006" desc="持仓">
+		<fields>
+			<field name="TradingDay" type="Date" desc="交易日"/>
+			<field name="AccountID" type="AccountID" desc="账户代码"/>
+			<field name="ExchangeID" type="ExchangeID" desc="交易所代码"/>
+			<field name="InstrumentID" type="InstrumentID" desc="合约代码"/>
+			<field name="ProductClass" type="ProductClass" desc="产品类型"/>
+			<field name="PosiDirection" type="PosiDirection" desc="持仓方向"/>
+			<field name="TotalPosition" type="Volume" desc="总持仓数量"/>
+			<field name="TodayPosition" type="Volume" desc="今仓"/>
+			<field name="FrozenPosition" type="Volume" desc="冻结持仓"/>
+			<field name="CloseProfitByDate" type="Money" desc="逐日盯市平仓盈亏"/>
+			<field name="CloseProfitByTrade" type="Money" desc="逐笔对冲平仓盈亏"/>
+			<field name="PositionProfitByDate" type="Money" desc="逐日盯市持仓盈亏"/>
+			<field name="PositionProfitByTrade" type="Money" desc="逐笔对冲持仓盈亏"/>
+			<field name="PremiumIn" type="Money" desc="期权权利金收入"/>
+			<field name="PremiumOut" type="Money" desc="期权权利金支出"/>
+			<field name="MarketValue" type="Money" desc="市值"/>
+			<field name="VolumeMultiple" type="VolumeMultiple" desc="数量乘数"/>
+			<field name="SettlementPrice" type="Price" desc="结算价"/>
+			<field name="PreSettlementPrice" type="Price" desc="昨结算价"/>
+		</fields>
+		<primarykey>
+			<field name="TradingDay"/>
+			<field name="AccountID"/>
+			<field name="ExchangeID"/>
+			<field name="InstrumentID"/>
+			<field name="PosiDirection"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes>
+			<index name="Account">
+				<field name="TradingDay"/>
+				<field name="AccountID"/>
+			</index>
+		</indexes>
+	</table>
+	<table name="Order" 						tid="0x0007" desc="委托">
+		<fields>
+			<field name="TradingDay" type="Date" desc="交易日"/>
+			<field name="AccountID" type="AccountID" desc="账户代码"/>
+			<field name="ExchangeID" type="ExchangeID" desc="交易所代码"/>
+			<field name="InstrumentID" type="InstrumentID" desc="合约代码"/>
+			<field name="OrderID" type="OrderID" desc="委托编号"/>
+			<field name="ClientOrderID" type="OrderID" desc="客户端委托编号"/>
+			<field name="Direction" type="Direction" desc="买卖方向"/>
+			<field name="OffsetFlag" type="OffsetFlag" desc="开平标志"/>
+			<field name="OrderPriceType" type="OrderPriceType" desc="委托价格类型"/>
+			<field name="Price" type="Price" desc="委托价格"/>
+			<field name="Volume" type="Volume" desc="委托数量"/>
+			<field name="VolumeRemain" type="Volume" desc="剩余数量"/>
+			<field name="VolumeTraded" type="Volume" desc="成交数量"/>
+			<field name="VolumeMultiple" type="VolumeMultiple" desc="合约数量乘数"/>
+			<field name="OrderStatus" type="OrderStatus" desc="委托状态"/>
+			<field name="OrderDate" type="Date" desc="委托日期"/>
+			<field name="OrderTime" type="Time" desc="委托时间"/>
+			<field name="CancelDate" type="Date" desc="撤单日期"/>
+			<field name="CancelTime" type="Time" desc="撤单时间"/>
+		</fields>
+		<primarykey>
+			<field name="TradingDay"/>
+			<field name="AccountID"/>
+			<field name="ExchangeID"/>
+			<field name="InstrumentID"/>
+			<field name="OrderID"/>
+		</primarykey>
+		<uniquekeys>
+			<uniquekey name="ClientOrderID">
+				<field name="TradingDay"/>
+				<field name="AccountID"/>
+				<field name="ExchangeID"/>
+				<field name="InstrumentID"/>
+				<field name="ClientOrderID"/>
+			</uniquekey>
+		</uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="Trade" 						tid="0x0008" desc="成交">
+		<fields>
+			<field name="TradingDay" type="Date" desc="交易日"/>
+			<field name="AccountID" type="AccountID" desc="账户代码"/>
+			<field name="ExchangeID" type="ExchangeID" desc="交易所代码"/>
+			<field name="InstrumentID" type="InstrumentID" desc="合约代码"/>
+			<field name="OrderID" type="OrderID" desc="委托编号"/>
+			<field name="TradeID" type="TradeID" desc="成交编号"/>
+			<field name="Direction" type="Direction" desc="买卖方向"/>
+			<field name="OffsetFlag" type="OffsetFlag" desc="开平标志"/>
+			<field name="Price" type="Price" desc="价格"/>
+			<field name="Volume" type="Volume" desc="数量"/>
+			<field name="TradeAmount" type="Money" desc="成交金额"/>
+			<field name="PremiumIn" type="Money" desc="期权权利金收入"/>
+			<field name="PremiumOut" type="Money" desc="期权权利金支出"/>
+			<field name="TradeDate" type="Date" desc="成交日期"/>
+			<field name="TradeTime" type="Time" desc="成交时间"/>
+		</fields>
+		<primarykey>
+			<field name="TradingDay"/>
+			<field name="ExchangeID"/>
+			<field name="TradeID"/>
+			<field name="Direction"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+	<table name="MdTick" 						tid="0x0009" desc="Tick行情">
+		<fields>
+			<field name="TradingDay" type="Date" desc="交易日"/>
+			<field name="ExchangeID" type="ExchangeID" desc="交易所代码"/>
+			<field name="InstrumentID" type="InstrumentID" desc="合约代码"/>
+			<field name="LastPrice" type="Price" desc="最新价"/>
+			<field name="PreSettlementPrice" type="Price" desc="昨结算价"/>
+			<field name="PreClosePrice" type="Price" desc="昨收盘价"/>
+			<field name="PreOpenInterest" type="Volume" desc="昨持仓量"/>
+			<field name="OpenPrice" type="Price" desc="今开盘价"/>
+			<field name="HighestPrice" type="Price" desc="最高价"/>
+			<field name="LowestPrice" type="Price" desc="最低价"/>
+			<field name="Volume" type="Volume" desc="总成交量"/>
+			<field name="Turnover" type="Money" desc="总成交金额"/>
+			<field name="OpenInterest" type="Volume" desc="持仓量"/>
+			<field name="UpperLimitPrice" type="Price" desc="涨停板价"/>
+			<field name="LowerLimitPrice" type="Price" desc="跌停板价"/>
+			<field name="UpdateTime" type="Time" desc="最后修改时间"/>
+			<field name="UpdateMillisec" type="Int" desc="最后修改毫秒"/>
+			<field name="AskPrice1" type="Price" desc="申卖价一"/>
+			<field name="AskPrice2" type="Price" desc="申卖价二"/>
+			<field name="AskPrice3" type="Price" desc="申卖价三"/>
+			<field name="AskPrice4" type="Price" desc="申卖价四"/>
+			<field name="AskPrice5" type="Price" desc="申卖价五"/>
+			<field name="AskVolume1" type="Volume" desc="申卖量一"/>
+			<field name="AskVolume2" type="Volume" desc="申卖量二"/>
+			<field name="AskVolume3" type="Volume" desc="申卖量三"/>
+			<field name="AskVolume4" type="Volume" desc="申卖量四"/>
+			<field name="AskVolume5" type="Volume" desc="申卖量五"/>
+			<field name="BidPrice1" type="Price" desc="申买价一"/>
+			<field name="BidPrice2" type="Price" desc="申买价二"/>
+			<field name="BidPrice3" type="Price" desc="申买价三"/>
+			<field name="BidPrice4" type="Price" desc="申买价四"/>
+			<field name="BidPrice5" type="Price" desc="申买价五"/>
+			<field name="BidVolume1" type="Volume" desc="申买量一"/>
+			<field name="BidVolume2" type="Volume" desc="申买量二"/>
+			<field name="BidVolume3" type="Volume" desc="申买量三"/>
+			<field name="BidVolume4" type="Volume" desc="申买量四"/>
+			<field name="BidVolume5" type="Volume" desc="申买量五"/>
+			<field name="AveragePrice" type="Price" desc="当日均价"/>
+		</fields>
+		<primarykey>
+			<field name="TradingDay"/>
+			<field name="ExchangeID"/>
+			<field name="InstrumentID"/>
+		</primarykey>
+		<uniquekeys></uniquekeys>
+		<indexes></indexes>
+	</table>
+</tables>
