@@ -12,9 +12,10 @@
 using namespace std;
 using namespace mdb;
 
-const char* dbHost = "tcp://172.21.59.169:3306/SimExchange";
-const char* dbUser = "ams";
-const char* dbPasswd = "ams";
+//const char* dbHost = "tcp://172.21.59.169:3306/SimExchange";
+const char* dbHost = "tcp://localhost:3306/SimExchange";
+const char* dbUser = "root";
+const char* dbPasswd = "root";
 const char* sqliteDBName = "../../../../../Sql/Sqlite/Test.sqlitedb";
 const char* duckDBName = "../../../../../Sql/Duckdb/Test.duckdb";
 
@@ -136,10 +137,9 @@ static void InitAccount(DB* db, const DateType tradingDay)
 	db->InsertAccount(account);
 }
 
-static void TestMysql()
+static void TestMdb(DB* db)
 {
 	Mdb* mdb = new Mdb();
-	MysqlDB* db = new MysqlDB(dbHost, dbUser, dbPasswd);
 	DBWriter* dbWriter = new DBWriter(db);
 	mdb->Subscribe(dbWriter);
 	mdb->SetInitStatus(true);
@@ -155,9 +155,8 @@ static void TestMysql()
 	dbWriter->Stop();
 	dbWriter->Join();
 }
-static void TestSqliteDB()
+static void TestDB(DB* db)
 {
-	SqliteDB* db = new SqliteDB(sqliteDBName);
 	if (!db->Connect())
 	{
 		WriteLog(LogLevel::Warning, "Connect Failed.");
@@ -194,46 +193,16 @@ static void TestSqliteDB()
 
 		db->DeleteTradingDay(tradingDay);
 	}
+	db->DisConnect();
 }
-static void TestDuckDB()
+static void Test()
 {
-	DuckDB* db = new DuckDB(duckDBName);
-	if (!db->Connect())
-	{
-		WriteLog(LogLevel::Warning, "Connect Failed.");
-		return;
-	}
-	db->TruncateTables();
-
-	auto tradingDay = InitTradingDay(db);
-	InitExchange(db);
-	InitAccount(db, tradingDay);
-
-	std::vector<Account*> accounts;
-	db->SelectAccount(accounts);
-	for (auto account : accounts)
-	{
-		WriteLog(LogLevel::Info, "%s", account->GetDebugString());
-	}
-	if (!accounts.empty())
-	{
-		auto account = accounts.front();
-		auto newAccount = new Account();
-		memcpy(newAccount, account, sizeof(Account));
-		strcpy(newAccount->AccountName, "Jack01");
-		newAccount->PremiumIn = 100;
-		db->UpdateAccount(newAccount);
-	}
-	accounts.clear();
-
-	vector<TradingDay*> tradingDays;
-	db->SelectTradingDay(tradingDays);
-	for (auto tradingDay : tradingDays)
-	{
-		WriteLog(LogLevel::Info, "%s", tradingDay->GetDebugString());
-
-		db->DeleteTradingDay(tradingDay);
-	}
+	MysqlDB* mysqldb = new MysqlDB(dbHost, dbUser, dbPasswd);
+	DuckDB* duckdb = new DuckDB(duckDBName);
+	SqliteDB* sqlitedb = new SqliteDB(sqliteDBName);
+	TestDB(mysqldb);
+	TestDB(duckdb);
+	TestDB(sqlitedb);
 }
 
 int main(int argc, char* argv[])
@@ -242,9 +211,7 @@ int main(int argc, char* argv[])
 	Logger::GetInstance().SetLogLevel(LogLevel::Info, LogLevel::Info);
 	Logger::GetInstance().Start();
 
-	//TestMysql();
-	TestSqliteDB();
-	//TestDuckDB();
+	Test();
 	
 	Logger::GetInstance().Stop();
 	Logger::GetInstance().Join();

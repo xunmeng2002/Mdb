@@ -1489,8 +1489,28 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<TradingDay*>& record
 			TradingDay* record = TradingDay::Allocate();
 			memset(record, 0, sizeof(TradingDay));
 			if (duckdb_validity_row_is_valid(validityColumn0, row)) record->PK = dataColumn0[row];
-			if (duckdb_validity_row_is_valid(validityColumn1, row)) Strcpy(record->CurrTradingDay, dataColumn1[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn2, row)) Strcpy(record->PreTradingDay, dataColumn2[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn1, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn1[row]))
+				{
+					Strcpy(record->CurrTradingDay, dataColumn1[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->CurrTradingDay, dataColumn1[row].value.pointer.ptr, dataColumn1[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn2, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn2[row]))
+				{
+					Strcpy(record->PreTradingDay, dataColumn2[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->PreTradingDay, dataColumn2[row].value.pointer.ptr, dataColumn2[row].value.pointer.length);
+				}
+			}
 			records.push_back(record);
 		}
 	}
@@ -1543,8 +1563,28 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<Exchange*>& records)
 		{
 			Exchange* record = Exchange::Allocate();
 			memset(record, 0, sizeof(Exchange));
-			if (duckdb_validity_row_is_valid(validityColumn0, row)) Strcpy(record->ExchangeID, dataColumn0[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn1, row)) Strcpy(record->ExchangeName, dataColumn1[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn0, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn0[row]))
+				{
+					Strcpy(record->ExchangeID, dataColumn0[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->ExchangeID, dataColumn0[row].value.pointer.ptr, dataColumn0[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn1, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn1[row]))
+				{
+					Strcpy(record->ExchangeName, dataColumn1[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->ExchangeName, dataColumn1[row].value.pointer.ptr, dataColumn1[row].value.pointer.length);
+				}
+			}
 			records.push_back(record);
 		}
 	}
@@ -1652,9 +1692,39 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<Product*>& records)
 		{
 			Product* record = Product::Allocate();
 			memset(record, 0, sizeof(Product));
-			if (duckdb_validity_row_is_valid(validityColumn0, row)) Strcpy(record->ExchangeID, dataColumn0[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn1, row)) Strcpy(record->ProductID, dataColumn1[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn2, row)) Strcpy(record->ProductName, dataColumn2[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn0, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn0[row]))
+				{
+					Strcpy(record->ExchangeID, dataColumn0[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->ExchangeID, dataColumn0[row].value.pointer.ptr, dataColumn0[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn1, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn1[row]))
+				{
+					Strcpy(record->ProductID, dataColumn1[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->ProductID, dataColumn1[row].value.pointer.ptr, dataColumn1[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn2, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn2[row]))
+				{
+					Strcpy(record->ProductName, dataColumn2[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->ProductName, dataColumn2[row].value.pointer.ptr, dataColumn2[row].value.pointer.length);
+				}
+			}
 			if (duckdb_validity_row_is_valid(validityColumn3, row)) record->ProductClass = ProductClassType(dataColumn3[row]);
 			if (duckdb_validity_row_is_valid(validityColumn4, row)) record->VolumeMultiple = dataColumn4[row];
 			if (duckdb_validity_row_is_valid(validityColumn5, row)) record->PriceTick = dataColumn5[row];
@@ -1662,7 +1732,17 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<Product*>& records)
 			if (duckdb_validity_row_is_valid(validityColumn7, row)) record->MinMarketOrderVolume = dataColumn7[row];
 			if (duckdb_validity_row_is_valid(validityColumn8, row)) record->MaxLimitOrderVolume = dataColumn8[row];
 			if (duckdb_validity_row_is_valid(validityColumn9, row)) record->MinLimitOrderVolume = dataColumn9[row];
-			if (duckdb_validity_row_is_valid(validityColumn10, row)) Strcpy(record->SessionName, dataColumn10[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn10, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn10[row]))
+				{
+					Strcpy(record->SessionName, dataColumn10[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->SessionName, dataColumn10[row].value.pointer.ptr, dataColumn10[row].value.pointer.length);
+				}
+			}
 			records.push_back(record);
 		}
 	}
@@ -1788,10 +1868,50 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<Instrument*>& record
 		{
 			Instrument* record = Instrument::Allocate();
 			memset(record, 0, sizeof(Instrument));
-			if (duckdb_validity_row_is_valid(validityColumn0, row)) Strcpy(record->ExchangeID, dataColumn0[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn1, row)) Strcpy(record->InstrumentID, dataColumn1[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn2, row)) Strcpy(record->InstrumentName, dataColumn2[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn3, row)) Strcpy(record->ProductID, dataColumn3[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn0, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn0[row]))
+				{
+					Strcpy(record->ExchangeID, dataColumn0[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->ExchangeID, dataColumn0[row].value.pointer.ptr, dataColumn0[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn1, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn1[row]))
+				{
+					Strcpy(record->InstrumentID, dataColumn1[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->InstrumentID, dataColumn1[row].value.pointer.ptr, dataColumn1[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn2, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn2[row]))
+				{
+					Strcpy(record->InstrumentName, dataColumn2[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->InstrumentName, dataColumn2[row].value.pointer.ptr, dataColumn2[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn3, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn3[row]))
+				{
+					Strcpy(record->ProductID, dataColumn3[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->ProductID, dataColumn3[row].value.pointer.ptr, dataColumn3[row].value.pointer.length);
+				}
+			}
 			if (duckdb_validity_row_is_valid(validityColumn4, row)) record->ProductClass = ProductClassType(dataColumn4[row]);
 			if (duckdb_validity_row_is_valid(validityColumn5, row)) record->VolumeMultiple = dataColumn5[row];
 			if (duckdb_validity_row_is_valid(validityColumn6, row)) record->PriceTick = dataColumn6[row];
@@ -1799,7 +1919,17 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<Instrument*>& record
 			if (duckdb_validity_row_is_valid(validityColumn8, row)) record->MinMarketOrderVolume = dataColumn8[row];
 			if (duckdb_validity_row_is_valid(validityColumn9, row)) record->MaxLimitOrderVolume = dataColumn9[row];
 			if (duckdb_validity_row_is_valid(validityColumn10, row)) record->MinLimitOrderVolume = dataColumn10[row];
-			if (duckdb_validity_row_is_valid(validityColumn11, row)) Strcpy(record->SessionName, dataColumn11[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn11, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn11[row]))
+				{
+					Strcpy(record->SessionName, dataColumn11[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->SessionName, dataColumn11[row].value.pointer.ptr, dataColumn11[row].value.pointer.length);
+				}
+			}
 			if (duckdb_validity_row_is_valid(validityColumn12, row)) record->DeliveryYear = dataColumn12[row];
 			if (duckdb_validity_row_is_valid(validityColumn13, row)) record->DeliveryMonth = dataColumn13[row];
 			records.push_back(record);
@@ -1914,10 +2044,50 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<Account*>& records)
 		{
 			Account* record = Account::Allocate();
 			memset(record, 0, sizeof(Account));
-			if (duckdb_validity_row_is_valid(validityColumn0, row)) Strcpy(record->TradingDay, dataColumn0[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn1, row)) Strcpy(record->AccountID, dataColumn1[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn2, row)) Strcpy(record->AccountName, dataColumn2[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn3, row)) Strcpy(record->Password, dataColumn3[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn0, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn0[row]))
+				{
+					Strcpy(record->TradingDay, dataColumn0[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->TradingDay, dataColumn0[row].value.pointer.ptr, dataColumn0[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn1, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn1[row]))
+				{
+					Strcpy(record->AccountID, dataColumn1[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->AccountID, dataColumn1[row].value.pointer.ptr, dataColumn1[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn2, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn2[row]))
+				{
+					Strcpy(record->AccountName, dataColumn2[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->AccountName, dataColumn2[row].value.pointer.ptr, dataColumn2[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn3, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn3[row]))
+				{
+					Strcpy(record->Password, dataColumn3[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->Password, dataColumn3[row].value.pointer.ptr, dataColumn3[row].value.pointer.length);
+				}
+			}
 			if (duckdb_validity_row_is_valid(validityColumn4, row)) record->PreBalance = dataColumn4[row];
 			if (duckdb_validity_row_is_valid(validityColumn5, row)) record->Balance = dataColumn5[row];
 			if (duckdb_validity_row_is_valid(validityColumn6, row)) record->CloseProfitByDate = dataColumn6[row];
@@ -2089,10 +2259,50 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<Position*>& records)
 		{
 			Position* record = Position::Allocate();
 			memset(record, 0, sizeof(Position));
-			if (duckdb_validity_row_is_valid(validityColumn0, row)) Strcpy(record->TradingDay, dataColumn0[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn1, row)) Strcpy(record->AccountID, dataColumn1[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn2, row)) Strcpy(record->ExchangeID, dataColumn2[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn3, row)) Strcpy(record->InstrumentID, dataColumn3[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn0, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn0[row]))
+				{
+					Strcpy(record->TradingDay, dataColumn0[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->TradingDay, dataColumn0[row].value.pointer.ptr, dataColumn0[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn1, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn1[row]))
+				{
+					Strcpy(record->AccountID, dataColumn1[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->AccountID, dataColumn1[row].value.pointer.ptr, dataColumn1[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn2, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn2[row]))
+				{
+					Strcpy(record->ExchangeID, dataColumn2[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->ExchangeID, dataColumn2[row].value.pointer.ptr, dataColumn2[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn3, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn3[row]))
+				{
+					Strcpy(record->InstrumentID, dataColumn3[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->InstrumentID, dataColumn3[row].value.pointer.ptr, dataColumn3[row].value.pointer.length);
+				}
+			}
 			if (duckdb_validity_row_is_valid(validityColumn4, row)) record->ProductClass = ProductClassType(dataColumn4[row]);
 			if (duckdb_validity_row_is_valid(validityColumn5, row)) record->PosiDirection = PosiDirectionType(dataColumn5[row]);
 			if (duckdb_validity_row_is_valid(validityColumn6, row)) record->TotalPosition = dataColumn6[row];
@@ -2266,10 +2476,50 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<Order*>& records)
 		{
 			Order* record = Order::Allocate();
 			memset(record, 0, sizeof(Order));
-			if (duckdb_validity_row_is_valid(validityColumn0, row)) Strcpy(record->TradingDay, dataColumn0[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn1, row)) Strcpy(record->AccountID, dataColumn1[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn2, row)) Strcpy(record->ExchangeID, dataColumn2[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn3, row)) Strcpy(record->InstrumentID, dataColumn3[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn0, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn0[row]))
+				{
+					Strcpy(record->TradingDay, dataColumn0[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->TradingDay, dataColumn0[row].value.pointer.ptr, dataColumn0[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn1, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn1[row]))
+				{
+					Strcpy(record->AccountID, dataColumn1[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->AccountID, dataColumn1[row].value.pointer.ptr, dataColumn1[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn2, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn2[row]))
+				{
+					Strcpy(record->ExchangeID, dataColumn2[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->ExchangeID, dataColumn2[row].value.pointer.ptr, dataColumn2[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn3, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn3[row]))
+				{
+					Strcpy(record->InstrumentID, dataColumn3[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->InstrumentID, dataColumn3[row].value.pointer.ptr, dataColumn3[row].value.pointer.length);
+				}
+			}
 			if (duckdb_validity_row_is_valid(validityColumn4, row)) record->OrderID = dataColumn4[row];
 			if (duckdb_validity_row_is_valid(validityColumn5, row)) record->ClientOrderID = dataColumn5[row];
 			if (duckdb_validity_row_is_valid(validityColumn6, row)) record->Direction = DirectionType(dataColumn6[row]);
@@ -2281,10 +2531,50 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<Order*>& records)
 			if (duckdb_validity_row_is_valid(validityColumn12, row)) record->VolumeTraded = dataColumn12[row];
 			if (duckdb_validity_row_is_valid(validityColumn13, row)) record->VolumeMultiple = dataColumn13[row];
 			if (duckdb_validity_row_is_valid(validityColumn14, row)) record->OrderStatus = OrderStatusType(dataColumn14[row]);
-			if (duckdb_validity_row_is_valid(validityColumn15, row)) Strcpy(record->OrderDate, dataColumn15[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn16, row)) Strcpy(record->OrderTime, dataColumn16[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn17, row)) Strcpy(record->CancelDate, dataColumn17[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn18, row)) Strcpy(record->CancelTime, dataColumn18[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn15, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn15[row]))
+				{
+					Strcpy(record->OrderDate, dataColumn15[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->OrderDate, dataColumn15[row].value.pointer.ptr, dataColumn15[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn16, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn16[row]))
+				{
+					Strcpy(record->OrderTime, dataColumn16[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->OrderTime, dataColumn16[row].value.pointer.ptr, dataColumn16[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn17, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn17[row]))
+				{
+					Strcpy(record->CancelDate, dataColumn17[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->CancelDate, dataColumn17[row].value.pointer.ptr, dataColumn17[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn18, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn18[row]))
+				{
+					Strcpy(record->CancelTime, dataColumn18[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->CancelTime, dataColumn18[row].value.pointer.ptr, dataColumn18[row].value.pointer.length);
+				}
+			}
 			records.push_back(record);
 		}
 	}
@@ -2418,12 +2708,62 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<Trade*>& records)
 		{
 			Trade* record = Trade::Allocate();
 			memset(record, 0, sizeof(Trade));
-			if (duckdb_validity_row_is_valid(validityColumn0, row)) Strcpy(record->TradingDay, dataColumn0[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn1, row)) Strcpy(record->AccountID, dataColumn1[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn2, row)) Strcpy(record->ExchangeID, dataColumn2[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn3, row)) Strcpy(record->InstrumentID, dataColumn3[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn0, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn0[row]))
+				{
+					Strcpy(record->TradingDay, dataColumn0[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->TradingDay, dataColumn0[row].value.pointer.ptr, dataColumn0[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn1, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn1[row]))
+				{
+					Strcpy(record->AccountID, dataColumn1[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->AccountID, dataColumn1[row].value.pointer.ptr, dataColumn1[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn2, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn2[row]))
+				{
+					Strcpy(record->ExchangeID, dataColumn2[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->ExchangeID, dataColumn2[row].value.pointer.ptr, dataColumn2[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn3, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn3[row]))
+				{
+					Strcpy(record->InstrumentID, dataColumn3[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->InstrumentID, dataColumn3[row].value.pointer.ptr, dataColumn3[row].value.pointer.length);
+				}
+			}
 			if (duckdb_validity_row_is_valid(validityColumn4, row)) record->OrderID = dataColumn4[row];
-			if (duckdb_validity_row_is_valid(validityColumn5, row)) Strcpy(record->TradeID, dataColumn5[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn5, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn5[row]))
+				{
+					Strcpy(record->TradeID, dataColumn5[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->TradeID, dataColumn5[row].value.pointer.ptr, dataColumn5[row].value.pointer.length);
+				}
+			}
 			if (duckdb_validity_row_is_valid(validityColumn6, row)) record->Direction = DirectionType(dataColumn6[row]);
 			if (duckdb_validity_row_is_valid(validityColumn7, row)) record->OffsetFlag = OffsetFlagType(dataColumn7[row]);
 			if (duckdb_validity_row_is_valid(validityColumn8, row)) record->Price = dataColumn8[row];
@@ -2431,8 +2771,28 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<Trade*>& records)
 			if (duckdb_validity_row_is_valid(validityColumn10, row)) record->TradeAmount = dataColumn10[row];
 			if (duckdb_validity_row_is_valid(validityColumn11, row)) record->PremiumIn = dataColumn11[row];
 			if (duckdb_validity_row_is_valid(validityColumn12, row)) record->PremiumOut = dataColumn12[row];
-			if (duckdb_validity_row_is_valid(validityColumn13, row)) Strcpy(record->TradeDate, dataColumn13[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn14, row)) Strcpy(record->TradeTime, dataColumn14[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn13, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn13[row]))
+				{
+					Strcpy(record->TradeDate, dataColumn13[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->TradeDate, dataColumn13[row].value.pointer.ptr, dataColumn13[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn14, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn14[row]))
+				{
+					Strcpy(record->TradeTime, dataColumn14[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->TradeTime, dataColumn14[row].value.pointer.ptr, dataColumn14[row].value.pointer.length);
+				}
+			}
 			records.push_back(record);
 		}
 	}
@@ -2703,9 +3063,39 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<MdTick*>& records)
 		{
 			MdTick* record = MdTick::Allocate();
 			memset(record, 0, sizeof(MdTick));
-			if (duckdb_validity_row_is_valid(validityColumn0, row)) Strcpy(record->TradingDay, dataColumn0[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn1, row)) Strcpy(record->ExchangeID, dataColumn1[row].value.inlined.inlined);
-			if (duckdb_validity_row_is_valid(validityColumn2, row)) Strcpy(record->InstrumentID, dataColumn2[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn0, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn0[row]))
+				{
+					Strcpy(record->TradingDay, dataColumn0[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->TradingDay, dataColumn0[row].value.pointer.ptr, dataColumn0[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn1, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn1[row]))
+				{
+					Strcpy(record->ExchangeID, dataColumn1[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->ExchangeID, dataColumn1[row].value.pointer.ptr, dataColumn1[row].value.pointer.length);
+				}
+			}
+			if (duckdb_validity_row_is_valid(validityColumn2, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn2[row]))
+				{
+					Strcpy(record->InstrumentID, dataColumn2[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->InstrumentID, dataColumn2[row].value.pointer.ptr, dataColumn2[row].value.pointer.length);
+				}
+			}
 			if (duckdb_validity_row_is_valid(validityColumn3, row)) record->LastPrice = dataColumn3[row];
 			if (duckdb_validity_row_is_valid(validityColumn4, row)) record->PreSettlementPrice = dataColumn4[row];
 			if (duckdb_validity_row_is_valid(validityColumn5, row)) record->PreClosePrice = dataColumn5[row];
@@ -2718,7 +3108,17 @@ void DuckDB::ParseRecord(duckdb_result& result, std::vector<MdTick*>& records)
 			if (duckdb_validity_row_is_valid(validityColumn12, row)) record->OpenInterest = dataColumn12[row];
 			if (duckdb_validity_row_is_valid(validityColumn13, row)) record->UpperLimitPrice = dataColumn13[row];
 			if (duckdb_validity_row_is_valid(validityColumn14, row)) record->LowerLimitPrice = dataColumn14[row];
-			if (duckdb_validity_row_is_valid(validityColumn15, row)) Strcpy(record->UpdateTime, dataColumn15[row].value.inlined.inlined);
+			if (duckdb_validity_row_is_valid(validityColumn15, row))
+			{
+				if (duckdb_string_is_inlined(dataColumn15[row]))
+				{
+					Strcpy(record->UpdateTime, dataColumn15[row].value.inlined.inlined);
+				}
+				else
+				{
+					memcpy(record->UpdateTime, dataColumn15[row].value.pointer.ptr, dataColumn15[row].value.pointer.length);
+				}
+			}
 			if (duckdb_validity_row_is_valid(validityColumn16, row)) record->UpdateMillisec = dataColumn16[row];
 			if (duckdb_validity_row_is_valid(validityColumn17, row)) record->AskPrice1 = dataColumn17[row];
 			if (duckdb_validity_row_is_valid(validityColumn18, row)) record->AskPrice2 = dataColumn18[row];
