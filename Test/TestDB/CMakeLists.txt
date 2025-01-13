@@ -25,7 +25,7 @@ endif()
 
 add_executable(${PROJECT_NAME} ${all_file})
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-	target_link_libraries(${PROJECT_NAME} PersonalLib.lib mysqlcppconn.lib mysqlcppconnx.lib libcrypto.lib libssl.lib duckdb.lib)
+	target_link_libraries(${PROJECT_NAME} PersonalLib.lib mysqlcppconn.lib duckdb.lib)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	target_link_libraries(${PROJECT_NAME} PersonalLib pthread dl mysqlcppconnx duckdb.lib)
 endif()

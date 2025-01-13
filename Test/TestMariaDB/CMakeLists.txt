@@ -15,6 +15,7 @@ link_directories(${CMAKE_SOURCE_DIR}/../Libs/MariaDB/1.1.5/win64)
 
 add_executable(${PROJECT_NAME} ${all_file})
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
+	#target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Release>:/MT> $<$<CONFIG:Debug>:/MTd>)
 	target_link_libraries(${PROJECT_NAME} PersonalLib.lib mariadbcpp.lib)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	target_link_libraries(${PROJECT_NAME} PersonalLib pthread dl mariadbcpp)
