@@ -1,9 +1,7 @@
 #include <iostream>
 #include "Mdb.h"
 #include "DB.h"
-#include "MysqlDB.h"
-#include "SqliteDB.h"
-#include "DuckDB.h"
+#include "MariaDB.h"
 #include "DBWriter.h"
 #include "InitMdbFromDB.h"
 #include "TimeUtility.h"
@@ -12,11 +10,9 @@
 using namespace std;
 using namespace mdb;
 
-const char* mysqldbHost = "tcp://172.21.59.169:3306/SimExchange";
-const char* mysqldbUser = "root";
-const char* mysqldbPasswd = "root";
-const char* sqliteDBName = "../../../../../Sql/Sqlite/Test.sqlitedb";
-const char* duckDBName = "../../../../../Sql/Duckdb/Test.duckdb";
+const char* mariadbHost = "tcp://localhost:3306/SimExchange";
+const char* mariadbUser = "root";
+const char* mariadbPasswd = "root";
 
 static const char* InitTradingDay(Mdb* mdb)
 {
@@ -136,9 +132,10 @@ static void InitAccount(DB* db, const DateType tradingDay)
 	db->InsertAccount(account);
 }
 
-static void TestMdb(DB* db)
+static void TestMdb()
 {
 	Mdb* mdb = new Mdb();
+	MariaDB* db = new MariaDB(mariadbHost, mariadbUser, mariadbPasswd);
 	DBWriter* dbWriter = new DBWriter(db);
 	mdb->Subscribe(dbWriter);
 	mdb->SetInitStatus(true);
@@ -154,8 +151,9 @@ static void TestMdb(DB* db)
 	dbWriter->Stop();
 	dbWriter->Join();
 }
-static void TestDB(DB* db)
+static void TestDB()
 {
+	MariaDB* db = new MariaDB(mariadbHost, mariadbUser, mariadbPasswd);
 	if (!db->Connect())
 	{
 		WriteLog(LogLevel::Warning, "Connect Failed.");
@@ -193,15 +191,6 @@ static void TestDB(DB* db)
 	db->DeleteExchange(exchanges.front());
 	db->DisConnect();
 }
-static void Test()
-{
-	MysqlDB* mysqldb = new MysqlDB(mysqldbHost, mysqldbUser, mysqldbPasswd);
-	DuckDB* duckdb = new DuckDB(duckDBName);
-	SqliteDB* sqlitedb = new SqliteDB(sqliteDBName);
-	TestDB(mysqldb);
-	TestDB(duckdb);
-	TestDB(sqlitedb);
-}
 
 int main(int argc, char* argv[])
 {
@@ -209,7 +198,7 @@ int main(int argc, char* argv[])
 	Logger::GetInstance().SetLogLevel(LogLevel::Info, LogLevel::Info);
 	Logger::GetInstance().Start();
 
-	Test();
+	TestDB();
 	
 	Logger::GetInstance().Stop();
 	Logger::GetInstance().Join();

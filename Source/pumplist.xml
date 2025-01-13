@@ -6,6 +6,8 @@
 
 	<pump dest="./Source/SimExchangeDB/MysqlDB/MysqlDB.h" tpl="../Templates/Cpp/DB/MysqlDB/MysqlDB.h.tpl" model="./Model/Tables/SimExchange.xml"/>
 	<pump dest="./Source/SimExchangeDB/MysqlDB/MysqlDB.cpp" tpl="../Templates/Cpp/DB/MysqlDB/MysqlDB.cpp.tpl" model="./Model/Tables/SimExchange.xml ../Model/Types.xml"/>
+	<pump dest="./Source/SimExchangeDB/MariaDB/MariaDB.h" tpl="../Templates/Cpp/DB/MariaDB/MariaDB.h.tpl" model="./Model/Tables/SimExchange.xml"/>
+	<pump dest="./Source/SimExchangeDB/MariaDB/MariaDB.cpp" tpl="../Templates/Cpp/DB/MariaDB/MariaDB.cpp.tpl" model="./Model/Tables/SimExchange.xml ../Model/Types.xml"/>
 	<pump dest="./Source/SimExchangeDB/SqliteDB/SqliteDB.h" tpl="../Templates/Cpp/DB/SqliteDB/SqliteDB.h.tpl" model="./Model/Tables/SimExchange.xml"/>
 	<pump dest="./Source/SimExchangeDB/SqliteDB/SqliteDB.cpp" tpl="../Templates/Cpp/DB/SqliteDB/SqliteDB.cpp.tpl" model="./Model/Tables/SimExchange.xml ../Model/Types.xml"/>
 	<pump dest="./Source/SimExchangeDB/DuckDB/DuckDB.h" tpl="../Templates/Cpp/DB/DuckDB/DuckDB.h.tpl" model="./Model/Tables/SimExchange.xml"/>
