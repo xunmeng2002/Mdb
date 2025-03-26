@@ -1,4 +1,6 @@
 #!encoding:utf-8
+
+
 import xml.etree.cElementTree as ET
 import sys
 import re
@@ -35,6 +37,6 @@ def Search(path, destFileName):
     return destPaths
 
 if __name__ == "__main__":
-    copyfiles = Search(".", "headerlist.xml")
+    copyfiles = Search(".", "modellist.xml")
     for copyfile in copyfiles:
         DoCopy(copyfile)
