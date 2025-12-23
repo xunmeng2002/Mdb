@@ -2,23 +2,27 @@
 
 ## Project Introduction
 
-Mdb is a database operation project that primarily implements interactions with multiple databases (MariaDB, MySQL, SQLite, DuckDB). It provides a series of interfaces to create, delete, query, and update tables and records within databases. This project is suitable for applications requiring efficient data persistence processing.
+Mdb is an in-memory database project that mainly implements features such as primary keys, unique keys, and indexes. It generates database logs based on database operations and synchronizes them to the physical database that has subscribed to these database logs, supporting interaction with multiple databases (MariaDB, MySQL, SQLite, DuckDB). It provides a series of interfaces for creating, deleting, querying and updating tables and records in the database. This project is suitable for application scenarios that require high performance and data persistence processing.
+
 
 ### Key Features
 
-- Supports multiple databases (MariaDB, MySQL, SQLite, DuckDB).
-- Provides operations to create, delete, and truncate tables.
-- Supports inserting, bulk inserting, deleting, and updating records.
-- Manages commonly used financial data such as trading days, exchanges, products, contracts, accounts, funds, and positions.
+- In-memory database (Mdb) provides primary keys, unique keys, and indexes.
+- In-memory databases provide table-level read and write locks, and write locks are automatically added when operations such as adding, deleting, or modifying are performed. The read lock is decided by the user whether to use it or not.
+- It provides single-data queries based on primary keys, full table queries, and range queries based on indexes.
+- Provide operations for creating, deleting, and clearing tables.
+- Supports insertion, batch insertion, deletion and update of records.
+- Supports multiple physical databases (MariaDB, MySQL, SQLite, DuckDB).
+
 
 ### Directory Structure
 
+- `Source/DB/Mdb`: In-memory database-related implementations.
 - `Source/DB/DBOperate`: Public interface definitions for database operations.
 - `Source/DB/DuckDB`: Specific implementation for DuckDB.
 - `Source/DB/MariaDB`: Specific implementation for MariaDB.
 - `Source/DB/MysqlDB`: Specific implementation for MySQL.
 - `Source/DB/SqliteDB`: Specific implementation for SQLite.
-- `Source/DB/Mdb`: In-memory database-related implementations.
 - `Sql`: Stores database script files.
 - `Test/TestDB`: Test code.
 
@@ -27,6 +31,7 @@ Mdb is a database operation project that primarily implements interactions with 
 ### Dependencies
 
 - C++ compiler (supporting C++11 or higher)
+- PersonalLib's C++ library supports thread encapsulation and logging functions.
 - Development libraries for MariaDB, MySQL, SQLite, and DuckDB
 - CMake
 
@@ -54,46 +59,51 @@ mdb::Mdb* mdb = new mdb::Mdb();
 mdb::InitMdbFromCsv::LoadTables(mdb, "data_directory");
 ```
 
-### Connect to Database
-
-Example of connecting to MariaDB:
+### Example of using MysqlDB
 
 ```cpp
-MariaDB* db = new MariaDB("host", "user", "password");
-db->Connect();
+MsqylDB* db = new MysqlDB("host", "user", "password");
+DBWriter* dbWriter = new DBWriter(db);
+mdb->Subscribe(dbWriter); Here, dbWrite subscribes to the database log of Mdb
+dbWriter->Subscribe(mdb); //Mdb subscribes to the database connection status information of DbWrite
+mdb->SetInitStatus(true);
 ```
 
 ### Create Tables
 
 ```cpp
-db->CreateTables();
+mdb->CreateTables();
 ```
 
 ### Insert Records
 
 ```cpp
 TradingDay* record = new TradingDay();
-// Set fields of record
-db->InsertTradingDay(record);
+// Set the fields of record
+memset(record , 0, sizeof(record ));
+int pkTradingDay = 1;
+record ->PK = pkTradingDay;
+strcpy(record->PreTradingDay, "20251222");
+strcpy(record->CurrTradingDay, "20251223");
+mdb->t_TradingDay->Insert(record);
 ```
 
 ### Query Records
 
 ```cpp
-std::list<TradingDay*> records;
-db->SelectTradingDay(records);
+TradingDay* tradingDay = mdb->t_TradingDay->m_PrimaryKey->Select(pkTradingDay);
 ```
 
 ### Delete Records
 
 ```cpp
-db->DeleteTradingDay(record);
+mdb->t_TradingDay->Erase(tradingDay);
 ```
 
 ### Truncate Tables
 
 ```cpp
-db->TruncateTradingDay();
+mdb->t_TradingDay->TruncateTable();
 ```
 
 ## Contribution Guidelines
