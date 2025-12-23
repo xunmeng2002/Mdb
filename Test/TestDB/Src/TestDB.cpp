@@ -206,9 +206,9 @@ static void Test()
 	//TestDB(duckdb);
 	//TestDB(sqlitedb);
 
-	TestMdb(mysqldb);
+	//TestMdb(mysqldb);
 	//TestMdb(mariadb);
-	//TestMdb(duckdb);
+	TestMdb(duckdb);
 	//TestMdb(sqlitedb);
 }
 

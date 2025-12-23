@@ -42,7 +42,7 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Windows")
-	#configure_file("${LibsPath}/PersonalLib/win64/PersonalLib.dll" "${CMAKE_CURRENT_BINARY_DIR}/PersonalLib.dll" COPYONLY)
+	configure_file("${LibsPath}/PersonalLib/win64/PersonalLib.dll" "${CMAKE_CURRENT_BINARY_DIR}/PersonalLib.dll" COPYONLY)
 	configure_file("${LibsPath}/duckdb/win64/duckdb.dll" "${CMAKE_CURRENT_BINARY_DIR}/duckdb.dll" COPYONLY)
 	configure_file("${LibsPath}/SQLite/3.36.0/win64/sqlite3.dll" "${CMAKE_CURRENT_BINARY_DIR}/sqlite3.dll" COPYONLY)
 	configure_file("${LibsPath}/MysqlConnector/9.0.0/win64/debug/libcrypto-3-x64.dll" "${CMAKE_CURRENT_BINARY_DIR}/libcrypto-3-x64.dll" COPYONLY)

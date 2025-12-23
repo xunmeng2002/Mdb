@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-SET(PROJECT_NAME "DataBase")
+SET(PROJECT_NAME "Mdb")
 project(${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
