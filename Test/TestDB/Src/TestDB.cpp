@@ -223,7 +223,7 @@ static void Test()
 	TestMdb(mysqldb);
 	//WriteLog(LogLevel::Info, "TestMdb with MariaDB");
 	//TestMdb(mariadb);
-	WriteLog(LogLevel::Info, "TestMdb with Duckdb");
+	//WriteLog(LogLevel::Info, "TestMdb with Duckdb");
 	TestMdb(duckdb);
 	WriteLog(LogLevel::Info, "TestMdb with Sqlite");
 	TestMdb(sqlitedb);
