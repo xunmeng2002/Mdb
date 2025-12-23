@@ -96,6 +96,10 @@ static void InitAccount(Mdb* mdb)
 	mdb->t_Account->Insert(account);
 }
 
+void Print(TradingDay* tradingDay)
+{
+	WriteLog(LogLevel::Info, "%s", tradingDay->GetDebugString());
+}
 void Print(Exchange* exchange)
 {
 	WriteLog(LogLevel::Info, "%s", exchange->GetDebugString());
@@ -128,20 +132,24 @@ static void TestMdb(DB* db)
 	DBWriter* dbWriter = new DBWriter(db);
 	mdb->Subscribe(dbWriter);
 	dbWriter->Subscribe(mdb);
-	mdb->SetInitStatus(true);
 	
 	dbWriter->Start();
 	mdb->CreateTables();
-	mdb->InitDB();
+	mdb->SetInitStatus(true);
 
 	InitTradingDay(mdb);
 	InitExchange(mdb);
 	InitAccount(mdb);
 
+	
 	ExchangeIDType exchangeID("CFFEX");
 	auto exchange = mdb->t_Exchange->m_PrimaryKey->Select(exchangeID);
 	Print(exchange);
 	
+	auto tradingDay = mdb->t_TradingDay->m_PrimaryKey->Select(1);
+	Print(tradingDay);
+	mdb->t_TradingDay->Erase(tradingDay);
+	mdb->t_TradingDay->TruncateTable();
 	auto exchangePair = mdb->t_Exchange->m_PrimaryKey->SelectAll();
 	for (auto& it = exchangePair.first; it != exchangePair.second; ++it)
 	{
