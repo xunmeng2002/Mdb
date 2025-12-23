@@ -57,9 +57,7 @@ mdb::Mdb* mdb = new mdb::Mdb();
 mdb::InitMdbFromCsv::LoadTables(mdb, "data_directory");
 ```
 
-### 连接数据库
-
-以下是一个使用 MysqlDB 的示例：
+### 使用 MysqlDB 的示例
 
 ```cpp
 MsqylDB* db = new MysqlDB("host", "user", "password");
