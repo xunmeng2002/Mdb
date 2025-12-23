@@ -1,5 +1,4 @@
 add_subdirectory(TestDB)
-add_subdirectory(TestMariaDB)
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()

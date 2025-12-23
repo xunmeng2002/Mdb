@@ -1,0 +1,3 @@
+<parselist>
+	<pump script="./ParseTableModel.py" dest="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml" sources="./Model/Tables/ShortTables.xml ../Model/Items.xml"/>
+</parselist>

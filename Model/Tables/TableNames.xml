@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dbtables>
+	<table name="TradingDay"/>
+	<table name="Exchange"/>
+	<table name="Product"/>
+	<table name="Instrument"/>
+	<table name="PrimaryAccount"/>
+	<table name="Account"/>
+	<table name="Capital"/>
+	<table name="Position"/>
+	<table name="PositionDetail"/>
+	<table name="Order"/>
+	<table name="Trade"/>
+</dbtables>

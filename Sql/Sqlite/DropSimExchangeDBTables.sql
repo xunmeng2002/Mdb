@@ -1,9 +1,0 @@
-﻿DROP TABLE IF EXISTS `t_TradingDay`;
-DROP TABLE IF EXISTS `t_Exchange`;
-DROP TABLE IF EXISTS `t_Product`;
-DROP TABLE IF EXISTS `t_Instrument`;
-DROP TABLE IF EXISTS `t_Account`;
-DROP TABLE IF EXISTS `t_Position`;
-DROP TABLE IF EXISTS `t_Order`;
-DROP TABLE IF EXISTS `t_Trade`;
-DROP TABLE IF EXISTS `t_MdTick`;
