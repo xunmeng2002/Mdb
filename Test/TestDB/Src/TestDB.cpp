@@ -136,6 +136,7 @@ static void TestMdb(DB* db)
 	dbWriter->Start();
 	mdb->CreateTables();
 	mdb->SetInitStatus(true);
+	this_thread::sleep_for(chrono::seconds(1));
 
 	InitTradingDay(mdb);
 	InitExchange(mdb);
@@ -161,6 +162,10 @@ static void TestMdb(DB* db)
 	this_thread::sleep_for(chrono::seconds(1));
 	dbWriter->Stop();
 	dbWriter->Join();
+	mdb->UnSubscribe();
+	delete mdb;
+	delete dbWriter;
+	this_thread::sleep_for(chrono::seconds(1));
 }
 static void TestDB(DB* db)
 {
@@ -214,10 +219,14 @@ static void Test()
 	//TestDB(duckdb);
 	//TestDB(sqlitedb);
 
-	//TestMdb(mysqldb);
+	WriteLog(LogLevel::Info, "TestMdb with Mysql");
+	TestMdb(mysqldb);
+	//WriteLog(LogLevel::Info, "TestMdb with MariaDB");
 	//TestMdb(mariadb);
+	WriteLog(LogLevel::Info, "TestMdb with Duckdb");
 	TestMdb(duckdb);
-	//TestMdb(sqlitedb);
+	WriteLog(LogLevel::Info, "TestMdb with Sqlite");
+	TestMdb(sqlitedb);
 }
 
 int main(int argc, char* argv[])

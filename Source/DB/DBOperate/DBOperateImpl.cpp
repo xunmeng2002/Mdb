@@ -11,7 +11,11 @@ DBOperate* DBOperate::Allocate()
 }
 void DBOperateImpl::Free()
 {
-	::Free<DBOperateImpl>(this);
+	Operate = (DBOperateType)0;
+	TableID = 0;
+	IndexID = 0;
+	Record = nullptr;
+	MemCacheTemplateSingleton<DBOperate>::GetInstance().Free(this);
 }
 void DBOperateImpl::FreeRecord()
 {
