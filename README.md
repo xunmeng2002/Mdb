@@ -67,6 +67,7 @@ DBWriter* dbWriter = new DBWriter(db);
 mdb->Subscribe(dbWriter);//这里dbWrite订阅Mdb的数据库日志
 dbWriter->Subscribe(mdb);//Mdb订阅DbWrite的数据库连接状态信息
 mdb->SetInitStatus(true);
+dbWriter->Start();
 ```
 
 ### 创建表
@@ -81,7 +82,8 @@ mdb->CreateTables();
 TradingDay* record = new TradingDay();
 // 设置 record 的字段
 memset(record , 0, sizeof(record ));
-record ->PK = 1;
+int pkTradingDay = 1;
+record ->PK = pkTradingDay;
 strcpy(record->PreTradingDay, "20251222");
 strcpy(record->CurrTradingDay, "20251223");
 mdb->t_TradingDay->Insert(record);
@@ -90,7 +92,7 @@ mdb->t_TradingDay->Insert(record);
 ### 查询记录
 
 ```cpp
-TradingDay* tradingDay = mdb->t_TradingDay->m_PrimaryKey->Select(1);
+TradingDay* tradingDay = mdb->t_TradingDay->m_PrimaryKey->Select(pkTradingDay);
 ```
 
 ### 删除记录
