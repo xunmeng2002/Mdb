@@ -2,23 +2,25 @@
 
 ## 项目介绍
 
-Mdb 是一个数据库操作项目，主要实现了与多种数据库（MariaDB、MySQL、SQLite、DuckDB）之间的交互。它提供了一系列接口来创建、删除、查询和更新数据库中的表和记录。该项目适用于需要高效地进行数据持久化处理的应用场景。
+Mdb 是一个内存数据库项目，主要实现主键、唯一键、索引等特性。并根据数据库操作生成数据库日志，并同步到订阅了该数据库日志的物理数据库，支持了与多种数据库（MariaDB、MySQL、SQLite、DuckDB）之间的交互。它提供了一系列接口来创建、删除、查询和更新数据库中的表和记录。该项目适用于需要高性能并进行数据持久化处理的应用场景。
 
 ### 主要功能
 
-- 支持多种数据库（MariaDB、MySQL、SQLite、DuckDB）。
+- 内存数据库（Mdb），提供主键、唯一键、索引。
+- 内存数据库提供了表级别的读写锁，写锁在进行增删改操作时自动添加。读锁由用户决定是否需要使用。
+- 提供了基于主键的单数据查询、全表查询，以及基于索引的范围查询。
 - 提供创建、删除、清空表的操作。
 - 支持插入、批量插入、删除、更新记录。
-- 提供对交易日、交易所、产品、合约、账户、资金、持仓等金融领域常用数据的管理。
+- 支持多种物理数据库（MariaDB、MySQL、SQLite、DuckDB）。
 
 ### 目录结构
 
+- `Source/DB/Mdb`: 内存数据库相关实现。
 - `Source/DB/DBOperate`: 数据库操作的公共接口定义。
 - `Source/DB/DuckDB`: 针对 DuckDB 的具体实现。
 - `Source/DB/MariaDB`: 针对 MariaDB 的具体实现。
 - `Source/DB/MysqlDB`: 针对 MySQL 的具体实现。
 - `Source/DB/SqliteDB`: 针对 SQLite 的具体实现。
-- `Source/DB/Mdb`: 内存数据库相关实现。
 - `Sql`: 存放数据库脚本文件。
 - `Test/TestDB`: 测试代码。
 
@@ -27,6 +29,7 @@ Mdb 是一个数据库操作项目，主要实现了与多种数据库（MariaDB
 ### 依赖项
 
 - C++ 编译器（支持 C++11 或更高版本）
+- PersonalLib 个人的C++库，支持了线程封装、日志功能。
 - MariaDB、MySQL、SQLite、DuckDB 开发库
 - CMake
 
@@ -56,17 +59,20 @@ mdb::InitMdbFromCsv::LoadTables(mdb, "data_directory");
 
 ### 连接数据库
 
-以下是一个连接到 MariaDB 的示例：
+以下是一个使用 MysqlDB 的示例：
 
 ```cpp
-MariaDB* db = new MariaDB("host", "user", "password");
-db->Connect();
+MsqylDB* db = new MysqlDB("host", "user", "password");
+DBWriter* dbWriter = new DBWriter(db);
+mdb->Subscribe(dbWriter);//这里dbWrite订阅Mdb的数据库日志
+dbWriter->Subscribe(mdb);//Mdb订阅DbWrite的数据库连接状态信息
+mdb->SetInitStatus(true);
 ```
 
 ### 创建表
 
 ```cpp
-db->CreateTables();
+mdb->CreateTables();
 ```
 
 ### 插入记录
@@ -74,26 +80,29 @@ db->CreateTables();
 ```cpp
 TradingDay* record = new TradingDay();
 // 设置 record 的字段
-db->InsertTradingDay(record);
+memset(record , 0, sizeof(record ));
+record ->PK = 1;
+strcpy(record->PreTradingDay, "20251222");
+strcpy(record->CurrTradingDay, "20251223");
+mdb->t_TradingDay->Insert(record);
 ```
 
 ### 查询记录
 
 ```cpp
-std::list<TradingDay*> records;
-db->SelectTradingDay(records);
+TradingDay* tradingDay = mdb->t_TradingDay->m_PrimaryKey->Select(1);
 ```
 
 ### 删除记录
 
 ```cpp
-db->DeleteTradingDay(record);
+mdb->t_TradingDay->Erase(tradingDay);
 ```
 
 ### 清空表
 
 ```cpp
-db->TruncateTradingDay();
+mdb->t_TradingDay->TruncateTable();
 ```
 
 ## 贡献指南
