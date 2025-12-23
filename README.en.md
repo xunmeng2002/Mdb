@@ -64,9 +64,10 @@ mdb::InitMdbFromCsv::LoadTables(mdb, "data_directory");
 ```cpp
 MsqylDB* db = new MysqlDB("host", "user", "password");
 DBWriter* dbWriter = new DBWriter(db);
-mdb->Subscribe(dbWriter); Here, dbWrite subscribes to the database log of Mdb
+mdb->Subscribe(dbWriter); //Here, dbWrite subscribes to the database log of Mdb
 dbWriter->Subscribe(mdb); //Mdb subscribes to the database connection status information of DbWrite
 mdb->SetInitStatus(true);
+dbWriter->Start();
 ```
 
 ### Create Tables
