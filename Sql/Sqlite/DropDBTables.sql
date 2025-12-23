@@ -2,10 +2,16 @@
 DROP TABLE IF EXISTS t_Exchange;
 DROP TABLE IF EXISTS t_Product;
 DROP TABLE IF EXISTS t_Instrument;
+DROP INDEX PrimaryAccountOfferID;
 DROP TABLE IF EXISTS t_PrimaryAccount;
 DROP TABLE IF EXISTS t_Account;
+DROP INDEX CapitalTradingDay;
 DROP TABLE IF EXISTS t_Capital;
+DROP INDEX PositionAccount;
+DROP INDEX PositionTradingDay;
 DROP TABLE IF EXISTS t_Position;
+DROP INDEX PositionDetailTradeMatch;
+DROP INDEX PositionDetailTradingDay;
 DROP TABLE IF EXISTS t_PositionDetail;
 DROP TABLE IF EXISTS t_Order;
 DROP TABLE IF EXISTS t_Trade;
