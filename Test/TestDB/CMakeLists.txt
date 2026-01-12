@@ -4,7 +4,7 @@ message("PROJECT_NAME:" ${PROJECT_NAME})
 
 
 add_package(Src ./Src)
-add_package(DBOperate ${CMAKE_SOURCE_DIR}/Source/DB/DBOperate)
+add_package(DBWriter ${CMAKE_SOURCE_DIR}/Source/DB/DBWriter)
 add_package(InitMdb ${CMAKE_SOURCE_DIR}/Source/DB/InitMdb)
 add_package(Mdb ${CMAKE_SOURCE_DIR}/Source/DB/Mdb)
 add_package(MysqlDB ${CMAKE_SOURCE_DIR}/Source/DB/MysqlDB)

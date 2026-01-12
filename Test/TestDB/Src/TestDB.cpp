@@ -132,10 +132,8 @@ static void TestMdb(DB* db)
 	DBWriter* dbWriter = new DBWriter(db);
 	mdb->Subscribe(dbWriter);
 	dbWriter->Subscribe(mdb);
-	
 	dbWriter->Start();
-	mdb->CreateTables();
-	mdb->SetInitStatus(true);
+	
 	this_thread::sleep_for(chrono::seconds(1));
 
 	InitTradingDay(mdb);

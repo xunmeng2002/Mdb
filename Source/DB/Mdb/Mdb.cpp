@@ -3,7 +3,7 @@
 
 namespace mdb
 {
-	Mdb::Mdb()
+	Mdb::Mdb(): m_MdbSubscriber(nullptr)
 	{
 		t_TradingDay = new TradingDayTable(this);
 		t_Exchange = new ExchangeTable(this);
@@ -48,6 +48,7 @@ namespace mdb
 	}
 	void Mdb::InitDB()
 	{
+		CreateTables();
 		t_TradingDay->InitDB();
 		t_Exchange->InitDB();
 		t_Product->InitDB();

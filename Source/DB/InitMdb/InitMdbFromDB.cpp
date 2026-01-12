@@ -10,6 +10,17 @@ namespace mdb
 	}
 	void InitMdbFromDB::LoadTablesWithoutTradingDay(Mdb* mdb, DB* db)
 	{
+		LoadTradingDayTable(mdb, db);
+		LoadExchangeTable(mdb, db);
+		LoadProductTable(mdb, db);
+		LoadInstrumentTable(mdb, db);
+		LoadPrimaryAccountTable(mdb, db);
+		LoadAccountTable(mdb, db);
+		LoadCapitalTable(mdb, db);
+		LoadPositionTable(mdb, db);
+		LoadPositionDetailTable(mdb, db);
+		LoadOrderTable(mdb, db);
+		LoadTradeTable(mdb, db);
 	}
 
 	void InitMdbFromDB::LoadTradingDayTable(Mdb* mdb, DB* db)

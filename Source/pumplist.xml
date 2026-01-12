@@ -1,9 +1,9 @@
 <pumplist>
-	<pump dest="./Source/DB/DBOperate/DB.h" tpl="../Templates/Cpp/DB/DBOperate/DB.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-	<pump dest="./Source/DB/DBOperate/DBOperateImpl.h" tpl="../Templates/Cpp/DB/DBOperate/DBOperateImpl.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-	<pump dest="./Source/DB/DBOperate/DBOperateImpl.cpp" tpl="../Templates/Cpp/DB/DBOperate/DBOperateImpl.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-	<pump dest="./Source/DB/DBOperate/DBWriter.h" tpl="../Templates/Cpp/DB/DBOperate/DBWriter.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-	<pump dest="./Source/DB/DBOperate/DBWriter.cpp" tpl="../Templates/Cpp/DB/DBOperate/DBWriter.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+	<pump dest="./Source/DB/DBWriter/DB.h" tpl="../Templates/Cpp/DB/DBWriter/DB.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+	<pump dest="./Source/DB/DBWriter/DBOperateImpl.h" tpl="../Templates/Cpp/DB/DBWriter/DBOperateImpl.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+	<pump dest="./Source/DB/DBWriter/DBOperateImpl.cpp" tpl="../Templates/Cpp/DB/DBWriter/DBOperateImpl.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+	<pump dest="./Source/DB/DBWriter/DBWriter.h" tpl="../Templates/Cpp/DB/DBWriter/DBWriter.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+	<pump dest="./Source/DB/DBWriter/DBWriter.cpp" tpl="../Templates/Cpp/DB/DBWriter/DBWriter.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
 	
 	<pump dest="./Source/DB/MysqlDB/MysqlDB.h" tpl="../Templates/Cpp/DB/MysqlDB/MysqlDB.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
 	<pump dest="./Source/DB/MysqlDB/MysqlDB.cpp" tpl="../Templates/Cpp/DB/MysqlDB/MysqlDB.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
