@@ -563,6 +563,22 @@ namespace mdb
 	}
 	void InstrumentTable::InitDB()
 	{
+		m_MdbSubscriber->OnInstrumentTruncate();
+		
+		std::list<Instrument*>* records = new std::list<Instrument*>();
+		std::shared_lock guard(m_SharedMutex);
+		for (auto it = m_PrimaryKey->m_Index.begin(); it != m_PrimaryKey->m_Index.end(); ++it)
+		{
+			records->push_back(new Instrument(**it));
+		}
+		if (records->empty())
+		{
+			delete records;
+		}
+		else
+		{
+			m_MdbSubscriber->OnInstrumentBatchInsert(records);
+		}
 		m_DBInited = true;
 	}
 	bool InstrumentTable::Insert(Instrument* record)

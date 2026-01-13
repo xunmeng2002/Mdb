@@ -77,7 +77,7 @@
 			<item name="BrokerPassword" id="0x2802" type="Password" desc="经纪公司密码"/>
 			<item name="OfferID" id="0x1011" type="OfferID" desc="报盘代码"/>
 			<item name="IsAllowLogin" id="0x8001" type="Bool" desc="是否允许登陆"/>
-			<item name="IsSimulateAccount" id="0x8004" type="Bool" desc="是否模拟账号"/>
+			<item name="IsSimulateAccount" id="0x8005" type="Bool" desc="是否模拟账号"/>
 			<item name="LoginStatus" id="0x901E" type="LoginStatus" desc="登录状态"/>
 			<item name="InitStatus" id="0x901F" type="InitStatus" desc="初始化状态"/>
 		</items>
@@ -272,8 +272,8 @@
 			<item name="FrozenCash" id="0x7017" type="Money" desc="冻结资金"/>
 			<item name="FrozenMargin" id="0x7009" type="Money" desc="冻结保证金"/>
 			<item name="FrozenCommission" id="0x700B" type="Money" desc="冻结手续费"/>
-			<item name="RebuildMark" id="0x8007" type="Bool" desc="重建标志"/>
-			<item name="IsForceClose" id="0x8003" type="Bool" desc="是否强平单"/>
+			<item name="RebuildMark" id="0x8008" type="Bool" desc="重建标志"/>
+			<item name="IsForceClose" id="0x8004" type="Bool" desc="是否强平单"/>
 		</items>
 		<primarykey>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
