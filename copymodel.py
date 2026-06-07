@@ -1,6 +1,5 @@
-#!encoding:utf-8
-
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import xml.etree.cElementTree as ET
 import sys
 import re

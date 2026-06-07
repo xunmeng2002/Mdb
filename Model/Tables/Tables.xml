@@ -15,7 +15,7 @@
 	<table name="Exchange" id="0x0002" desc="交易所" batch="" session="">
 		<items>
 			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="ExchangeName" id="0x200B" type="ExchangeName" desc="交易所名称"/>
+			<item name="ExchangeName" id="0x2005" type="ExchangeName" desc="交易所名称"/>
 		</items>
 		<primarykey>
 			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
@@ -27,7 +27,7 @@
 		<items>
 			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
 			<item name="ProductID" id="0x1015" type="ProductID" desc="品种代码"/>
-			<item name="ProductName" id="0x200C" type="ProductName" desc="品种名称"/>
+			<item name="ProductName" id="0x200A" type="ProductName" desc="品种名称"/>
 			<item name="ProductClass" id="0x901C" type="ProductClass" desc="品种类型"/>
 			<item name="VolumeMultiple" id="0x8403" type="VolumeMultiple" desc="合约乘数"/>
 			<item name="PriceTick" id="0x6024" type="Price" desc="最小变动价位"/>
@@ -35,7 +35,7 @@
 			<item name="MinMarketOrderVolume" id="0x401E" type="Volume" desc="市价最小下单量"/>
 			<item name="MaxLimitOrderVolume" id="0x4021" type="Volume" desc="限价最大下单量"/>
 			<item name="MinLimitOrderVolume" id="0x4020" type="Volume" desc="限价最小下单量"/>
-			<item name="SessionName" id="0x200D" type="SessionName" desc="交易节名称"/>
+			<item name="SessionName" id="0x200E" type="SessionName" desc="交易节名称"/>
 		</items>
 		<primarykey>
 			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
@@ -49,7 +49,7 @@
 			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
 			<item name="InstrumentID" id="0x100D" type="InstrumentID" desc="合约代码"/>
 			<item name="ExchangeInstID" id="0x100B" type="InstrumentID" desc="交易所合约代码"/>
-			<item name="InstrumentName" id="0x2004" type="InstrumentName" desc="合约名称"/>
+			<item name="InstrumentName" id="0x2006" type="InstrumentName" desc="合约名称"/>
 			<item name="ProductID" id="0x1015" type="ProductID" desc="品种代码"/>
 			<item name="ProductClass" id="0x901C" type="ProductClass" desc="品种类型"/>
 			<item name="InstrumentClass" id="0x9001" type="InstrumentClass" desc="合约类别"/>
@@ -60,7 +60,7 @@
 			<item name="MinMarketOrderVolume" id="0x401E" type="Volume" desc="市价最小下单量"/>
 			<item name="MaxLimitOrderVolume" id="0x4021" type="Volume" desc="限价最大下单量"/>
 			<item name="MinLimitOrderVolume" id="0x4020" type="Volume" desc="限价最小下单量"/>
-			<item name="SessionName" id="0x200D" type="SessionName" desc="交易节名称"/>
+			<item name="SessionName" id="0x200E" type="SessionName" desc="交易节名称"/>
 		</items>
 		<primarykey>
 			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
@@ -72,7 +72,7 @@
 	<table name="PrimaryAccount" id="0x0005" desc="主账户" batch="" session="">
 		<items>
 			<item name="PrimaryAccountID" id="0x1014" type="AccountID" desc="主账户代码"/>
-			<item name="PrimaryAccountName" id="0x2002" type="AccountName" desc="主账户名称"/>
+			<item name="PrimaryAccountName" id="0x2009" type="AccountName" desc="主账户名称"/>
 			<item name="AccountClass" id="0x9013" type="AccountClass" desc="账户类别"/>
 			<item name="BrokerPassword" id="0x2802" type="Password" desc="经纪公司密码"/>
 			<item name="OfferID" id="0x1011" type="OfferID" desc="报盘代码"/>

@@ -1,4 +1,5 @@
-#coding:UTF-8
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import xml.dom.minidom
 import sys
 
@@ -32,9 +33,10 @@ def GetItems(itemFile, items):
         item.Desc = itemNode.getAttribute("desc")
         items[item.Name] = item
 
-def GetTables(tableFile, items, tables):
+def GetTables(tableFile, items, tables) -> str:
     dom = xml.dom.minidom.parse(tableFile)
     root = dom.documentElement
+    rootName = root.getAttribute("name")
     lastID = 0
     for tableNode in root.getElementsByTagName("table"):
         table = Table()
@@ -72,6 +74,7 @@ def GetTables(tableFile, items, tables):
                     itemName = itemNode.getAttribute("name")
                     table.Indexes[indexName].append(items[itemName])
         tables.append(table)
+    return rootName
 	
 def AddItemNode(dom, parentNode, item):
     itemNode = dom.createElement('item')
@@ -123,8 +126,8 @@ def ReadXml(tableFile, itemFile):
     tables = []
     destFields = {}
     GetItems(itemFile, items)
-    GetTables(tableFile, items, tables)
-    return tables
+    rootName = GetTables(tableFile, items, tables)
+    return rootName, tables
 
 def WriteTablesFile(destTableFile, tables):
     impl = xml.dom.minidom.getDOMImplementation()
@@ -136,10 +139,11 @@ def WriteTablesFile(destTableFile, tables):
     dom.writexml(f, indent="", addindent='\t', newl='\n', encoding="UTF-8")
     f.close()
 
-def WriteFullDBTablesFile(fullDBTablesFile, tables):
+def WriteFullDBTablesFile(fullDBTablesFile, rootName, tables):
     impl = xml.dom.minidom.getDOMImplementation()
     dom = impl.createDocument(None, 'dbtables', None)
     root = dom.documentElement
+    root.setAttribute("name", rootName)
     for table in tables:
         tableNode = dom.createElement('table')
         tableNode.setAttribute("name", table.Name)
@@ -157,6 +161,6 @@ if __name__ == "__main__":
     shortTableFile = sys.argv[3]
     itemFile = sys.argv[4]
 
-    tables = ReadXml(shortTableFile, itemFile)
+    rootName, tables = ReadXml(shortTableFile, itemFile)
     WriteTablesFile(destTableFile, tables)
-    WriteFullDBTablesFile(fullDBTableFile, tables)
+    WriteFullDBTablesFile(fullDBTableFile, rootName, tables)

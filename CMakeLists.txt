@@ -1,83 +1,85 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20)
 SET(PROJECT_NAME "Mdb")
-project(${PROJECT_NAME})
+project(${PROJECT_NAME} VERSION 1.0.0 LANGUAGES CXX)
+include(GNUInstallDirs)
+include(GenerateExportHeader)
+include(../CMakeCommon/CMakeCommon.cmake)
+
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
-set(BUILD_TEST_PROJECT 1)
-set(LibsPath "${CMAKE_SOURCE_DIR}/../Libs")
-
+set(CMAKE_DEBUG_POSTFIX "d")
+set(CMAKE_VERBOSE_MAKEFILE ON)
 add_definitions(-DUNICODE -D_UNICODE)
+
+
+IF(CMAKE_SYSTEM_NAME MATCHES "Windows")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+    add_definitions(-DWINDOWS -D_CRT_SECURE_NO_WARNINGS -D_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
+	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+	add_compile_options(
+        $<$<CONFIG:Debug>:/Od>
+        $<$<CONFIG:Debug>:/Zi>
+        $<$<CONFIG:Release>:/O2>
+        $<$<CONFIG:RelWithDebInfo>:/O2>
+        $<$<CONFIG:RelWithDebInfo>:/Zi>
+        $<$<CONFIG:MinSizeRel>:/O1>)
+ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	add_definitions("-DLINUX")
+    add_compile_options(
+        $<$<CONFIG:Debug>:-O0 -g -ggdb>
+        $<$<CONFIG:Release>:-O3>
+        $<$<CONFIG:RelWithDebInfo>:-O2 -g>
+        $<$<CONFIG:MinSizeRel>:-Os>)
+    add_compile_definitions(
+        $<$<CONFIG:Debug>:_DEBUG>
+        $<$<CONFIG:Release>:NDEBUG>
+        $<$<CONFIG:RelWithDebInfo>:NDEBUG>
+        $<$<CONFIG:MinSizeRel>:NDEBUG>)
+ENDIF()
 message("CMAKE_BUILD_TYPE:" ${CMAKE_BUILD_TYPE})
 message("CMAKE_SYSTEM_NAME:" ${CMAKE_SYSTEM_NAME})
 message("CMAKE_CL_64:" ${CMAKE_CL_64})
-IF(CMAKE_SYSTEM_NAME MATCHES "Windows")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
-	#string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
-	#string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-	add_definitions("-DWINDOWS")
-	add_definitions("-D_CRT_SECURE_NO_WARNINGS")
-	add_definitions("-D_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING")
-ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-		#list(APPEND CMAKE_CXX_FLAGS "-fsanitize=address")
-	ENDIF()
-	add_definitions("-DLINUX")
-ENDIF()
 message("CMAKE_CXX_FLAGS:" ${CMAKE_CXX_FLAGS})
 message("CMAKE_CXX_FLAGS_RELEASE:" ${CMAKE_CXX_FLAGS_RELEASE})
 message("CMAKE_CXX_FLAGS_DEBUG:" ${CMAKE_CXX_FLAGS_DEBUG})
 
-macro(add_file name dir filename)
-	include_directories(${dir})
-	file(GLOB_RECURSE fullname ${dir}/${filename})
-	source_group(${name} FILES ${fullname})
-	set(all_file ${all_file} ${fullname})
-endmacro(add_file)
 
-macro(add_package name dir)
-	include_directories(${dir})
-	set(hfind ${ARGV1})
-	string(APPEND hfind "/*.h")
-	set(cppfind ${ARGV1})
-	string(APPEND cppfind "/*.cpp")
-	set(cfind ${ARGV1})
-	string(APPEND cfind "/*.c")
-	file(GLOB_RECURSE name_header ${hfind})
-	file(GLOB_RECURSE name_cpp ${cppfind})
-	file(GLOB_RECURSE name_c ${cfind})
-	source_group(${ARGV0} FILES ${name_header} ${name_cpp} ${name_c})
-	set(all_file ${all_file} ${name_header} ${name_cpp} ${name_c})
-endmacro(add_package)
-
-macro(add_res_package name dir)
-	include_directories(${dir})
-	set(resfind ${ARGV1})
-	string(APPEND resfind "/*")
-	file(GLOB_RECURSE res ${resfind})
-	source_group(${ARGV0} FILES ${res})
-	set(all_file ${all_file} ${res})
-endmacro(add_res_package)
-
-macro(include_package name dir)
-	include_directories(${dir})
-	set(hfind ${ARGV1})
-	string(APPEND hfind "/*.h")
-	file(GLOB_RECURSE name_header ${hfind})
-	source_group(${ARGV0} FILES ${name_header})
-	set(all_file ${all_file} ${name_header})
-endmacro(include_package)
-
-
-string(TIMESTAMP BUILD_TIMESTAMP "%Y%m%d-%H%M%S")
-message("Build timestamp is ${BUILD_TIMESTAMP}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<CONFIG>)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib/$<CONFIG>)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib/$<CONFIG>)
  
-include_package(PersonalLibHeader ${CMAKE_SOURCE_DIR}/../Libs/PersonalLib/include)
-if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-	link_directories(${CMAKE_SOURCE_DIR}/../Libs/PersonalLib/win64)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	link_directories(${CMAKE_SOURCE_DIR}/../Libs/PersonalLib/linux)
-endif()
+find_package(PersonalLib REQUIRED PATHS "../Libs/PersonalLib")
+set(VcpkgPth "D:/Github/vcpkg")
+#set(VcpkgPth "C:/Libs/vcpkg")
+set(CMAKE_TOOLCHAIN_FILE "${VcpkgPth}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
+list(APPEND CMAKE_PREFIX_PATH "${VcpkgPth}/installed/x64-windows")
 
-add_subdirectory(Target)
-add_subdirectory(Test)
+add_static_module(Mdb				${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Mdb)
+add_static_module(Mysql				${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Mysql)
+#add_static_module(Mariadb			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Mariadb)
+add_static_module(Duckdb			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Duckdb)
+add_static_module(Sqlite			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Sqlite)
+
+find_package(sqlite3 REQUIRED)
+#find_package(duckdb REQUIRED)
+add_library(duckdb SHARED IMPORTED)
+set(duckdbPath ${CMAKE_SOURCE_DIR}/../Libs/duckdb)
+set_target_properties(duckdb PROPERTIES IMPORTED_LOCATION ${duckdbPath}/win64/duckdb.dll IMPORTED_IMPLIB ${duckdbPath}/win64/duckdb.lib INTERFACE_INCLUDE_DIRECTORIES ${duckdbPath}/include)
+add_library(mysqlcppconn SHARED IMPORTED)
+set(mysqlConnectorPath ${CMAKE_SOURCE_DIR}/../Libs/MysqlConnector/9.0.0)
+set_target_properties(mysqlcppconn PROPERTIES
+    IMPORTED_LOCATION ${mysqlConnectorPath}/win64/mysqlcppconn-10-vs14.dll
+    IMPORTED_IMPLIB ${mysqlConnectorPath}/win64/mysqlcppconn.lib
+    INTERFACE_INCLUDE_DIRECTORIES ${mysqlConnectorPath}/include)
+
+
+target_link_libraries(Mdb PUBLIC PersonalLib::Core PersonalLib::Serialization)
+target_link_libraries(Mysql PUBLIC Mdb mysqlcppconn)
+#target_link_libraries(Mariadb PUBLIC Mdb mariadb)
+target_link_libraries(Duckdb PUBLIC Mdb duckdb)
+
+target_link_libraries(Sqlite PUBLIC Mdb sqlite3)
+target_include_directories(Sqlite PUBLIC ${SQLite3_INCLUDE_DIR})
+
+#add_subdirectory(test)

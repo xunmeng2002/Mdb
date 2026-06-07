@@ -1,4 +1,4 @@
-<tables>
+<tables name="Mdb">
 	<table name="TradingDay" 					id="0x0001" desc="交易日">
 		<items>
 			<item name="PK"/>
