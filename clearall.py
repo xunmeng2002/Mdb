@@ -1,5 +1,5 @@
-#!python2
-#coding:utf-8
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import xml.etree.cElementTree as ET
 import sys
@@ -31,7 +31,9 @@ def Clear(pumpfile):
                 split_dest = dest + targetName + "." + type
                 Remove(split_dest)
         else:
-            Remove(dest)
+            destFiles = dest.split()
+            for destFile in destFiles:
+                Remove(destFile)
 
 def Remove(destFile):
     if os.path.exists(destFile):
