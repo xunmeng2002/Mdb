@@ -3,7 +3,7 @@ SET(PROJECT_NAME "Mdb")
 project(${PROJECT_NAME} VERSION 1.0.0 LANGUAGES CXX)
 include(GNUInstallDirs)
 include(GenerateExportHeader)
-include(../CMakeCommon/CMakeCommon.cmake)
+include(submodules/CMakeCommon/CMakeCommon.cmake)
 
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -61,25 +61,18 @@ add_static_module(Mysql				${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_S
 add_static_module(Duckdb			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Duckdb)
 add_static_module(Sqlite			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Sqlite)
 
-find_package(sqlite3 REQUIRED)
-#find_package(duckdb REQUIRED)
-add_library(duckdb SHARED IMPORTED)
-set(duckdbPath ${CMAKE_SOURCE_DIR}/../Libs/duckdb)
-set_target_properties(duckdb PROPERTIES IMPORTED_LOCATION ${duckdbPath}/win64/duckdb.dll IMPORTED_IMPLIB ${duckdbPath}/win64/duckdb.lib INTERFACE_INCLUDE_DIRECTORIES ${duckdbPath}/include)
-add_library(mysqlcppconn SHARED IMPORTED)
-set(mysqlConnectorPath ${CMAKE_SOURCE_DIR}/../Libs/MysqlConnector/9.0.0)
-set_target_properties(mysqlcppconn PROPERTIES
-    IMPORTED_LOCATION ${mysqlConnectorPath}/win64/mysqlcppconn-10-vs14.dll
-    IMPORTED_IMPLIB ${mysqlConnectorPath}/win64/mysqlcppconn.lib
-    INTERFACE_INCLUDE_DIRECTORIES ${mysqlConnectorPath}/include)
+find_package(unofficial-sqlite3 CONFIG REQUIRED)
+find_package(duckdb CONFIG REQUIRED)
+find_package(unofficial-mysql-connector-cpp CONFIG REQUIRED)
+find_package(unofficial-libmariadb CONFIG REQUIRED)
+
 
 
 target_link_libraries(Mdb PUBLIC PersonalLib::Core PersonalLib::Serialization)
-target_link_libraries(Mysql PUBLIC Mdb mysqlcppconn)
-#target_link_libraries(Mariadb PUBLIC Mdb mariadb)
+target_link_libraries(Mysql PUBLIC Mdb unofficial::mysql-connector-cpp::connector)
+#target_link_libraries(Mariadb PUBLIC Mdb unofficial::libmariadb)
 target_link_libraries(Duckdb PUBLIC Mdb duckdb)
-
-target_link_libraries(Sqlite PUBLIC Mdb sqlite3)
-target_include_directories(Sqlite PUBLIC ${SQLite3_INCLUDE_DIR})
+target_link_libraries(Sqlite PUBLIC Mdb unofficial::sqlite3::sqlite3)
+#target_include_directories(Sqlite PUBLIC ${SQLite3_INCLUDE_DIR})
 
 #add_subdirectory(test)

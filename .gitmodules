@@ -1,0 +1,3 @@
+[submodule "submodules/CMakeCommon"]
+	path = submodules/CMakeCommon
+	url = https://gitee.com/xunmeng200/CMakeCommon.git
