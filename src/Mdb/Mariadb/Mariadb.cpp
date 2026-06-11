@@ -608,7 +608,7 @@ void Mariadb::InitDB()
 	m_Statement->executeUpdate("Truncate Table t_Trade;");
 	m_Statement->executeUpdate("Insert Into t_Trade select * from Init.t_Trade;");
 }
-void MysqlDB::CreateTables()
+void Mariadb::CreateTables()
 {
 	CreateTradingDay();
 	CreateExchange();
@@ -622,7 +622,7 @@ void MysqlDB::CreateTables()
 	CreateOrder();
 	CreateTrade();
 }
-void MysqlDB::DropTables()
+void Mariadb::DropTables()
 {
 	DropTradingDay();
 	DropExchange();
@@ -652,10 +652,10 @@ void Mariadb::TruncateTables()
 void Mariadb::TruncateSessionTables()
 {
 	auto start = steady_clock::now();
-	WriteLog(LogLevel::Info, "TruncateSessionTables Spend:%lldms", GetDuration<chrono::milliseconds>(start));
+	WriteLog(LogLevel::Info, "TruncateSessionTables Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
 
-void MysqlDB::CreateTradingDay()
+void Mariadb::CreateTradingDay()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_TradingDay` (`PK` int COMMENT '主键', `CurrTradingDay` char(16) COMMENT '当前交易日', `PreTradingDay` char(16) COMMENT '昨交易日', PRIMARY KEY(PK)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -665,10 +665,10 @@ void MysqlDB::CreateTradingDay()
 	}
 	
 	m_TradingDayCreateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateTradingDay Spend:%lldms, sql:%s", duration, sql);
 }
-void MysqlDB::DropTradingDay()
+void Mariadb::DropTradingDay()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS `t_TradingDay`;";
@@ -678,7 +678,7 @@ void MysqlDB::DropTradingDay()
 	}
 	
 	m_TradingDayDropStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropTradingDay Spend:%lldms, sql:%s", duration, sql);
 }
 void Mariadb::InsertTradingDay(TradingDay* record)
@@ -691,7 +691,7 @@ void Mariadb::InsertTradingDay(TradingDay* record)
 	SetStatementForTradingDayRecord(m_TradingDayInsertStatement, record);
 	
 	m_TradingDayInsertStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "InsertTradingDay Spend:%lldms", duration);
@@ -732,7 +732,7 @@ void Mariadb::BatchInsertTradingDay(std::list<TradingDay*>* records)
 	{
 		WriteLog(LogLevel::Warning, "BatchInsertTradingDay Failed. Error: %s, Sql:[%s]", e.what(), m_SqlBuff);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertTradingDay RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
 void Mariadb::DeleteTradingDay(TradingDay* record)
@@ -744,7 +744,7 @@ void Mariadb::DeleteTradingDay(TradingDay* record)
 	}
 	SetStatementForTradingDayPrimaryKey(m_TradingDayDeleteStatement, record->PK);
 	m_TradingDayDeleteStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeleteTradingDay Spend:%lldms", duration);
@@ -759,7 +759,7 @@ void Mariadb::UpdateTradingDay(TradingDay* record)
 	}
 	SetStatementForTradingDayRecordUpdate(m_TradingDayUpdateStatement, record);
 	m_TradingDayUpdateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "UpdateTradingDay Spend:%lldms", duration);
@@ -777,7 +777,7 @@ void Mariadb::SelectTradingDay(std::list<TradingDay*>& records)
 	{
 		ParseRecord(result, records);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectTradingDay Spend:%lldms", duration);
@@ -791,9 +791,9 @@ void Mariadb::TruncateTradingDay()
 		m_TradingDayTruncateStatement = m_DBConnection->prepareStatement("truncate table t_TradingDay;");
 	}
 	m_TradingDayTruncateStatement->executeQuery();
-	WriteLog(LogLevel::Info, "TruncateTradingDay Spend:%lldms", GetDuration<chrono::milliseconds>(start));
+	WriteLog(LogLevel::Info, "TruncateTradingDay Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void MysqlDB::CreateExchange()
+void Mariadb::CreateExchange()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Exchange` (`ExchangeID` char(8) COMMENT '交易所代码', `ExchangeName` char(64) COMMENT '交易所名称', PRIMARY KEY(ExchangeID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -803,10 +803,10 @@ void MysqlDB::CreateExchange()
 	}
 	
 	m_ExchangeCreateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateExchange Spend:%lldms, sql:%s", duration, sql);
 }
-void MysqlDB::DropExchange()
+void Mariadb::DropExchange()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS `t_Exchange`;";
@@ -816,7 +816,7 @@ void MysqlDB::DropExchange()
 	}
 	
 	m_ExchangeDropStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropExchange Spend:%lldms, sql:%s", duration, sql);
 }
 void Mariadb::InsertExchange(Exchange* record)
@@ -829,7 +829,7 @@ void Mariadb::InsertExchange(Exchange* record)
 	SetStatementForExchangeRecord(m_ExchangeInsertStatement, record);
 	
 	m_ExchangeInsertStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "InsertExchange Spend:%lldms", duration);
@@ -870,7 +870,7 @@ void Mariadb::BatchInsertExchange(std::list<Exchange*>* records)
 	{
 		WriteLog(LogLevel::Warning, "BatchInsertExchange Failed. Error: %s, Sql:[%s]", e.what(), m_SqlBuff);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertExchange RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
 void Mariadb::DeleteExchange(Exchange* record)
@@ -882,7 +882,7 @@ void Mariadb::DeleteExchange(Exchange* record)
 	}
 	SetStatementForExchangePrimaryKey(m_ExchangeDeleteStatement, record->ExchangeID);
 	m_ExchangeDeleteStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeleteExchange Spend:%lldms", duration);
@@ -897,7 +897,7 @@ void Mariadb::UpdateExchange(Exchange* record)
 	}
 	SetStatementForExchangeRecordUpdate(m_ExchangeUpdateStatement, record);
 	m_ExchangeUpdateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "UpdateExchange Spend:%lldms", duration);
@@ -915,7 +915,7 @@ void Mariadb::SelectExchange(std::list<Exchange*>& records)
 	{
 		ParseRecord(result, records);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectExchange Spend:%lldms", duration);
@@ -929,9 +929,9 @@ void Mariadb::TruncateExchange()
 		m_ExchangeTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Exchange;");
 	}
 	m_ExchangeTruncateStatement->executeQuery();
-	WriteLog(LogLevel::Info, "TruncateExchange Spend:%lldms", GetDuration<chrono::milliseconds>(start));
+	WriteLog(LogLevel::Info, "TruncateExchange Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void MysqlDB::CreateProduct()
+void Mariadb::CreateProduct()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Product` (`ExchangeID` char(8) COMMENT '交易所代码', `ProductID` char(32) COMMENT '品种代码', `ProductName` char(32) COMMENT '品种名称', `ProductClass` int COMMENT '品种类型', `VolumeMultiple` int COMMENT '合约乘数', `PriceTick` decimal(24,8) COMMENT '最小变动价位', `MaxMarketOrderVolume` bigint COMMENT '市价最大下单量', `MinMarketOrderVolume` bigint COMMENT '市价最小下单量', `MaxLimitOrderVolume` bigint COMMENT '限价最大下单量', `MinLimitOrderVolume` bigint COMMENT '限价最小下单量', `SessionName` char(32) COMMENT '交易节名称', PRIMARY KEY(ExchangeID, ProductID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -941,10 +941,10 @@ void MysqlDB::CreateProduct()
 	}
 	
 	m_ProductCreateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateProduct Spend:%lldms, sql:%s", duration, sql);
 }
-void MysqlDB::DropProduct()
+void Mariadb::DropProduct()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS `t_Product`;";
@@ -954,7 +954,7 @@ void MysqlDB::DropProduct()
 	}
 	
 	m_ProductDropStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropProduct Spend:%lldms, sql:%s", duration, sql);
 }
 void Mariadb::InsertProduct(Product* record)
@@ -967,7 +967,7 @@ void Mariadb::InsertProduct(Product* record)
 	SetStatementForProductRecord(m_ProductInsertStatement, record);
 	
 	m_ProductInsertStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "InsertProduct Spend:%lldms", duration);
@@ -1008,7 +1008,7 @@ void Mariadb::BatchInsertProduct(std::list<Product*>* records)
 	{
 		WriteLog(LogLevel::Warning, "BatchInsertProduct Failed. Error: %s, Sql:[%s]", e.what(), m_SqlBuff);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertProduct RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
 void Mariadb::DeleteProduct(Product* record)
@@ -1020,7 +1020,7 @@ void Mariadb::DeleteProduct(Product* record)
 	}
 	SetStatementForProductPrimaryKey(m_ProductDeleteStatement, record->ExchangeID, record->ProductID);
 	m_ProductDeleteStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeleteProduct Spend:%lldms", duration);
@@ -1035,7 +1035,7 @@ void Mariadb::UpdateProduct(Product* record)
 	}
 	SetStatementForProductRecordUpdate(m_ProductUpdateStatement, record);
 	m_ProductUpdateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "UpdateProduct Spend:%lldms", duration);
@@ -1053,7 +1053,7 @@ void Mariadb::SelectProduct(std::list<Product*>& records)
 	{
 		ParseRecord(result, records);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectProduct Spend:%lldms", duration);
@@ -1067,9 +1067,9 @@ void Mariadb::TruncateProduct()
 		m_ProductTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Product;");
 	}
 	m_ProductTruncateStatement->executeQuery();
-	WriteLog(LogLevel::Info, "TruncateProduct Spend:%lldms", GetDuration<chrono::milliseconds>(start));
+	WriteLog(LogLevel::Info, "TruncateProduct Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void MysqlDB::CreateInstrument()
+void Mariadb::CreateInstrument()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Instrument` (`ExchangeID` char(8) COMMENT '交易所代码', `InstrumentID` char(32) COMMENT '合约代码', `ExchangeInstID` char(32) COMMENT '交易所合约代码', `InstrumentName` char(64) COMMENT '合约名称', `ProductID` char(32) COMMENT '品种代码', `ProductClass` int COMMENT '品种类型', `InstrumentClass` int COMMENT '合约类别', `Rank` int COMMENT '级别', `VolumeMultiple` int COMMENT '合约乘数', `PriceTick` decimal(24,8) COMMENT '最小变动价位', `MaxMarketOrderVolume` bigint COMMENT '市价最大下单量', `MinMarketOrderVolume` bigint COMMENT '市价最小下单量', `MaxLimitOrderVolume` bigint COMMENT '限价最大下单量', `MinLimitOrderVolume` bigint COMMENT '限价最小下单量', `SessionName` char(32) COMMENT '交易节名称', PRIMARY KEY(ExchangeID, InstrumentID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -1079,10 +1079,10 @@ void MysqlDB::CreateInstrument()
 	}
 	
 	m_InstrumentCreateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateInstrument Spend:%lldms, sql:%s", duration, sql);
 }
-void MysqlDB::DropInstrument()
+void Mariadb::DropInstrument()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS `t_Instrument`;";
@@ -1092,7 +1092,7 @@ void MysqlDB::DropInstrument()
 	}
 	
 	m_InstrumentDropStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropInstrument Spend:%lldms, sql:%s", duration, sql);
 }
 void Mariadb::InsertInstrument(Instrument* record)
@@ -1105,7 +1105,7 @@ void Mariadb::InsertInstrument(Instrument* record)
 	SetStatementForInstrumentRecord(m_InstrumentInsertStatement, record);
 	
 	m_InstrumentInsertStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "InsertInstrument Spend:%lldms", duration);
@@ -1146,7 +1146,7 @@ void Mariadb::BatchInsertInstrument(std::list<Instrument*>* records)
 	{
 		WriteLog(LogLevel::Warning, "BatchInsertInstrument Failed. Error: %s, Sql:[%s]", e.what(), m_SqlBuff);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertInstrument RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
 void Mariadb::DeleteInstrument(Instrument* record)
@@ -1158,7 +1158,7 @@ void Mariadb::DeleteInstrument(Instrument* record)
 	}
 	SetStatementForInstrumentPrimaryKey(m_InstrumentDeleteStatement, record->ExchangeID, record->InstrumentID);
 	m_InstrumentDeleteStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeleteInstrument Spend:%lldms", duration);
@@ -1173,7 +1173,7 @@ void Mariadb::UpdateInstrument(Instrument* record)
 	}
 	SetStatementForInstrumentRecordUpdate(m_InstrumentUpdateStatement, record);
 	m_InstrumentUpdateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "UpdateInstrument Spend:%lldms", duration);
@@ -1191,7 +1191,7 @@ void Mariadb::SelectInstrument(std::list<Instrument*>& records)
 	{
 		ParseRecord(result, records);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectInstrument Spend:%lldms", duration);
@@ -1205,9 +1205,9 @@ void Mariadb::TruncateInstrument()
 		m_InstrumentTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Instrument;");
 	}
 	m_InstrumentTruncateStatement->executeQuery();
-	WriteLog(LogLevel::Info, "TruncateInstrument Spend:%lldms", GetDuration<chrono::milliseconds>(start));
+	WriteLog(LogLevel::Info, "TruncateInstrument Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void MysqlDB::CreatePrimaryAccount()
+void Mariadb::CreatePrimaryAccount()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_PrimaryAccount` (`PrimaryAccountID` char(32) COMMENT '主账户代码', `PrimaryAccountName` char(64) COMMENT '主账户名称', `AccountClass` int COMMENT '账户类别', `BrokerPassword` char(64) COMMENT '经纪公司密码', `OfferID` int COMMENT '报盘代码', `IsAllowLogin` bool COMMENT '是否允许登陆', `IsSimulateAccount` bool COMMENT '是否模拟账号', `LoginStatus` int COMMENT '登录状态', `InitStatus` int COMMENT '初始化状态', INDEX OfferID(OfferID), PRIMARY KEY(PrimaryAccountID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -1217,10 +1217,10 @@ void MysqlDB::CreatePrimaryAccount()
 	}
 	
 	m_PrimaryAccountCreateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreatePrimaryAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void MysqlDB::DropPrimaryAccount()
+void Mariadb::DropPrimaryAccount()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS `t_PrimaryAccount`;";
@@ -1230,7 +1230,7 @@ void MysqlDB::DropPrimaryAccount()
 	}
 	
 	m_PrimaryAccountDropStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropPrimaryAccount Spend:%lldms, sql:%s", duration, sql);
 }
 void Mariadb::InsertPrimaryAccount(PrimaryAccount* record)
@@ -1243,7 +1243,7 @@ void Mariadb::InsertPrimaryAccount(PrimaryAccount* record)
 	SetStatementForPrimaryAccountRecord(m_PrimaryAccountInsertStatement, record);
 	
 	m_PrimaryAccountInsertStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "InsertPrimaryAccount Spend:%lldms", duration);
@@ -1284,7 +1284,7 @@ void Mariadb::BatchInsertPrimaryAccount(std::list<PrimaryAccount*>* records)
 	{
 		WriteLog(LogLevel::Warning, "BatchInsertPrimaryAccount Failed. Error: %s, Sql:[%s]", e.what(), m_SqlBuff);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertPrimaryAccount RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
 void Mariadb::DeletePrimaryAccount(PrimaryAccount* record)
@@ -1296,7 +1296,7 @@ void Mariadb::DeletePrimaryAccount(PrimaryAccount* record)
 	}
 	SetStatementForPrimaryAccountPrimaryKey(m_PrimaryAccountDeleteStatement, record->PrimaryAccountID);
 	m_PrimaryAccountDeleteStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeletePrimaryAccount Spend:%lldms", duration);
@@ -1311,7 +1311,7 @@ void Mariadb::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
 	}
 	SetStatementForPrimaryAccountIndexOfferID(m_PrimaryAccountDeleteByOfferIDIndexStatement, record);
 	m_PrimaryAccountDeleteByOfferIDIndexStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeletePrimaryAccountByOfferIDIndex Spend:%lldms", duration);
@@ -1326,7 +1326,7 @@ void Mariadb::UpdatePrimaryAccount(PrimaryAccount* record)
 	}
 	SetStatementForPrimaryAccountRecordUpdate(m_PrimaryAccountUpdateStatement, record);
 	m_PrimaryAccountUpdateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "UpdatePrimaryAccount Spend:%lldms", duration);
@@ -1344,7 +1344,7 @@ void Mariadb::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 	{
 		ParseRecord(result, records);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectPrimaryAccount Spend:%lldms", duration);
@@ -1358,9 +1358,9 @@ void Mariadb::TruncatePrimaryAccount()
 		m_PrimaryAccountTruncateStatement = m_DBConnection->prepareStatement("truncate table t_PrimaryAccount;");
 	}
 	m_PrimaryAccountTruncateStatement->executeQuery();
-	WriteLog(LogLevel::Info, "TruncatePrimaryAccount Spend:%lldms", GetDuration<chrono::milliseconds>(start));
+	WriteLog(LogLevel::Info, "TruncatePrimaryAccount Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void MysqlDB::CreateAccount()
+void Mariadb::CreateAccount()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Account` (`AccountID` char(32) COMMENT '账户代码', `AccountName` char(64) COMMENT '账户名称', `AccountType` int COMMENT '账户类型', `AccountStatus` int COMMENT '账户状态', `Password` char(64) COMMENT '密码', `TradeGroupID` int COMMENT '交易组代码', `RiskGroupID` int COMMENT '交易组代码', `CommissionGroupID` int COMMENT '交易组代码', PRIMARY KEY(AccountID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -1370,10 +1370,10 @@ void MysqlDB::CreateAccount()
 	}
 	
 	m_AccountCreateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void MysqlDB::DropAccount()
+void Mariadb::DropAccount()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS `t_Account`;";
@@ -1383,7 +1383,7 @@ void MysqlDB::DropAccount()
 	}
 	
 	m_AccountDropStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropAccount Spend:%lldms, sql:%s", duration, sql);
 }
 void Mariadb::InsertAccount(Account* record)
@@ -1396,7 +1396,7 @@ void Mariadb::InsertAccount(Account* record)
 	SetStatementForAccountRecord(m_AccountInsertStatement, record);
 	
 	m_AccountInsertStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "InsertAccount Spend:%lldms", duration);
@@ -1437,7 +1437,7 @@ void Mariadb::BatchInsertAccount(std::list<Account*>* records)
 	{
 		WriteLog(LogLevel::Warning, "BatchInsertAccount Failed. Error: %s, Sql:[%s]", e.what(), m_SqlBuff);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertAccount RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
 void Mariadb::DeleteAccount(Account* record)
@@ -1449,7 +1449,7 @@ void Mariadb::DeleteAccount(Account* record)
 	}
 	SetStatementForAccountPrimaryKey(m_AccountDeleteStatement, record->AccountID);
 	m_AccountDeleteStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeleteAccount Spend:%lldms", duration);
@@ -1464,7 +1464,7 @@ void Mariadb::UpdateAccount(Account* record)
 	}
 	SetStatementForAccountRecordUpdate(m_AccountUpdateStatement, record);
 	m_AccountUpdateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "UpdateAccount Spend:%lldms", duration);
@@ -1482,7 +1482,7 @@ void Mariadb::SelectAccount(std::list<Account*>& records)
 	{
 		ParseRecord(result, records);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectAccount Spend:%lldms", duration);
@@ -1496,9 +1496,9 @@ void Mariadb::TruncateAccount()
 		m_AccountTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Account;");
 	}
 	m_AccountTruncateStatement->executeQuery();
-	WriteLog(LogLevel::Info, "TruncateAccount Spend:%lldms", GetDuration<chrono::milliseconds>(start));
+	WriteLog(LogLevel::Info, "TruncateAccount Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void MysqlDB::CreateCapital()
+void Mariadb::CreateCapital()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Capital` (`TradingDay` char(16) COMMENT '交易日', `AccountID` char(32) COMMENT '账户代码', `AccountType` int COMMENT '账户类型', `Balance` decimal(24,8) COMMENT '权益', `PreBalance` decimal(24,8) COMMENT '上日权益', `Available` decimal(24,8) COMMENT '可用资金', `MarketValue` decimal(24,8) COMMENT '市值', `CashIn` decimal(24,8) COMMENT '现金收入', `CashOut` decimal(24,8) COMMENT '现金支出', `Margin` decimal(24,8) COMMENT '保证金', `Commission` decimal(24,8) COMMENT '手续费', `FrozenCash` decimal(24,8) COMMENT '冻结资金', `FrozenMargin` decimal(24,8) COMMENT '冻结保证金', `FrozenCommission` decimal(24,8) COMMENT '冻结手续费', `CloseProfitByDate` decimal(24,8) COMMENT '逐日平仓盈亏', `CloseProfitByTrade` decimal(24,8) COMMENT '逐笔平仓盈亏', `PositionProfitByDate` decimal(24,8) COMMENT '逐日持仓盈亏', `PositionProfitByTrade` decimal(24,8) COMMENT '逐笔持仓盈亏', `Deposit` decimal(24,8) COMMENT '入金', `Withdraw` decimal(24,8) COMMENT '出金', INDEX TradingDay(TradingDay), PRIMARY KEY(TradingDay, AccountID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -1508,10 +1508,10 @@ void MysqlDB::CreateCapital()
 	}
 	
 	m_CapitalCreateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateCapital Spend:%lldms, sql:%s", duration, sql);
 }
-void MysqlDB::DropCapital()
+void Mariadb::DropCapital()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS `t_Capital`;";
@@ -1521,7 +1521,7 @@ void MysqlDB::DropCapital()
 	}
 	
 	m_CapitalDropStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropCapital Spend:%lldms, sql:%s", duration, sql);
 }
 void Mariadb::InsertCapital(Capital* record)
@@ -1534,7 +1534,7 @@ void Mariadb::InsertCapital(Capital* record)
 	SetStatementForCapitalRecord(m_CapitalInsertStatement, record);
 	
 	m_CapitalInsertStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "InsertCapital Spend:%lldms", duration);
@@ -1575,7 +1575,7 @@ void Mariadb::BatchInsertCapital(std::list<Capital*>* records)
 	{
 		WriteLog(LogLevel::Warning, "BatchInsertCapital Failed. Error: %s, Sql:[%s]", e.what(), m_SqlBuff);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertCapital RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
 void Mariadb::DeleteCapital(Capital* record)
@@ -1587,7 +1587,7 @@ void Mariadb::DeleteCapital(Capital* record)
 	}
 	SetStatementForCapitalPrimaryKey(m_CapitalDeleteStatement, record->TradingDay, record->AccountID);
 	m_CapitalDeleteStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeleteCapital Spend:%lldms", duration);
@@ -1602,7 +1602,7 @@ void Mariadb::DeleteCapitalByTradingDayIndex(Capital* record)
 	}
 	SetStatementForCapitalIndexTradingDay(m_CapitalDeleteByTradingDayIndexStatement, record);
 	m_CapitalDeleteByTradingDayIndexStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeleteCapitalByTradingDayIndex Spend:%lldms", duration);
@@ -1617,7 +1617,7 @@ void Mariadb::UpdateCapital(Capital* record)
 	}
 	SetStatementForCapitalRecordUpdate(m_CapitalUpdateStatement, record);
 	m_CapitalUpdateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "UpdateCapital Spend:%lldms", duration);
@@ -1635,7 +1635,7 @@ void Mariadb::SelectCapital(std::list<Capital*>& records)
 	{
 		ParseRecord(result, records);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectCapital Spend:%lldms", duration);
@@ -1649,9 +1649,9 @@ void Mariadb::TruncateCapital()
 		m_CapitalTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Capital;");
 	}
 	m_CapitalTruncateStatement->executeQuery();
-	WriteLog(LogLevel::Info, "TruncateCapital Spend:%lldms", GetDuration<chrono::milliseconds>(start));
+	WriteLog(LogLevel::Info, "TruncateCapital Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void MysqlDB::CreatePosition()
+void Mariadb::CreatePosition()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Position` (`TradingDay` char(16) COMMENT '交易日', `AccountID` char(32) COMMENT '账户代码', `AccountType` int COMMENT '账户类型', `ExchangeID` char(8) COMMENT '交易所代码', `InstrumentID` char(32) COMMENT '合约代码', `ProductClass` int COMMENT '品种类型', `PosiDirection` int COMMENT '持仓方向', `TotalPosition` bigint COMMENT '持仓数量', `PositionFrozen` bigint COMMENT '冻结持仓', `TodayPosition` bigint COMMENT '今日持仓', `MarketValue` decimal(24,8) COMMENT '市值', `CashIn` decimal(24,8) COMMENT '现金收入', `CashOut` decimal(24,8) COMMENT '现金支出', `Margin` decimal(24,8) COMMENT '保证金', `Commission` decimal(24,8) COMMENT '手续费', `FrozenCash` decimal(24,8) COMMENT '冻结资金', `FrozenMargin` decimal(24,8) COMMENT '冻结保证金', `FrozenCommission` decimal(24,8) COMMENT '冻结手续费', `VolumeMultiple` int COMMENT '合约乘数', `CloseProfitByDate` decimal(24,8) COMMENT '逐日平仓盈亏', `CloseProfitByTrade` decimal(24,8) COMMENT '逐笔平仓盈亏', `PositionProfitByDate` decimal(24,8) COMMENT '逐日持仓盈亏', `PositionProfitByTrade` decimal(24,8) COMMENT '逐笔持仓盈亏', `SettlementPrice` decimal(24,8) COMMENT '结算价', `PreSettlementPrice` decimal(24,8) COMMENT '昨结算价', INDEX Account(TradingDay, AccountID), INDEX TradingDay(TradingDay), PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -1661,10 +1661,10 @@ void MysqlDB::CreatePosition()
 	}
 	
 	m_PositionCreateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreatePosition Spend:%lldms, sql:%s", duration, sql);
 }
-void MysqlDB::DropPosition()
+void Mariadb::DropPosition()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS `t_Position`;";
@@ -1674,7 +1674,7 @@ void MysqlDB::DropPosition()
 	}
 	
 	m_PositionDropStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropPosition Spend:%lldms, sql:%s", duration, sql);
 }
 void Mariadb::InsertPosition(Position* record)
@@ -1687,7 +1687,7 @@ void Mariadb::InsertPosition(Position* record)
 	SetStatementForPositionRecord(m_PositionInsertStatement, record);
 	
 	m_PositionInsertStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "InsertPosition Spend:%lldms", duration);
@@ -1728,7 +1728,7 @@ void Mariadb::BatchInsertPosition(std::list<Position*>* records)
 	{
 		WriteLog(LogLevel::Warning, "BatchInsertPosition Failed. Error: %s, Sql:[%s]", e.what(), m_SqlBuff);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertPosition RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
 void Mariadb::DeletePosition(Position* record)
@@ -1740,7 +1740,7 @@ void Mariadb::DeletePosition(Position* record)
 	}
 	SetStatementForPositionPrimaryKey(m_PositionDeleteStatement, record->TradingDay, record->AccountID, record->ExchangeID, record->InstrumentID, record->PosiDirection);
 	m_PositionDeleteStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeletePosition Spend:%lldms", duration);
@@ -1755,7 +1755,7 @@ void Mariadb::DeletePositionByAccountIndex(Position* record)
 	}
 	SetStatementForPositionIndexAccount(m_PositionDeleteByAccountIndexStatement, record);
 	m_PositionDeleteByAccountIndexStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeletePositionByAccountIndex Spend:%lldms", duration);
@@ -1770,7 +1770,7 @@ void Mariadb::DeletePositionByTradingDayIndex(Position* record)
 	}
 	SetStatementForPositionIndexTradingDay(m_PositionDeleteByTradingDayIndexStatement, record);
 	m_PositionDeleteByTradingDayIndexStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeletePositionByTradingDayIndex Spend:%lldms", duration);
@@ -1785,7 +1785,7 @@ void Mariadb::UpdatePosition(Position* record)
 	}
 	SetStatementForPositionRecordUpdate(m_PositionUpdateStatement, record);
 	m_PositionUpdateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "UpdatePosition Spend:%lldms", duration);
@@ -1803,7 +1803,7 @@ void Mariadb::SelectPosition(std::list<Position*>& records)
 	{
 		ParseRecord(result, records);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectPosition Spend:%lldms", duration);
@@ -1817,9 +1817,9 @@ void Mariadb::TruncatePosition()
 		m_PositionTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Position;");
 	}
 	m_PositionTruncateStatement->executeQuery();
-	WriteLog(LogLevel::Info, "TruncatePosition Spend:%lldms", GetDuration<chrono::milliseconds>(start));
+	WriteLog(LogLevel::Info, "TruncatePosition Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void MysqlDB::CreatePositionDetail()
+void Mariadb::CreatePositionDetail()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_PositionDetail` (`TradingDay` char(16) COMMENT '交易日', `AccountID` char(32) COMMENT '账户代码', `AccountType` int COMMENT '账户类型', `ExchangeID` char(8) COMMENT '交易所代码', `InstrumentID` char(32) COMMENT '合约代码', `ProductClass` int COMMENT '品种类型', `PosiDirection` int COMMENT '持仓方向', `OpenDate` char(16) COMMENT '开仓日期', `TradeID` char(64) COMMENT '成交编号', `Volume` bigint COMMENT '委托数量', `OpenPrice` decimal(24,8) COMMENT '开盘价', `MarketValue` decimal(24,8) COMMENT '市值', `CashIn` decimal(24,8) COMMENT '现金收入', `CashOut` decimal(24,8) COMMENT '现金支出', `Margin` decimal(24,8) COMMENT '保证金', `Commission` decimal(24,8) COMMENT '手续费', `VolumeMultiple` int COMMENT '合约乘数', `CloseProfitByDate` decimal(24,8) COMMENT '逐日平仓盈亏', `CloseProfitByTrade` decimal(24,8) COMMENT '逐笔平仓盈亏', `PositionProfitByDate` decimal(24,8) COMMENT '逐日持仓盈亏', `PositionProfitByTrade` decimal(24,8) COMMENT '逐笔持仓盈亏', `SettlementPrice` decimal(24,8) COMMENT '结算价', `PreSettlementPrice` decimal(24,8) COMMENT '昨结算价', `CloseVolume` bigint COMMENT '平仓数量', `CloseAmount` decimal(24,8) COMMENT '平仓金额', INDEX TradeMatch(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection), INDEX TradingDay(TradingDay), PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection, OpenDate, TradeID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -1829,10 +1829,10 @@ void MysqlDB::CreatePositionDetail()
 	}
 	
 	m_PositionDetailCreateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreatePositionDetail Spend:%lldms, sql:%s", duration, sql);
 }
-void MysqlDB::DropPositionDetail()
+void Mariadb::DropPositionDetail()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS `t_PositionDetail`;";
@@ -1842,7 +1842,7 @@ void MysqlDB::DropPositionDetail()
 	}
 	
 	m_PositionDetailDropStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropPositionDetail Spend:%lldms, sql:%s", duration, sql);
 }
 void Mariadb::InsertPositionDetail(PositionDetail* record)
@@ -1855,7 +1855,7 @@ void Mariadb::InsertPositionDetail(PositionDetail* record)
 	SetStatementForPositionDetailRecord(m_PositionDetailInsertStatement, record);
 	
 	m_PositionDetailInsertStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "InsertPositionDetail Spend:%lldms", duration);
@@ -1896,7 +1896,7 @@ void Mariadb::BatchInsertPositionDetail(std::list<PositionDetail*>* records)
 	{
 		WriteLog(LogLevel::Warning, "BatchInsertPositionDetail Failed. Error: %s, Sql:[%s]", e.what(), m_SqlBuff);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertPositionDetail RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
 void Mariadb::DeletePositionDetail(PositionDetail* record)
@@ -1908,7 +1908,7 @@ void Mariadb::DeletePositionDetail(PositionDetail* record)
 	}
 	SetStatementForPositionDetailPrimaryKey(m_PositionDetailDeleteStatement, record->TradingDay, record->AccountID, record->ExchangeID, record->InstrumentID, record->PosiDirection, record->OpenDate, record->TradeID);
 	m_PositionDetailDeleteStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeletePositionDetail Spend:%lldms", duration);
@@ -1923,7 +1923,7 @@ void Mariadb::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
 	}
 	SetStatementForPositionDetailIndexTradeMatch(m_PositionDetailDeleteByTradeMatchIndexStatement, record);
 	m_PositionDetailDeleteByTradeMatchIndexStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeletePositionDetailByTradeMatchIndex Spend:%lldms", duration);
@@ -1938,7 +1938,7 @@ void Mariadb::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
 	}
 	SetStatementForPositionDetailIndexTradingDay(m_PositionDetailDeleteByTradingDayIndexStatement, record);
 	m_PositionDetailDeleteByTradingDayIndexStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeletePositionDetailByTradingDayIndex Spend:%lldms", duration);
@@ -1953,7 +1953,7 @@ void Mariadb::UpdatePositionDetail(PositionDetail* record)
 	}
 	SetStatementForPositionDetailRecordUpdate(m_PositionDetailUpdateStatement, record);
 	m_PositionDetailUpdateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "UpdatePositionDetail Spend:%lldms", duration);
@@ -1971,7 +1971,7 @@ void Mariadb::SelectPositionDetail(std::list<PositionDetail*>& records)
 	{
 		ParseRecord(result, records);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectPositionDetail Spend:%lldms", duration);
@@ -1985,9 +1985,9 @@ void Mariadb::TruncatePositionDetail()
 		m_PositionDetailTruncateStatement = m_DBConnection->prepareStatement("truncate table t_PositionDetail;");
 	}
 	m_PositionDetailTruncateStatement->executeQuery();
-	WriteLog(LogLevel::Info, "TruncatePositionDetail Spend:%lldms", GetDuration<chrono::milliseconds>(start));
+	WriteLog(LogLevel::Info, "TruncatePositionDetail Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void MysqlDB::CreateOrder()
+void Mariadb::CreateOrder()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Order` (`TradingDay` char(16) COMMENT '交易日', `AccountID` char(32) COMMENT '账户代码', `AccountType` int COMMENT '账户类型', `ExchangeID` char(8) COMMENT '交易所代码', `InstrumentID` char(32) COMMENT '合约代码', `ProductClass` int COMMENT '品种类型', `OrderID` int COMMENT '委托编号', `OrderSysID` char(64) COMMENT '系统委托编号', `Direction` int COMMENT '买卖方向', `OffsetFlag` int COMMENT '开平标志', `OrderPriceType` int COMMENT '委托价格类型', `Price` decimal(24,8) COMMENT '委托价格', `Volume` bigint COMMENT '委托数量', `VolumeTotal` bigint COMMENT '剩余数量', `VolumeTraded` bigint COMMENT '成交数量', `VolumeMultiple` int COMMENT '合约乘数', `OrderStatus` int COMMENT '委托状态', `OrderDate` char(16) COMMENT '委托日期', `OrderTime` char(16) COMMENT '委托时间', `CancelDate` char(16) COMMENT '撤单日期', `CancelTime` char(16) COMMENT '撤单时间', `SessionID` bigint COMMENT '会话编号', `ClientOrderID` int COMMENT '客户端委托编号', `RequestID` int COMMENT '客户端请求编号', `OfferID` int COMMENT '报盘代码', `TradeGroupID` int COMMENT '交易组代码', `RiskGroupID` int COMMENT '交易组代码', `CommissionGroupID` int COMMENT '交易组代码', `FrozenCash` decimal(24,8) COMMENT '冻结资金', `FrozenMargin` decimal(24,8) COMMENT '冻结保证金', `FrozenCommission` decimal(24,8) COMMENT '冻结手续费', `RebuildMark` bool COMMENT '重建标志', `IsForceClose` bool COMMENT '是否强平单', UNIQUE ClientOrderID(TradingDay, AccountID, ExchangeID, InstrumentID, SessionID, ClientOrderID), PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, OrderID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -1997,10 +1997,10 @@ void MysqlDB::CreateOrder()
 	}
 	
 	m_OrderCreateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateOrder Spend:%lldms, sql:%s", duration, sql);
 }
-void MysqlDB::DropOrder()
+void Mariadb::DropOrder()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS `t_Order`;";
@@ -2010,7 +2010,7 @@ void MysqlDB::DropOrder()
 	}
 	
 	m_OrderDropStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropOrder Spend:%lldms, sql:%s", duration, sql);
 }
 void Mariadb::InsertOrder(Order* record)
@@ -2023,7 +2023,7 @@ void Mariadb::InsertOrder(Order* record)
 	SetStatementForOrderRecord(m_OrderInsertStatement, record);
 	
 	m_OrderInsertStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "InsertOrder Spend:%lldms", duration);
@@ -2064,7 +2064,7 @@ void Mariadb::BatchInsertOrder(std::list<Order*>* records)
 	{
 		WriteLog(LogLevel::Warning, "BatchInsertOrder Failed. Error: %s, Sql:[%s]", e.what(), m_SqlBuff);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertOrder RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
 void Mariadb::DeleteOrder(Order* record)
@@ -2076,7 +2076,7 @@ void Mariadb::DeleteOrder(Order* record)
 	}
 	SetStatementForOrderPrimaryKey(m_OrderDeleteStatement, record->TradingDay, record->AccountID, record->ExchangeID, record->InstrumentID, record->OrderID);
 	m_OrderDeleteStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeleteOrder Spend:%lldms", duration);
@@ -2091,7 +2091,7 @@ void Mariadb::UpdateOrder(Order* record)
 	}
 	SetStatementForOrderRecordUpdate(m_OrderUpdateStatement, record);
 	m_OrderUpdateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "UpdateOrder Spend:%lldms", duration);
@@ -2109,7 +2109,7 @@ void Mariadb::SelectOrder(std::list<Order*>& records)
 	{
 		ParseRecord(result, records);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectOrder Spend:%lldms", duration);
@@ -2123,9 +2123,9 @@ void Mariadb::TruncateOrder()
 		m_OrderTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Order;");
 	}
 	m_OrderTruncateStatement->executeQuery();
-	WriteLog(LogLevel::Info, "TruncateOrder Spend:%lldms", GetDuration<chrono::milliseconds>(start));
+	WriteLog(LogLevel::Info, "TruncateOrder Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void MysqlDB::CreateTrade()
+void Mariadb::CreateTrade()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Trade` (`TradingDay` char(16) COMMENT '交易日', `AccountID` char(32) COMMENT '账户代码', `AccountType` int COMMENT '账户类型', `ExchangeID` char(8) COMMENT '交易所代码', `InstrumentID` char(32) COMMENT '合约代码', `ProductClass` int COMMENT '品种类型', `OrderID` int COMMENT '委托编号', `OrderSysID` char(64) COMMENT '系统委托编号', `TradeID` char(64) COMMENT '成交编号', `Direction` int COMMENT '买卖方向', `OffsetFlag` int COMMENT '开平标志', `Price` decimal(24,8) COMMENT '委托价格', `Volume` bigint COMMENT '委托数量', `VolumeMultiple` int COMMENT '合约乘数', `TradeAmount` decimal(24,8) COMMENT '成交金额', `Commission` decimal(24,8) COMMENT '手续费', `TradeDate` char(16) COMMENT '成交日期', `TradeTime` char(16) COMMENT '成交时间', PRIMARY KEY(TradingDay, ExchangeID, TradeID, Direction)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -2135,10 +2135,10 @@ void MysqlDB::CreateTrade()
 	}
 	
 	m_TradeCreateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateTrade Spend:%lldms, sql:%s", duration, sql);
 }
-void MysqlDB::DropTrade()
+void Mariadb::DropTrade()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS `t_Trade`;";
@@ -2148,7 +2148,7 @@ void MysqlDB::DropTrade()
 	}
 	
 	m_TradeDropStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropTrade Spend:%lldms, sql:%s", duration, sql);
 }
 void Mariadb::InsertTrade(Trade* record)
@@ -2161,7 +2161,7 @@ void Mariadb::InsertTrade(Trade* record)
 	SetStatementForTradeRecord(m_TradeInsertStatement, record);
 	
 	m_TradeInsertStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "InsertTrade Spend:%lldms", duration);
@@ -2202,7 +2202,7 @@ void Mariadb::BatchInsertTrade(std::list<Trade*>* records)
 	{
 		WriteLog(LogLevel::Warning, "BatchInsertTrade Failed. Error: %s, Sql:[%s]", e.what(), m_SqlBuff);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertTrade RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
 void Mariadb::DeleteTrade(Trade* record)
@@ -2214,7 +2214,7 @@ void Mariadb::DeleteTrade(Trade* record)
 	}
 	SetStatementForTradePrimaryKey(m_TradeDeleteStatement, record->TradingDay, record->ExchangeID, record->TradeID, record->Direction);
 	m_TradeDeleteStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "DeleteTrade Spend:%lldms", duration);
@@ -2229,7 +2229,7 @@ void Mariadb::UpdateTrade(Trade* record)
 	}
 	SetStatementForTradeRecordUpdate(m_TradeUpdateStatement, record);
 	m_TradeUpdateStatement->executeUpdate();
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "UpdateTrade Spend:%lldms", duration);
@@ -2247,7 +2247,7 @@ void Mariadb::SelectTrade(std::list<Trade*>& records)
 	{
 		ParseRecord(result, records);
 	}
-	auto duration = GetDuration<chrono::milliseconds>(start);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectTrade Spend:%lldms", duration);
@@ -2261,7 +2261,7 @@ void Mariadb::TruncateTrade()
 		m_TradeTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Trade;");
 	}
 	m_TradeTruncateStatement->executeQuery();
-	WriteLog(LogLevel::Info, "TruncateTrade Spend:%lldms", GetDuration<chrono::milliseconds>(start));
+	WriteLog(LogLevel::Info, "TruncateTrade Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
 
 
@@ -2285,8 +2285,8 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<TradingDay*>& record
 {
 	TradingDay* record = TradingDay::Allocate();
 	record->PK = result->getInt(1);
-	Strcpy(record->CurrTradingDay, result->getString(2).c_str());
-	Strcpy(record->PreTradingDay, result->getString(3).c_str());
+	Utility::Strcpy(record->CurrTradingDay, result->getString(2).c_str());
+	Utility::Strcpy(record->PreTradingDay, result->getString(3).c_str());
 	records.push_back(record);
 }
 void Mariadb::SetStatementForExchangeRecord(sql::PreparedStatement* statement, Exchange* record)
@@ -2306,8 +2306,8 @@ void Mariadb::SetStatementForExchangePrimaryKey(sql::PreparedStatement* statemen
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Exchange*>& records)
 {
 	Exchange* record = Exchange::Allocate();
-	Strcpy(record->ExchangeID, result->getString(1).c_str());
-	Strcpy(record->ExchangeName, result->getString(2).c_str());
+	Utility::Strcpy(record->ExchangeID, result->getString(1).c_str());
+	Utility::Strcpy(record->ExchangeName, result->getString(2).c_str());
 	records.push_back(record);
 }
 void Mariadb::SetStatementForProductRecord(sql::PreparedStatement* statement, Product* record)
@@ -2346,9 +2346,9 @@ void Mariadb::SetStatementForProductPrimaryKey(sql::PreparedStatement* statement
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Product*>& records)
 {
 	Product* record = Product::Allocate();
-	Strcpy(record->ExchangeID, result->getString(1).c_str());
-	Strcpy(record->ProductID, result->getString(2).c_str());
-	Strcpy(record->ProductName, result->getString(3).c_str());
+	Utility::Strcpy(record->ExchangeID, result->getString(1).c_str());
+	Utility::Strcpy(record->ProductID, result->getString(2).c_str());
+	Utility::Strcpy(record->ProductName, result->getString(3).c_str());
 	record->ProductClass = ProductClassType(result->getInt(4));
 	record->VolumeMultiple = result->getInt(5);
 	record->PriceTick = result->getDouble(6);
@@ -2356,7 +2356,7 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Product*>& records)
 	record->MinMarketOrderVolume = result->getInt64(8);
 	record->MaxLimitOrderVolume = result->getInt64(9);
 	record->MinLimitOrderVolume = result->getInt64(10);
-	Strcpy(record->SessionName, result->getString(11).c_str());
+	Utility::Strcpy(record->SessionName, result->getString(11).c_str());
 	records.push_back(record);
 }
 void Mariadb::SetStatementForInstrumentRecord(sql::PreparedStatement* statement, Instrument* record)
@@ -2403,11 +2403,11 @@ void Mariadb::SetStatementForInstrumentPrimaryKey(sql::PreparedStatement* statem
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Instrument*>& records)
 {
 	Instrument* record = Instrument::Allocate();
-	Strcpy(record->ExchangeID, result->getString(1).c_str());
-	Strcpy(record->InstrumentID, result->getString(2).c_str());
-	Strcpy(record->ExchangeInstID, result->getString(3).c_str());
-	Strcpy(record->InstrumentName, result->getString(4).c_str());
-	Strcpy(record->ProductID, result->getString(5).c_str());
+	Utility::Strcpy(record->ExchangeID, result->getString(1).c_str());
+	Utility::Strcpy(record->InstrumentID, result->getString(2).c_str());
+	Utility::Strcpy(record->ExchangeInstID, result->getString(3).c_str());
+	Utility::Strcpy(record->InstrumentName, result->getString(4).c_str());
+	Utility::Strcpy(record->ProductID, result->getString(5).c_str());
 	record->ProductClass = ProductClassType(result->getInt(6));
 	record->InstrumentClass = InstrumentClassType(result->getInt(7));
 	record->Rank = result->getInt(8);
@@ -2417,7 +2417,7 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Instrument*>& record
 	record->MinMarketOrderVolume = result->getInt64(12);
 	record->MaxLimitOrderVolume = result->getInt64(13);
 	record->MinLimitOrderVolume = result->getInt64(14);
-	Strcpy(record->SessionName, result->getString(15).c_str());
+	Utility::Strcpy(record->SessionName, result->getString(15).c_str());
 	records.push_back(record);
 }
 void Mariadb::SetStatementForPrimaryAccountRecord(sql::PreparedStatement* statement, PrimaryAccount* record)
@@ -2455,10 +2455,10 @@ void Mariadb::SetStatementForPrimaryAccountIndexOfferID(sql::PreparedStatement* 
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<PrimaryAccount*>& records)
 {
 	PrimaryAccount* record = PrimaryAccount::Allocate();
-	Strcpy(record->PrimaryAccountID, result->getString(1).c_str());
-	Strcpy(record->PrimaryAccountName, result->getString(2).c_str());
+	Utility::Strcpy(record->PrimaryAccountID, result->getString(1).c_str());
+	Utility::Strcpy(record->PrimaryAccountName, result->getString(2).c_str());
 	record->AccountClass = AccountClassType(result->getInt(3));
-	Strcpy(record->BrokerPassword, result->getString(4).c_str());
+	Utility::Strcpy(record->BrokerPassword, result->getString(4).c_str());
 	record->OfferID = result->getInt(5);
 	record->IsAllowLogin = result->getBoolean(6);
 	record->IsSimulateAccount = result->getBoolean(7);
@@ -2495,11 +2495,11 @@ void Mariadb::SetStatementForAccountPrimaryKey(sql::PreparedStatement* statement
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Account*>& records)
 {
 	Account* record = Account::Allocate();
-	Strcpy(record->AccountID, result->getString(1).c_str());
-	Strcpy(record->AccountName, result->getString(2).c_str());
+	Utility::Strcpy(record->AccountID, result->getString(1).c_str());
+	Utility::Strcpy(record->AccountName, result->getString(2).c_str());
 	record->AccountType = AccountTypeType(result->getInt(3));
 	record->AccountStatus = AccountStatusType(result->getInt(4));
-	Strcpy(record->Password, result->getString(5).c_str());
+	Utility::Strcpy(record->Password, result->getString(5).c_str());
 	record->TradeGroupID = result->getInt(6);
 	record->RiskGroupID = result->getInt(7);
 	record->CommissionGroupID = result->getInt(8);
@@ -2563,8 +2563,8 @@ void Mariadb::SetStatementForCapitalIndexTradingDay(sql::PreparedStatement* stat
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Capital*>& records)
 {
 	Capital* record = Capital::Allocate();
-	Strcpy(record->TradingDay, result->getString(1).c_str());
-	Strcpy(record->AccountID, result->getString(2).c_str());
+	Utility::Strcpy(record->TradingDay, result->getString(1).c_str());
+	Utility::Strcpy(record->AccountID, result->getString(2).c_str());
 	record->AccountType = AccountTypeType(result->getInt(3));
 	record->Balance = result->getDouble(4);
 	record->PreBalance = result->getDouble(5);
@@ -2661,11 +2661,11 @@ void Mariadb::SetStatementForPositionIndexTradingDay(sql::PreparedStatement* sta
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Position*>& records)
 {
 	Position* record = Position::Allocate();
-	Strcpy(record->TradingDay, result->getString(1).c_str());
-	Strcpy(record->AccountID, result->getString(2).c_str());
+	Utility::Strcpy(record->TradingDay, result->getString(1).c_str());
+	Utility::Strcpy(record->AccountID, result->getString(2).c_str());
 	record->AccountType = AccountTypeType(result->getInt(3));
-	Strcpy(record->ExchangeID, result->getString(4).c_str());
-	Strcpy(record->InstrumentID, result->getString(5).c_str());
+	Utility::Strcpy(record->ExchangeID, result->getString(4).c_str());
+	Utility::Strcpy(record->InstrumentID, result->getString(5).c_str());
 	record->ProductClass = ProductClassType(result->getInt(6));
 	record->PosiDirection = PosiDirectionType(result->getInt(7));
 	record->TotalPosition = result->getInt64(8);
@@ -2769,15 +2769,15 @@ void Mariadb::SetStatementForPositionDetailIndexTradingDay(sql::PreparedStatemen
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<PositionDetail*>& records)
 {
 	PositionDetail* record = PositionDetail::Allocate();
-	Strcpy(record->TradingDay, result->getString(1).c_str());
-	Strcpy(record->AccountID, result->getString(2).c_str());
+	Utility::Strcpy(record->TradingDay, result->getString(1).c_str());
+	Utility::Strcpy(record->AccountID, result->getString(2).c_str());
 	record->AccountType = AccountTypeType(result->getInt(3));
-	Strcpy(record->ExchangeID, result->getString(4).c_str());
-	Strcpy(record->InstrumentID, result->getString(5).c_str());
+	Utility::Strcpy(record->ExchangeID, result->getString(4).c_str());
+	Utility::Strcpy(record->InstrumentID, result->getString(5).c_str());
 	record->ProductClass = ProductClassType(result->getInt(6));
 	record->PosiDirection = PosiDirectionType(result->getInt(7));
-	Strcpy(record->OpenDate, result->getString(8).c_str());
-	Strcpy(record->TradeID, result->getString(9).c_str());
+	Utility::Strcpy(record->OpenDate, result->getString(8).c_str());
+	Utility::Strcpy(record->TradeID, result->getString(9).c_str());
 	record->Volume = result->getInt64(10);
 	record->OpenPrice = result->getDouble(11);
 	record->MarketValue = result->getDouble(12);
@@ -2879,14 +2879,14 @@ void Mariadb::SetStatementForOrderPrimaryKey(sql::PreparedStatement* statement, 
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Order*>& records)
 {
 	Order* record = Order::Allocate();
-	Strcpy(record->TradingDay, result->getString(1).c_str());
-	Strcpy(record->AccountID, result->getString(2).c_str());
+	Utility::Strcpy(record->TradingDay, result->getString(1).c_str());
+	Utility::Strcpy(record->AccountID, result->getString(2).c_str());
 	record->AccountType = AccountTypeType(result->getInt(3));
-	Strcpy(record->ExchangeID, result->getString(4).c_str());
-	Strcpy(record->InstrumentID, result->getString(5).c_str());
+	Utility::Strcpy(record->ExchangeID, result->getString(4).c_str());
+	Utility::Strcpy(record->InstrumentID, result->getString(5).c_str());
 	record->ProductClass = ProductClassType(result->getInt(6));
 	record->OrderID = result->getInt(7);
-	Strcpy(record->OrderSysID, result->getString(8).c_str());
+	Utility::Strcpy(record->OrderSysID, result->getString(8).c_str());
 	record->Direction = DirectionType(result->getInt(9));
 	record->OffsetFlag = OffsetFlagType(result->getInt(10));
 	record->OrderPriceType = OrderPriceTypeType(result->getInt(11));
@@ -2896,10 +2896,10 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Order*>& records)
 	record->VolumeTraded = result->getInt64(15);
 	record->VolumeMultiple = result->getInt(16);
 	record->OrderStatus = OrderStatusType(result->getInt(17));
-	Strcpy(record->OrderDate, result->getString(18).c_str());
-	Strcpy(record->OrderTime, result->getString(19).c_str());
-	Strcpy(record->CancelDate, result->getString(20).c_str());
-	Strcpy(record->CancelTime, result->getString(21).c_str());
+	Utility::Strcpy(record->OrderDate, result->getString(18).c_str());
+	Utility::Strcpy(record->OrderTime, result->getString(19).c_str());
+	Utility::Strcpy(record->CancelDate, result->getString(20).c_str());
+	Utility::Strcpy(record->CancelTime, result->getString(21).c_str());
 	record->SessionID = result->getInt64(22);
 	record->ClientOrderID = result->getInt(23);
 	record->RequestID = result->getInt(24);
@@ -2966,15 +2966,15 @@ void Mariadb::SetStatementForTradePrimaryKey(sql::PreparedStatement* statement, 
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Trade*>& records)
 {
 	Trade* record = Trade::Allocate();
-	Strcpy(record->TradingDay, result->getString(1).c_str());
-	Strcpy(record->AccountID, result->getString(2).c_str());
+	Utility::Strcpy(record->TradingDay, result->getString(1).c_str());
+	Utility::Strcpy(record->AccountID, result->getString(2).c_str());
 	record->AccountType = AccountTypeType(result->getInt(3));
-	Strcpy(record->ExchangeID, result->getString(4).c_str());
-	Strcpy(record->InstrumentID, result->getString(5).c_str());
+	Utility::Strcpy(record->ExchangeID, result->getString(4).c_str());
+	Utility::Strcpy(record->InstrumentID, result->getString(5).c_str());
 	record->ProductClass = ProductClassType(result->getInt(6));
 	record->OrderID = result->getInt(7);
-	Strcpy(record->OrderSysID, result->getString(8).c_str());
-	Strcpy(record->TradeID, result->getString(9).c_str());
+	Utility::Strcpy(record->OrderSysID, result->getString(8).c_str());
+	Utility::Strcpy(record->TradeID, result->getString(9).c_str());
 	record->Direction = DirectionType(result->getInt(10));
 	record->OffsetFlag = OffsetFlagType(result->getInt(11));
 	record->Price = result->getDouble(12);
@@ -2982,8 +2982,8 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Trade*>& records)
 	record->VolumeMultiple = result->getInt(14);
 	record->TradeAmount = result->getDouble(15);
 	record->Commission = result->getDouble(16);
-	Strcpy(record->TradeDate, result->getString(17).c_str());
-	Strcpy(record->TradeTime, result->getString(18).c_str());
+	Utility::Strcpy(record->TradeDate, result->getString(17).c_str());
+	Utility::Strcpy(record->TradeTime, result->getString(18).c_str());
 	records.push_back(record);
 }
 

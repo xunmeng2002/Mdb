@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Mdb/Mdb/DB.h"
-#include "conncpp.hpp"
+#include <mariadb/conncpp.hpp>
 #include <string>
 #include <list>
 

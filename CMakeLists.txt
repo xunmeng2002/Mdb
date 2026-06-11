@@ -57,20 +57,20 @@ list(APPEND CMAKE_PREFIX_PATH "${VcpkgPth}/installed/x64-windows")
 
 add_static_module(Mdb				${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Mdb)
 add_static_module(Mysql				${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Mysql)
-#add_static_module(Mariadb			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Mariadb)
+add_static_module(Mariadb			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Mariadb)
 add_static_module(Duckdb			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Duckdb)
 add_static_module(Sqlite			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Sqlite)
 
 find_package(unofficial-sqlite3 CONFIG REQUIRED)
 find_package(duckdb CONFIG REQUIRED)
 find_package(unofficial-mysql-connector-cpp CONFIG REQUIRED)
-find_package(unofficial-libmariadb CONFIG REQUIRED)
+find_package(unofficial-mariadb-connector-cpp CONFIG REQUIRED)
 
 
 
 target_link_libraries(Mdb PUBLIC PersonalLib::Core PersonalLib::Serialization)
 target_link_libraries(Mysql PUBLIC Mdb unofficial::mysql-connector-cpp::connector)
-#target_link_libraries(Mariadb PUBLIC Mdb unofficial::libmariadb)
+target_link_libraries(Mariadb PUBLIC Mdb unofficial::mariadb-connector-cpp::mariadbcpp)
 target_link_libraries(Duckdb PUBLIC Mdb duckdb)
 target_link_libraries(Sqlite PUBLIC Mdb unofficial::sqlite3::sqlite3)
 #target_include_directories(Sqlite PUBLIC ${SQLite3_INCLUDE_DIR})
