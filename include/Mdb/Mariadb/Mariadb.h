@@ -2,7 +2,33 @@
 #include "Mdb/Mdb/DB.h"
 #include <mariadb/conncpp.hpp>
 #include <string>
+#include <memory>
 #include <list>
+
+struct SqlConnectionDeleter {
+    void operator()(sql::Connection* conn) const {
+        if (conn) {
+            conn->close();
+            delete conn;
+        }
+    }
+};
+struct SqlStatementDeleter {
+    void operator()(sql::Statement* stmt) const {
+        if (stmt) {
+            stmt->close();
+            delete stmt;
+        }
+    }
+};
+struct SqlPreparedStatementDeleter {
+    void operator()(sql::PreparedStatement* pstmt) const {
+        if (pstmt) {
+            pstmt->close();
+            delete pstmt;
+        }
+    }
+};
 
 
 class Mariadb : public DB
@@ -23,7 +49,7 @@ public:
 	{
 		if (m_Statement == nullptr)
 		{
-			m_Statement = m_DBConnection->createStatement();
+			m_Statement.reset(m_DBConnection->createStatement());
 		}
 		auto result = m_Statement->executeQuery(sql);
 		while (result->next())
@@ -35,7 +61,7 @@ public:
 	{
 		if (m_Statement == nullptr)
 		{
-			m_Statement = m_DBConnection->createStatement();
+			m_Statement.reset(m_DBConnection->createStatement());
 		}
 		m_Statement->executeUpdate(sql);
 	}
@@ -147,149 +173,149 @@ public:
 	
 
 private:
-	void SetStatementForTradingDayRecord(sql::PreparedStatement* statement, mdb::TradingDay* record);
-	void SetStatementForTradingDayRecordUpdate(sql::PreparedStatement* statement, mdb::TradingDay* record);
-	void SetStatementForTradingDayPrimaryKey(sql::PreparedStatement* statement, const IntType& PK);
+	void SetStatementForTradingDayRecord(mdb::TradingDay* record);
+	void SetStatementForTradingDayRecordUpdate(mdb::TradingDay* record);
+	void SetStatementForTradingDayPrimaryKey(const IntType& PK);
 	void ParseRecord(sql::ResultSet* result, std::list<mdb::TradingDay*>& records);
-	void SetStatementForExchangeRecord(sql::PreparedStatement* statement, mdb::Exchange* record);
-	void SetStatementForExchangeRecordUpdate(sql::PreparedStatement* statement, mdb::Exchange* record);
-	void SetStatementForExchangePrimaryKey(sql::PreparedStatement* statement, const ExchangeIDType& ExchangeID);
+	void SetStatementForExchangeRecord(mdb::Exchange* record);
+	void SetStatementForExchangeRecordUpdate(mdb::Exchange* record);
+	void SetStatementForExchangePrimaryKey(const ExchangeIDType& ExchangeID);
 	void ParseRecord(sql::ResultSet* result, std::list<mdb::Exchange*>& records);
-	void SetStatementForProductRecord(sql::PreparedStatement* statement, mdb::Product* record);
-	void SetStatementForProductRecordUpdate(sql::PreparedStatement* statement, mdb::Product* record);
-	void SetStatementForProductPrimaryKey(sql::PreparedStatement* statement, const ExchangeIDType& ExchangeID, const ProductIDType& ProductID);
+	void SetStatementForProductRecord(mdb::Product* record);
+	void SetStatementForProductRecordUpdate(mdb::Product* record);
+	void SetStatementForProductPrimaryKey(const ExchangeIDType& ExchangeID, const ProductIDType& ProductID);
 	void ParseRecord(sql::ResultSet* result, std::list<mdb::Product*>& records);
-	void SetStatementForInstrumentRecord(sql::PreparedStatement* statement, mdb::Instrument* record);
-	void SetStatementForInstrumentRecordUpdate(sql::PreparedStatement* statement, mdb::Instrument* record);
-	void SetStatementForInstrumentPrimaryKey(sql::PreparedStatement* statement, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID);
+	void SetStatementForInstrumentRecord(mdb::Instrument* record);
+	void SetStatementForInstrumentRecordUpdate(mdb::Instrument* record);
+	void SetStatementForInstrumentPrimaryKey(const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID);
 	void ParseRecord(sql::ResultSet* result, std::list<mdb::Instrument*>& records);
-	void SetStatementForPrimaryAccountRecord(sql::PreparedStatement* statement, mdb::PrimaryAccount* record);
-	void SetStatementForPrimaryAccountRecordUpdate(sql::PreparedStatement* statement, mdb::PrimaryAccount* record);
-	void SetStatementForPrimaryAccountPrimaryKey(sql::PreparedStatement* statement, const AccountIDType& PrimaryAccountID);
-	void SetStatementForPrimaryAccountIndexOfferID(sql::PreparedStatement* statement, mdb::PrimaryAccount* record);
+	void SetStatementForPrimaryAccountRecord(mdb::PrimaryAccount* record);
+	void SetStatementForPrimaryAccountRecordUpdate(mdb::PrimaryAccount* record);
+	void SetStatementForPrimaryAccountPrimaryKey(const AccountIDType& PrimaryAccountID);
+	void SetStatementForPrimaryAccountIndexOfferID(mdb::PrimaryAccount* record);
 	void ParseRecord(sql::ResultSet* result, std::list<mdb::PrimaryAccount*>& records);
-	void SetStatementForAccountRecord(sql::PreparedStatement* statement, mdb::Account* record);
-	void SetStatementForAccountRecordUpdate(sql::PreparedStatement* statement, mdb::Account* record);
-	void SetStatementForAccountPrimaryKey(sql::PreparedStatement* statement, const AccountIDType& AccountID);
+	void SetStatementForAccountRecord(mdb::Account* record);
+	void SetStatementForAccountRecordUpdate(mdb::Account* record);
+	void SetStatementForAccountPrimaryKey(const AccountIDType& AccountID);
 	void ParseRecord(sql::ResultSet* result, std::list<mdb::Account*>& records);
-	void SetStatementForCapitalRecord(sql::PreparedStatement* statement, mdb::Capital* record);
-	void SetStatementForCapitalRecordUpdate(sql::PreparedStatement* statement, mdb::Capital* record);
-	void SetStatementForCapitalPrimaryKey(sql::PreparedStatement* statement, const DateType& TradingDay, const AccountIDType& AccountID);
-	void SetStatementForCapitalIndexTradingDay(sql::PreparedStatement* statement, mdb::Capital* record);
+	void SetStatementForCapitalRecord(mdb::Capital* record);
+	void SetStatementForCapitalRecordUpdate(mdb::Capital* record);
+	void SetStatementForCapitalPrimaryKey(const DateType& TradingDay, const AccountIDType& AccountID);
+	void SetStatementForCapitalIndexTradingDay(mdb::Capital* record);
 	void ParseRecord(sql::ResultSet* result, std::list<mdb::Capital*>& records);
-	void SetStatementForPositionRecord(sql::PreparedStatement* statement, mdb::Position* record);
-	void SetStatementForPositionRecordUpdate(sql::PreparedStatement* statement, mdb::Position* record);
-	void SetStatementForPositionPrimaryKey(sql::PreparedStatement* statement, const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection);
-	void SetStatementForPositionIndexAccount(sql::PreparedStatement* statement, mdb::Position* record);
-	void SetStatementForPositionIndexTradingDay(sql::PreparedStatement* statement, mdb::Position* record);
+	void SetStatementForPositionRecord(mdb::Position* record);
+	void SetStatementForPositionRecordUpdate(mdb::Position* record);
+	void SetStatementForPositionPrimaryKey(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection);
+	void SetStatementForPositionIndexAccount(mdb::Position* record);
+	void SetStatementForPositionIndexTradingDay(mdb::Position* record);
 	void ParseRecord(sql::ResultSet* result, std::list<mdb::Position*>& records);
-	void SetStatementForPositionDetailRecord(sql::PreparedStatement* statement, mdb::PositionDetail* record);
-	void SetStatementForPositionDetailRecordUpdate(sql::PreparedStatement* statement, mdb::PositionDetail* record);
-	void SetStatementForPositionDetailPrimaryKey(sql::PreparedStatement* statement, const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIDType& TradeID);
-	void SetStatementForPositionDetailIndexTradeMatch(sql::PreparedStatement* statement, mdb::PositionDetail* record);
-	void SetStatementForPositionDetailIndexTradingDay(sql::PreparedStatement* statement, mdb::PositionDetail* record);
+	void SetStatementForPositionDetailRecord(mdb::PositionDetail* record);
+	void SetStatementForPositionDetailRecordUpdate(mdb::PositionDetail* record);
+	void SetStatementForPositionDetailPrimaryKey(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIDType& TradeID);
+	void SetStatementForPositionDetailIndexTradeMatch(mdb::PositionDetail* record);
+	void SetStatementForPositionDetailIndexTradingDay(mdb::PositionDetail* record);
 	void ParseRecord(sql::ResultSet* result, std::list<mdb::PositionDetail*>& records);
-	void SetStatementForOrderRecord(sql::PreparedStatement* statement, mdb::Order* record);
-	void SetStatementForOrderRecordUpdate(sql::PreparedStatement* statement, mdb::Order* record);
-	void SetStatementForOrderPrimaryKey(sql::PreparedStatement* statement, const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const OrderIDType& OrderID);
+	void SetStatementForOrderRecord(mdb::Order* record);
+	void SetStatementForOrderRecordUpdate(mdb::Order* record);
+	void SetStatementForOrderPrimaryKey(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const OrderIDType& OrderID);
 	void ParseRecord(sql::ResultSet* result, std::list<mdb::Order*>& records);
-	void SetStatementForTradeRecord(sql::PreparedStatement* statement, mdb::Trade* record);
-	void SetStatementForTradeRecordUpdate(sql::PreparedStatement* statement, mdb::Trade* record);
-	void SetStatementForTradePrimaryKey(sql::PreparedStatement* statement, const DateType& TradingDay, const ExchangeIDType& ExchangeID, const TradeIDType& TradeID, const DirectionType& Direction);
+	void SetStatementForTradeRecord(mdb::Trade* record);
+	void SetStatementForTradeRecordUpdate(mdb::Trade* record);
+	void SetStatementForTradePrimaryKey(const DateType& TradingDay, const ExchangeIDType& ExchangeID, const TradeIDType& TradeID, const DirectionType& Direction);
 	void ParseRecord(sql::ResultSet* result, std::list<mdb::Trade*>& records);
 
 
 private:
 	sql::Driver* m_Driver;
-	sql::Connection* m_DBConnection;
-	sql::Statement* m_Statement;
+	std::unique_ptr<sql::Connection, SqlConnectionDeleter> m_DBConnection;
+	std::unique_ptr<sql::Statement, SqlStatementDeleter> m_Statement;
 
 	std::string m_Host;
 	std::string m_User;
 	std::string m_Passwd;
 	char* m_SqlBuff;
 
-	sql::PreparedStatement* m_TradingDayCreateStatement;
-	sql::PreparedStatement* m_TradingDayDropStatement;
-	sql::PreparedStatement* m_TradingDayInsertStatement;
-	sql::PreparedStatement* m_TradingDayDeleteStatement;
-	sql::PreparedStatement* m_TradingDayUpdateStatement;
-	sql::PreparedStatement* m_TradingDaySelectStatement;
-	sql::PreparedStatement* m_TradingDayTruncateStatement;
-	sql::PreparedStatement* m_ExchangeCreateStatement;
-	sql::PreparedStatement* m_ExchangeDropStatement;
-	sql::PreparedStatement* m_ExchangeInsertStatement;
-	sql::PreparedStatement* m_ExchangeDeleteStatement;
-	sql::PreparedStatement* m_ExchangeUpdateStatement;
-	sql::PreparedStatement* m_ExchangeSelectStatement;
-	sql::PreparedStatement* m_ExchangeTruncateStatement;
-	sql::PreparedStatement* m_ProductCreateStatement;
-	sql::PreparedStatement* m_ProductDropStatement;
-	sql::PreparedStatement* m_ProductInsertStatement;
-	sql::PreparedStatement* m_ProductDeleteStatement;
-	sql::PreparedStatement* m_ProductUpdateStatement;
-	sql::PreparedStatement* m_ProductSelectStatement;
-	sql::PreparedStatement* m_ProductTruncateStatement;
-	sql::PreparedStatement* m_InstrumentCreateStatement;
-	sql::PreparedStatement* m_InstrumentDropStatement;
-	sql::PreparedStatement* m_InstrumentInsertStatement;
-	sql::PreparedStatement* m_InstrumentDeleteStatement;
-	sql::PreparedStatement* m_InstrumentUpdateStatement;
-	sql::PreparedStatement* m_InstrumentSelectStatement;
-	sql::PreparedStatement* m_InstrumentTruncateStatement;
-	sql::PreparedStatement* m_PrimaryAccountCreateStatement;
-	sql::PreparedStatement* m_PrimaryAccountDropStatement;
-	sql::PreparedStatement* m_PrimaryAccountInsertStatement;
-	sql::PreparedStatement* m_PrimaryAccountDeleteStatement;
-	sql::PreparedStatement* m_PrimaryAccountDeleteByOfferIDIndexStatement;
-	sql::PreparedStatement* m_PrimaryAccountUpdateStatement;
-	sql::PreparedStatement* m_PrimaryAccountSelectStatement;
-	sql::PreparedStatement* m_PrimaryAccountTruncateStatement;
-	sql::PreparedStatement* m_AccountCreateStatement;
-	sql::PreparedStatement* m_AccountDropStatement;
-	sql::PreparedStatement* m_AccountInsertStatement;
-	sql::PreparedStatement* m_AccountDeleteStatement;
-	sql::PreparedStatement* m_AccountUpdateStatement;
-	sql::PreparedStatement* m_AccountSelectStatement;
-	sql::PreparedStatement* m_AccountTruncateStatement;
-	sql::PreparedStatement* m_CapitalCreateStatement;
-	sql::PreparedStatement* m_CapitalDropStatement;
-	sql::PreparedStatement* m_CapitalInsertStatement;
-	sql::PreparedStatement* m_CapitalDeleteStatement;
-	sql::PreparedStatement* m_CapitalDeleteByTradingDayIndexStatement;
-	sql::PreparedStatement* m_CapitalUpdateStatement;
-	sql::PreparedStatement* m_CapitalSelectStatement;
-	sql::PreparedStatement* m_CapitalTruncateStatement;
-	sql::PreparedStatement* m_PositionCreateStatement;
-	sql::PreparedStatement* m_PositionDropStatement;
-	sql::PreparedStatement* m_PositionInsertStatement;
-	sql::PreparedStatement* m_PositionDeleteStatement;
-	sql::PreparedStatement* m_PositionDeleteByAccountIndexStatement;
-	sql::PreparedStatement* m_PositionDeleteByTradingDayIndexStatement;
-	sql::PreparedStatement* m_PositionUpdateStatement;
-	sql::PreparedStatement* m_PositionSelectStatement;
-	sql::PreparedStatement* m_PositionTruncateStatement;
-	sql::PreparedStatement* m_PositionDetailCreateStatement;
-	sql::PreparedStatement* m_PositionDetailDropStatement;
-	sql::PreparedStatement* m_PositionDetailInsertStatement;
-	sql::PreparedStatement* m_PositionDetailDeleteStatement;
-	sql::PreparedStatement* m_PositionDetailDeleteByTradeMatchIndexStatement;
-	sql::PreparedStatement* m_PositionDetailDeleteByTradingDayIndexStatement;
-	sql::PreparedStatement* m_PositionDetailUpdateStatement;
-	sql::PreparedStatement* m_PositionDetailSelectStatement;
-	sql::PreparedStatement* m_PositionDetailTruncateStatement;
-	sql::PreparedStatement* m_OrderCreateStatement;
-	sql::PreparedStatement* m_OrderDropStatement;
-	sql::PreparedStatement* m_OrderInsertStatement;
-	sql::PreparedStatement* m_OrderDeleteStatement;
-	sql::PreparedStatement* m_OrderUpdateStatement;
-	sql::PreparedStatement* m_OrderSelectStatement;
-	sql::PreparedStatement* m_OrderTruncateStatement;
-	sql::PreparedStatement* m_TradeCreateStatement;
-	sql::PreparedStatement* m_TradeDropStatement;
-	sql::PreparedStatement* m_TradeInsertStatement;
-	sql::PreparedStatement* m_TradeDeleteStatement;
-	sql::PreparedStatement* m_TradeUpdateStatement;
-	sql::PreparedStatement* m_TradeSelectStatement;
-	sql::PreparedStatement* m_TradeTruncateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradingDayCreateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradingDayDropStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradingDayInsertStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradingDayDeleteStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradingDayUpdateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradingDaySelectStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradingDayTruncateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ExchangeCreateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ExchangeDropStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ExchangeInsertStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ExchangeDeleteStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ExchangeUpdateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ExchangeSelectStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ExchangeTruncateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ProductCreateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ProductDropStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ProductInsertStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ProductDeleteStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ProductUpdateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ProductSelectStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_ProductTruncateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_InstrumentCreateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_InstrumentDropStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_InstrumentInsertStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_InstrumentDeleteStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_InstrumentUpdateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_InstrumentSelectStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_InstrumentTruncateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PrimaryAccountCreateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PrimaryAccountDropStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PrimaryAccountInsertStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PrimaryAccountDeleteStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PrimaryAccountDeleteByOfferIDIndexStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PrimaryAccountUpdateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PrimaryAccountSelectStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PrimaryAccountTruncateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_AccountCreateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_AccountDropStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_AccountInsertStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_AccountDeleteStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_AccountUpdateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_AccountSelectStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_AccountTruncateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_CapitalCreateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_CapitalDropStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_CapitalInsertStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_CapitalDeleteStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_CapitalDeleteByTradingDayIndexStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_CapitalUpdateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_CapitalSelectStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_CapitalTruncateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionCreateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDropStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionInsertStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDeleteStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDeleteByAccountIndexStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDeleteByTradingDayIndexStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionUpdateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionSelectStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionTruncateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDetailCreateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDetailDropStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDetailInsertStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDetailDeleteStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDetailDeleteByTradeMatchIndexStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDetailDeleteByTradingDayIndexStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDetailUpdateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDetailSelectStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_PositionDetailTruncateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_OrderCreateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_OrderDropStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_OrderInsertStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_OrderDeleteStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_OrderUpdateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_OrderSelectStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_OrderTruncateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradeCreateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradeDropStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradeInsertStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradeDeleteStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradeUpdateStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradeSelectStatement;
+	std::unique_ptr<sql::PreparedStatement, SqlPreparedStatementDeleter> m_TradeTruncateStatement;
 };

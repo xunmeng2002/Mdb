@@ -14,114 +14,12 @@ Mariadb::Mariadb(const std::string& host, const std::string& user, const std::st
 	m_User = user;
 	m_Passwd = passwd;
 	m_SqlBuff = new char[BuffSize];
-
 	m_Driver = sql::mariadb::get_driver_instance();
-	m_DBConnection = nullptr;
-	m_Statement = nullptr;
-	
-	m_TradingDayCreateStatement = nullptr;
-	m_TradingDayDropStatement = nullptr;
-	m_TradingDayInsertStatement = nullptr;
-	m_TradingDayDeleteStatement = nullptr;
-	m_TradingDayUpdateStatement = nullptr;
-	m_TradingDaySelectStatement = nullptr;
-	m_TradingDayTruncateStatement = nullptr;
-
-	m_ExchangeCreateStatement = nullptr;
-	m_ExchangeDropStatement = nullptr;
-	m_ExchangeInsertStatement = nullptr;
-	m_ExchangeDeleteStatement = nullptr;
-	m_ExchangeUpdateStatement = nullptr;
-	m_ExchangeSelectStatement = nullptr;
-	m_ExchangeTruncateStatement = nullptr;
-
-	m_ProductCreateStatement = nullptr;
-	m_ProductDropStatement = nullptr;
-	m_ProductInsertStatement = nullptr;
-	m_ProductDeleteStatement = nullptr;
-	m_ProductUpdateStatement = nullptr;
-	m_ProductSelectStatement = nullptr;
-	m_ProductTruncateStatement = nullptr;
-
-	m_InstrumentCreateStatement = nullptr;
-	m_InstrumentDropStatement = nullptr;
-	m_InstrumentInsertStatement = nullptr;
-	m_InstrumentDeleteStatement = nullptr;
-	m_InstrumentUpdateStatement = nullptr;
-	m_InstrumentSelectStatement = nullptr;
-	m_InstrumentTruncateStatement = nullptr;
-
-	m_PrimaryAccountCreateStatement = nullptr;
-	m_PrimaryAccountDropStatement = nullptr;
-	m_PrimaryAccountInsertStatement = nullptr;
-	m_PrimaryAccountDeleteStatement = nullptr;
-	m_PrimaryAccountDeleteByOfferIDIndexStatement = nullptr;
-	m_PrimaryAccountUpdateStatement = nullptr;
-	m_PrimaryAccountSelectStatement = nullptr;
-	m_PrimaryAccountTruncateStatement = nullptr;
-
-	m_AccountCreateStatement = nullptr;
-	m_AccountDropStatement = nullptr;
-	m_AccountInsertStatement = nullptr;
-	m_AccountDeleteStatement = nullptr;
-	m_AccountUpdateStatement = nullptr;
-	m_AccountSelectStatement = nullptr;
-	m_AccountTruncateStatement = nullptr;
-
-	m_CapitalCreateStatement = nullptr;
-	m_CapitalDropStatement = nullptr;
-	m_CapitalInsertStatement = nullptr;
-	m_CapitalDeleteStatement = nullptr;
-	m_CapitalDeleteByTradingDayIndexStatement = nullptr;
-	m_CapitalUpdateStatement = nullptr;
-	m_CapitalSelectStatement = nullptr;
-	m_CapitalTruncateStatement = nullptr;
-
-	m_PositionCreateStatement = nullptr;
-	m_PositionDropStatement = nullptr;
-	m_PositionInsertStatement = nullptr;
-	m_PositionDeleteStatement = nullptr;
-	m_PositionDeleteByAccountIndexStatement = nullptr;
-	m_PositionDeleteByTradingDayIndexStatement = nullptr;
-	m_PositionUpdateStatement = nullptr;
-	m_PositionSelectStatement = nullptr;
-	m_PositionTruncateStatement = nullptr;
-
-	m_PositionDetailCreateStatement = nullptr;
-	m_PositionDetailDropStatement = nullptr;
-	m_PositionDetailInsertStatement = nullptr;
-	m_PositionDetailDeleteStatement = nullptr;
-	m_PositionDetailDeleteByTradeMatchIndexStatement = nullptr;
-	m_PositionDetailDeleteByTradingDayIndexStatement = nullptr;
-	m_PositionDetailUpdateStatement = nullptr;
-	m_PositionDetailSelectStatement = nullptr;
-	m_PositionDetailTruncateStatement = nullptr;
-
-	m_OrderCreateStatement = nullptr;
-	m_OrderDropStatement = nullptr;
-	m_OrderInsertStatement = nullptr;
-	m_OrderDeleteStatement = nullptr;
-	m_OrderUpdateStatement = nullptr;
-	m_OrderSelectStatement = nullptr;
-	m_OrderTruncateStatement = nullptr;
-
-	m_TradeCreateStatement = nullptr;
-	m_TradeDropStatement = nullptr;
-	m_TradeInsertStatement = nullptr;
-	m_TradeDeleteStatement = nullptr;
-	m_TradeUpdateStatement = nullptr;
-	m_TradeSelectStatement = nullptr;
-	m_TradeTruncateStatement = nullptr;
-
 }
 Mariadb::~Mariadb()
 {
 	delete[] m_SqlBuff;
 	DisConnect();
-	if (m_DBConnection != nullptr)
-	{
-		m_DBConnection->close();
-	}
 }
 bool Mariadb::Connect()
 {
@@ -131,27 +29,10 @@ bool Mariadb::Connect()
 		{
 			m_Driver = sql::mariadb::get_driver_instance();
 		}
-		if (m_DBConnection == nullptr)
-		{
-			m_DBConnection = m_Driver->connect(m_Host, m_User, m_Passwd);
-			if (m_DBConnection == nullptr)
-			{
-				WriteLog(LogLevel::Info, "Mariadb Connect Failed");
-				return false;
-			}
-		}
-		else
-		{
-			auto result = m_DBConnection->reconnect();
-			WriteLog(LogLevel::Info, "Mariadb Reconnect Result:[%d]", result);
-			if (!result)
-			{
-				m_Driver = nullptr;
-				m_DBConnection = nullptr;
-				return false;
-			}
-		}
-		m_Statement = m_DBConnection->createStatement();
+		m_DBConnection.reset(m_Driver->connect(m_Host, m_User, m_Passwd));
+        if (!m_DBConnection)
+			return false;
+        m_Statement.reset(m_DBConnection->createStatement());
 	}
 	catch (...)
 	{
@@ -162,426 +43,90 @@ bool Mariadb::Connect()
 }
 void Mariadb::DisConnect()
 {
-	if (m_Statement != nullptr)
-	{
-		m_Statement->close();
-		m_Statement = nullptr;
-	}
-	if (m_TradingDayCreateStatement != nullptr)
-	{
-		m_TradingDayCreateStatement->close();
-		m_TradingDayCreateStatement = nullptr;
-	}
-	if (m_TradingDayDropStatement != nullptr)
-	{
-		m_TradingDayDropStatement->close();
-		m_TradingDayDropStatement = nullptr;
-	}
-	if (m_TradingDayInsertStatement != nullptr)
-	{
-		m_TradingDayInsertStatement->close();
-		m_TradingDayInsertStatement = nullptr;
-	}
-	if (m_TradingDayDeleteStatement != nullptr)
-	{
-		m_TradingDayDeleteStatement->close();
-		m_TradingDayDeleteStatement = nullptr;
-	}
-	if (m_TradingDayUpdateStatement != nullptr)
-	{
-		m_TradingDayUpdateStatement->close();
-		m_TradingDayUpdateStatement = nullptr;
-	}
-	if (m_TradingDaySelectStatement != nullptr)
-	{
-		m_TradingDaySelectStatement->close();
-		m_TradingDaySelectStatement = nullptr;
-	}
-	if (m_TradingDayTruncateStatement != nullptr)
-	{
-		m_TradingDayTruncateStatement->close();
-		m_TradingDayTruncateStatement = nullptr;
-	}
-	if (m_ExchangeCreateStatement != nullptr)
-	{
-		m_ExchangeCreateStatement->close();
-		m_ExchangeCreateStatement = nullptr;
-	}
-	if (m_ExchangeDropStatement != nullptr)
-	{
-		m_ExchangeDropStatement->close();
-		m_ExchangeDropStatement = nullptr;
-	}
-	if (m_ExchangeInsertStatement != nullptr)
-	{
-		m_ExchangeInsertStatement->close();
-		m_ExchangeInsertStatement = nullptr;
-	}
-	if (m_ExchangeDeleteStatement != nullptr)
-	{
-		m_ExchangeDeleteStatement->close();
-		m_ExchangeDeleteStatement = nullptr;
-	}
-	if (m_ExchangeUpdateStatement != nullptr)
-	{
-		m_ExchangeUpdateStatement->close();
-		m_ExchangeUpdateStatement = nullptr;
-	}
-	if (m_ExchangeSelectStatement != nullptr)
-	{
-		m_ExchangeSelectStatement->close();
-		m_ExchangeSelectStatement = nullptr;
-	}
-	if (m_ExchangeTruncateStatement != nullptr)
-	{
-		m_ExchangeTruncateStatement->close();
-		m_ExchangeTruncateStatement = nullptr;
-	}
-	if (m_ProductCreateStatement != nullptr)
-	{
-		m_ProductCreateStatement->close();
-		m_ProductCreateStatement = nullptr;
-	}
-	if (m_ProductDropStatement != nullptr)
-	{
-		m_ProductDropStatement->close();
-		m_ProductDropStatement = nullptr;
-	}
-	if (m_ProductInsertStatement != nullptr)
-	{
-		m_ProductInsertStatement->close();
-		m_ProductInsertStatement = nullptr;
-	}
-	if (m_ProductDeleteStatement != nullptr)
-	{
-		m_ProductDeleteStatement->close();
-		m_ProductDeleteStatement = nullptr;
-	}
-	if (m_ProductUpdateStatement != nullptr)
-	{
-		m_ProductUpdateStatement->close();
-		m_ProductUpdateStatement = nullptr;
-	}
-	if (m_ProductSelectStatement != nullptr)
-	{
-		m_ProductSelectStatement->close();
-		m_ProductSelectStatement = nullptr;
-	}
-	if (m_ProductTruncateStatement != nullptr)
-	{
-		m_ProductTruncateStatement->close();
-		m_ProductTruncateStatement = nullptr;
-	}
-	if (m_InstrumentCreateStatement != nullptr)
-	{
-		m_InstrumentCreateStatement->close();
-		m_InstrumentCreateStatement = nullptr;
-	}
-	if (m_InstrumentDropStatement != nullptr)
-	{
-		m_InstrumentDropStatement->close();
-		m_InstrumentDropStatement = nullptr;
-	}
-	if (m_InstrumentInsertStatement != nullptr)
-	{
-		m_InstrumentInsertStatement->close();
-		m_InstrumentInsertStatement = nullptr;
-	}
-	if (m_InstrumentDeleteStatement != nullptr)
-	{
-		m_InstrumentDeleteStatement->close();
-		m_InstrumentDeleteStatement = nullptr;
-	}
-	if (m_InstrumentUpdateStatement != nullptr)
-	{
-		m_InstrumentUpdateStatement->close();
-		m_InstrumentUpdateStatement = nullptr;
-	}
-	if (m_InstrumentSelectStatement != nullptr)
-	{
-		m_InstrumentSelectStatement->close();
-		m_InstrumentSelectStatement = nullptr;
-	}
-	if (m_InstrumentTruncateStatement != nullptr)
-	{
-		m_InstrumentTruncateStatement->close();
-		m_InstrumentTruncateStatement = nullptr;
-	}
-	if (m_PrimaryAccountCreateStatement != nullptr)
-	{
-		m_PrimaryAccountCreateStatement->close();
-		m_PrimaryAccountCreateStatement = nullptr;
-	}
-	if (m_PrimaryAccountDropStatement != nullptr)
-	{
-		m_PrimaryAccountDropStatement->close();
-		m_PrimaryAccountDropStatement = nullptr;
-	}
-	if (m_PrimaryAccountInsertStatement != nullptr)
-	{
-		m_PrimaryAccountInsertStatement->close();
-		m_PrimaryAccountInsertStatement = nullptr;
-	}
-	if (m_PrimaryAccountDeleteStatement != nullptr)
-	{
-		m_PrimaryAccountDeleteStatement->close();
-		m_PrimaryAccountDeleteStatement = nullptr;
-	}
-	if (m_PrimaryAccountDeleteByOfferIDIndexStatement != nullptr)
-	{
-		m_PrimaryAccountDeleteByOfferIDIndexStatement->close();
-		m_PrimaryAccountDeleteByOfferIDIndexStatement = nullptr;
-	}
-	if (m_PrimaryAccountUpdateStatement != nullptr)
-	{
-		m_PrimaryAccountUpdateStatement->close();
-		m_PrimaryAccountUpdateStatement = nullptr;
-	}
-	if (m_PrimaryAccountSelectStatement != nullptr)
-	{
-		m_PrimaryAccountSelectStatement->close();
-		m_PrimaryAccountSelectStatement = nullptr;
-	}
-	if (m_PrimaryAccountTruncateStatement != nullptr)
-	{
-		m_PrimaryAccountTruncateStatement->close();
-		m_PrimaryAccountTruncateStatement = nullptr;
-	}
-	if (m_AccountCreateStatement != nullptr)
-	{
-		m_AccountCreateStatement->close();
-		m_AccountCreateStatement = nullptr;
-	}
-	if (m_AccountDropStatement != nullptr)
-	{
-		m_AccountDropStatement->close();
-		m_AccountDropStatement = nullptr;
-	}
-	if (m_AccountInsertStatement != nullptr)
-	{
-		m_AccountInsertStatement->close();
-		m_AccountInsertStatement = nullptr;
-	}
-	if (m_AccountDeleteStatement != nullptr)
-	{
-		m_AccountDeleteStatement->close();
-		m_AccountDeleteStatement = nullptr;
-	}
-	if (m_AccountUpdateStatement != nullptr)
-	{
-		m_AccountUpdateStatement->close();
-		m_AccountUpdateStatement = nullptr;
-	}
-	if (m_AccountSelectStatement != nullptr)
-	{
-		m_AccountSelectStatement->close();
-		m_AccountSelectStatement = nullptr;
-	}
-	if (m_AccountTruncateStatement != nullptr)
-	{
-		m_AccountTruncateStatement->close();
-		m_AccountTruncateStatement = nullptr;
-	}
-	if (m_CapitalCreateStatement != nullptr)
-	{
-		m_CapitalCreateStatement->close();
-		m_CapitalCreateStatement = nullptr;
-	}
-	if (m_CapitalDropStatement != nullptr)
-	{
-		m_CapitalDropStatement->close();
-		m_CapitalDropStatement = nullptr;
-	}
-	if (m_CapitalInsertStatement != nullptr)
-	{
-		m_CapitalInsertStatement->close();
-		m_CapitalInsertStatement = nullptr;
-	}
-	if (m_CapitalDeleteStatement != nullptr)
-	{
-		m_CapitalDeleteStatement->close();
-		m_CapitalDeleteStatement = nullptr;
-	}
-	if (m_CapitalDeleteByTradingDayIndexStatement != nullptr)
-	{
-		m_CapitalDeleteByTradingDayIndexStatement->close();
-		m_CapitalDeleteByTradingDayIndexStatement = nullptr;
-	}
-	if (m_CapitalUpdateStatement != nullptr)
-	{
-		m_CapitalUpdateStatement->close();
-		m_CapitalUpdateStatement = nullptr;
-	}
-	if (m_CapitalSelectStatement != nullptr)
-	{
-		m_CapitalSelectStatement->close();
-		m_CapitalSelectStatement = nullptr;
-	}
-	if (m_CapitalTruncateStatement != nullptr)
-	{
-		m_CapitalTruncateStatement->close();
-		m_CapitalTruncateStatement = nullptr;
-	}
-	if (m_PositionCreateStatement != nullptr)
-	{
-		m_PositionCreateStatement->close();
-		m_PositionCreateStatement = nullptr;
-	}
-	if (m_PositionDropStatement != nullptr)
-	{
-		m_PositionDropStatement->close();
-		m_PositionDropStatement = nullptr;
-	}
-	if (m_PositionInsertStatement != nullptr)
-	{
-		m_PositionInsertStatement->close();
-		m_PositionInsertStatement = nullptr;
-	}
-	if (m_PositionDeleteStatement != nullptr)
-	{
-		m_PositionDeleteStatement->close();
-		m_PositionDeleteStatement = nullptr;
-	}
-	if (m_PositionDeleteByAccountIndexStatement != nullptr)
-	{
-		m_PositionDeleteByAccountIndexStatement->close();
-		m_PositionDeleteByAccountIndexStatement = nullptr;
-	}
-	if (m_PositionDeleteByTradingDayIndexStatement != nullptr)
-	{
-		m_PositionDeleteByTradingDayIndexStatement->close();
-		m_PositionDeleteByTradingDayIndexStatement = nullptr;
-	}
-	if (m_PositionUpdateStatement != nullptr)
-	{
-		m_PositionUpdateStatement->close();
-		m_PositionUpdateStatement = nullptr;
-	}
-	if (m_PositionSelectStatement != nullptr)
-	{
-		m_PositionSelectStatement->close();
-		m_PositionSelectStatement = nullptr;
-	}
-	if (m_PositionTruncateStatement != nullptr)
-	{
-		m_PositionTruncateStatement->close();
-		m_PositionTruncateStatement = nullptr;
-	}
-	if (m_PositionDetailCreateStatement != nullptr)
-	{
-		m_PositionDetailCreateStatement->close();
-		m_PositionDetailCreateStatement = nullptr;
-	}
-	if (m_PositionDetailDropStatement != nullptr)
-	{
-		m_PositionDetailDropStatement->close();
-		m_PositionDetailDropStatement = nullptr;
-	}
-	if (m_PositionDetailInsertStatement != nullptr)
-	{
-		m_PositionDetailInsertStatement->close();
-		m_PositionDetailInsertStatement = nullptr;
-	}
-	if (m_PositionDetailDeleteStatement != nullptr)
-	{
-		m_PositionDetailDeleteStatement->close();
-		m_PositionDetailDeleteStatement = nullptr;
-	}
-	if (m_PositionDetailDeleteByTradeMatchIndexStatement != nullptr)
-	{
-		m_PositionDetailDeleteByTradeMatchIndexStatement->close();
-		m_PositionDetailDeleteByTradeMatchIndexStatement = nullptr;
-	}
-	if (m_PositionDetailDeleteByTradingDayIndexStatement != nullptr)
-	{
-		m_PositionDetailDeleteByTradingDayIndexStatement->close();
-		m_PositionDetailDeleteByTradingDayIndexStatement = nullptr;
-	}
-	if (m_PositionDetailUpdateStatement != nullptr)
-	{
-		m_PositionDetailUpdateStatement->close();
-		m_PositionDetailUpdateStatement = nullptr;
-	}
-	if (m_PositionDetailSelectStatement != nullptr)
-	{
-		m_PositionDetailSelectStatement->close();
-		m_PositionDetailSelectStatement = nullptr;
-	}
-	if (m_PositionDetailTruncateStatement != nullptr)
-	{
-		m_PositionDetailTruncateStatement->close();
-		m_PositionDetailTruncateStatement = nullptr;
-	}
-	if (m_OrderCreateStatement != nullptr)
-	{
-		m_OrderCreateStatement->close();
-		m_OrderCreateStatement = nullptr;
-	}
-	if (m_OrderDropStatement != nullptr)
-	{
-		m_OrderDropStatement->close();
-		m_OrderDropStatement = nullptr;
-	}
-	if (m_OrderInsertStatement != nullptr)
-	{
-		m_OrderInsertStatement->close();
-		m_OrderInsertStatement = nullptr;
-	}
-	if (m_OrderDeleteStatement != nullptr)
-	{
-		m_OrderDeleteStatement->close();
-		m_OrderDeleteStatement = nullptr;
-	}
-	if (m_OrderUpdateStatement != nullptr)
-	{
-		m_OrderUpdateStatement->close();
-		m_OrderUpdateStatement = nullptr;
-	}
-	if (m_OrderSelectStatement != nullptr)
-	{
-		m_OrderSelectStatement->close();
-		m_OrderSelectStatement = nullptr;
-	}
-	if (m_OrderTruncateStatement != nullptr)
-	{
-		m_OrderTruncateStatement->close();
-		m_OrderTruncateStatement = nullptr;
-	}
-	if (m_TradeCreateStatement != nullptr)
-	{
-		m_TradeCreateStatement->close();
-		m_TradeCreateStatement = nullptr;
-	}
-	if (m_TradeDropStatement != nullptr)
-	{
-		m_TradeDropStatement->close();
-		m_TradeDropStatement = nullptr;
-	}
-	if (m_TradeInsertStatement != nullptr)
-	{
-		m_TradeInsertStatement->close();
-		m_TradeInsertStatement = nullptr;
-	}
-	if (m_TradeDeleteStatement != nullptr)
-	{
-		m_TradeDeleteStatement->close();
-		m_TradeDeleteStatement = nullptr;
-	}
-	if (m_TradeUpdateStatement != nullptr)
-	{
-		m_TradeUpdateStatement->close();
-		m_TradeUpdateStatement = nullptr;
-	}
-	if (m_TradeSelectStatement != nullptr)
-	{
-		m_TradeSelectStatement->close();
-		m_TradeSelectStatement = nullptr;
-	}
-	if (m_TradeTruncateStatement != nullptr)
-	{
-		m_TradeTruncateStatement->close();
-		m_TradeTruncateStatement = nullptr;
-	}
+	m_Statement.reset();
+	m_TradingDayCreateStatement.reset();
+	m_TradingDayDropStatement.reset();
+	m_TradingDayInsertStatement.reset();
+	m_TradingDayDeleteStatement.reset();
+	m_TradingDayUpdateStatement.reset();
+	m_TradingDaySelectStatement.reset();
+	m_TradingDayTruncateStatement.reset();
+	m_ExchangeCreateStatement.reset();
+	m_ExchangeDropStatement.reset();
+	m_ExchangeInsertStatement.reset();
+	m_ExchangeDeleteStatement.reset();
+	m_ExchangeUpdateStatement.reset();
+	m_ExchangeSelectStatement.reset();
+	m_ExchangeTruncateStatement.reset();
+	m_ProductCreateStatement.reset();
+	m_ProductDropStatement.reset();
+	m_ProductInsertStatement.reset();
+	m_ProductDeleteStatement.reset();
+	m_ProductUpdateStatement.reset();
+	m_ProductSelectStatement.reset();
+	m_ProductTruncateStatement.reset();
+	m_InstrumentCreateStatement.reset();
+	m_InstrumentDropStatement.reset();
+	m_InstrumentInsertStatement.reset();
+	m_InstrumentDeleteStatement.reset();
+	m_InstrumentUpdateStatement.reset();
+	m_InstrumentSelectStatement.reset();
+	m_InstrumentTruncateStatement.reset();
+	m_PrimaryAccountCreateStatement.reset();
+	m_PrimaryAccountDropStatement.reset();
+	m_PrimaryAccountInsertStatement.reset();
+	m_PrimaryAccountDeleteStatement.reset();
+	m_PrimaryAccountDeleteByOfferIDIndexStatement.reset();
+	m_PrimaryAccountUpdateStatement.reset();
+	m_PrimaryAccountSelectStatement.reset();
+	m_PrimaryAccountTruncateStatement.reset();
+	m_AccountCreateStatement.reset();
+	m_AccountDropStatement.reset();
+	m_AccountInsertStatement.reset();
+	m_AccountDeleteStatement.reset();
+	m_AccountUpdateStatement.reset();
+	m_AccountSelectStatement.reset();
+	m_AccountTruncateStatement.reset();
+	m_CapitalCreateStatement.reset();
+	m_CapitalDropStatement.reset();
+	m_CapitalInsertStatement.reset();
+	m_CapitalDeleteStatement.reset();
+	m_CapitalDeleteByTradingDayIndexStatement.reset();
+	m_CapitalUpdateStatement.reset();
+	m_CapitalSelectStatement.reset();
+	m_CapitalTruncateStatement.reset();
+	m_PositionCreateStatement.reset();
+	m_PositionDropStatement.reset();
+	m_PositionInsertStatement.reset();
+	m_PositionDeleteStatement.reset();
+	m_PositionDeleteByAccountIndexStatement.reset();
+	m_PositionDeleteByTradingDayIndexStatement.reset();
+	m_PositionUpdateStatement.reset();
+	m_PositionSelectStatement.reset();
+	m_PositionTruncateStatement.reset();
+	m_PositionDetailCreateStatement.reset();
+	m_PositionDetailDropStatement.reset();
+	m_PositionDetailInsertStatement.reset();
+	m_PositionDetailDeleteStatement.reset();
+	m_PositionDetailDeleteByTradeMatchIndexStatement.reset();
+	m_PositionDetailDeleteByTradingDayIndexStatement.reset();
+	m_PositionDetailUpdateStatement.reset();
+	m_PositionDetailSelectStatement.reset();
+	m_PositionDetailTruncateStatement.reset();
+	m_OrderCreateStatement.reset();
+	m_OrderDropStatement.reset();
+	m_OrderInsertStatement.reset();
+	m_OrderDeleteStatement.reset();
+	m_OrderUpdateStatement.reset();
+	m_OrderSelectStatement.reset();
+	m_OrderTruncateStatement.reset();
+	m_TradeCreateStatement.reset();
+	m_TradeDropStatement.reset();
+	m_TradeInsertStatement.reset();
+	m_TradeDeleteStatement.reset();
+	m_TradeUpdateStatement.reset();
+	m_TradeSelectStatement.reset();
+	m_TradeTruncateStatement.reset();
 }
 void Mariadb::InitDB()
 {
@@ -661,7 +206,7 @@ void Mariadb::CreateTradingDay()
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_TradingDay` (`PK` int COMMENT '主键', `CurrTradingDay` char(16) COMMENT '当前交易日', `PreTradingDay` char(16) COMMENT '昨交易日', PRIMARY KEY(PK)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
 	if (m_TradingDayCreateStatement == nullptr)
 	{
-		m_TradingDayCreateStatement = m_DBConnection->prepareStatement(sql);
+		m_TradingDayCreateStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_TradingDayCreateStatement->executeUpdate();
@@ -674,7 +219,7 @@ void Mariadb::DropTradingDay()
 	const char* sql = "DROP TABLE IF EXISTS `t_TradingDay`;";
 	if (m_TradingDayDropStatement == nullptr)
 	{
-		m_TradingDayDropStatement = m_DBConnection->prepareStatement(sql);
+		m_TradingDayDropStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_TradingDayDropStatement->executeUpdate();
@@ -686,9 +231,9 @@ void Mariadb::InsertTradingDay(TradingDay* record)
 	auto start = steady_clock::now();
 	if (m_TradingDayInsertStatement == nullptr)
 	{
-		m_TradingDayInsertStatement = m_DBConnection->prepareStatement("insert into t_TradingDay Values(?, ?, ?);");
+		m_TradingDayInsertStatement.reset(m_DBConnection->prepareStatement("insert into t_TradingDay Values(?, ?, ?);"));
 	}
-	SetStatementForTradingDayRecord(m_TradingDayInsertStatement, record);
+	SetStatementForTradingDayRecord(record);
 	
 	m_TradingDayInsertStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
@@ -740,9 +285,9 @@ void Mariadb::DeleteTradingDay(TradingDay* record)
 	auto start = steady_clock::now();
 	if (m_TradingDayDeleteStatement == nullptr)
 	{
-		m_TradingDayDeleteStatement = m_DBConnection->prepareStatement("delete from t_TradingDay where PK = ?;");
+		m_TradingDayDeleteStatement.reset(m_DBConnection->prepareStatement("delete from t_TradingDay where PK = ?;"));
 	}
-	SetStatementForTradingDayPrimaryKey(m_TradingDayDeleteStatement, record->PK);
+	SetStatementForTradingDayPrimaryKey(record->PK);
 	m_TradingDayDeleteStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -755,9 +300,9 @@ void Mariadb::UpdateTradingDay(TradingDay* record)
 	auto start = steady_clock::now();
 	if (m_TradingDayUpdateStatement == nullptr)
 	{
-		m_TradingDayUpdateStatement = m_DBConnection->prepareStatement("update t_TradingDay set CurrTradingDay = ?, PreTradingDay = ? where PK = ?;");
+		m_TradingDayUpdateStatement.reset(m_DBConnection->prepareStatement("update t_TradingDay set CurrTradingDay = ?, PreTradingDay = ? where PK = ?;"));
 	}
-	SetStatementForTradingDayRecordUpdate(m_TradingDayUpdateStatement, record);
+	SetStatementForTradingDayRecordUpdate(record);
 	m_TradingDayUpdateStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -770,7 +315,7 @@ void Mariadb::SelectTradingDay(std::list<TradingDay*>& records)
 	auto start = steady_clock::now();
 	if (m_TradingDaySelectStatement == nullptr)
 	{
-		m_TradingDaySelectStatement = m_DBConnection->prepareStatement("select * from t_TradingDay;");
+		m_TradingDaySelectStatement.reset(m_DBConnection->prepareStatement("select * from t_TradingDay;"));
 	}
 	auto result = m_TradingDaySelectStatement->executeQuery();
 	while (result->next())
@@ -788,7 +333,7 @@ void Mariadb::TruncateTradingDay()
 	auto start = steady_clock::now();
 	if (m_TradingDayTruncateStatement == nullptr)
 	{
-		m_TradingDayTruncateStatement = m_DBConnection->prepareStatement("truncate table t_TradingDay;");
+		m_TradingDayTruncateStatement.reset(m_DBConnection->prepareStatement("truncate table t_TradingDay;"));
 	}
 	m_TradingDayTruncateStatement->executeQuery();
 	WriteLog(LogLevel::Info, "TruncateTradingDay Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
@@ -799,7 +344,7 @@ void Mariadb::CreateExchange()
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Exchange` (`ExchangeID` char(8) COMMENT '交易所代码', `ExchangeName` char(64) COMMENT '交易所名称', PRIMARY KEY(ExchangeID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
 	if (m_ExchangeCreateStatement == nullptr)
 	{
-		m_ExchangeCreateStatement = m_DBConnection->prepareStatement(sql);
+		m_ExchangeCreateStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_ExchangeCreateStatement->executeUpdate();
@@ -812,7 +357,7 @@ void Mariadb::DropExchange()
 	const char* sql = "DROP TABLE IF EXISTS `t_Exchange`;";
 	if (m_ExchangeDropStatement == nullptr)
 	{
-		m_ExchangeDropStatement = m_DBConnection->prepareStatement(sql);
+		m_ExchangeDropStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_ExchangeDropStatement->executeUpdate();
@@ -824,9 +369,9 @@ void Mariadb::InsertExchange(Exchange* record)
 	auto start = steady_clock::now();
 	if (m_ExchangeInsertStatement == nullptr)
 	{
-		m_ExchangeInsertStatement = m_DBConnection->prepareStatement("insert into t_Exchange Values(?, ?);");
+		m_ExchangeInsertStatement.reset(m_DBConnection->prepareStatement("insert into t_Exchange Values(?, ?);"));
 	}
-	SetStatementForExchangeRecord(m_ExchangeInsertStatement, record);
+	SetStatementForExchangeRecord(record);
 	
 	m_ExchangeInsertStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
@@ -878,9 +423,9 @@ void Mariadb::DeleteExchange(Exchange* record)
 	auto start = steady_clock::now();
 	if (m_ExchangeDeleteStatement == nullptr)
 	{
-		m_ExchangeDeleteStatement = m_DBConnection->prepareStatement("delete from t_Exchange where ExchangeID = ?;");
+		m_ExchangeDeleteStatement.reset(m_DBConnection->prepareStatement("delete from t_Exchange where ExchangeID = ?;"));
 	}
-	SetStatementForExchangePrimaryKey(m_ExchangeDeleteStatement, record->ExchangeID);
+	SetStatementForExchangePrimaryKey(record->ExchangeID);
 	m_ExchangeDeleteStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -893,9 +438,9 @@ void Mariadb::UpdateExchange(Exchange* record)
 	auto start = steady_clock::now();
 	if (m_ExchangeUpdateStatement == nullptr)
 	{
-		m_ExchangeUpdateStatement = m_DBConnection->prepareStatement("update t_Exchange set ExchangeName = ? where ExchangeID = ?;");
+		m_ExchangeUpdateStatement.reset(m_DBConnection->prepareStatement("update t_Exchange set ExchangeName = ? where ExchangeID = ?;"));
 	}
-	SetStatementForExchangeRecordUpdate(m_ExchangeUpdateStatement, record);
+	SetStatementForExchangeRecordUpdate(record);
 	m_ExchangeUpdateStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -908,7 +453,7 @@ void Mariadb::SelectExchange(std::list<Exchange*>& records)
 	auto start = steady_clock::now();
 	if (m_ExchangeSelectStatement == nullptr)
 	{
-		m_ExchangeSelectStatement = m_DBConnection->prepareStatement("select * from t_Exchange;");
+		m_ExchangeSelectStatement.reset(m_DBConnection->prepareStatement("select * from t_Exchange;"));
 	}
 	auto result = m_ExchangeSelectStatement->executeQuery();
 	while (result->next())
@@ -926,7 +471,7 @@ void Mariadb::TruncateExchange()
 	auto start = steady_clock::now();
 	if (m_ExchangeTruncateStatement == nullptr)
 	{
-		m_ExchangeTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Exchange;");
+		m_ExchangeTruncateStatement.reset(m_DBConnection->prepareStatement("truncate table t_Exchange;"));
 	}
 	m_ExchangeTruncateStatement->executeQuery();
 	WriteLog(LogLevel::Info, "TruncateExchange Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
@@ -937,7 +482,7 @@ void Mariadb::CreateProduct()
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Product` (`ExchangeID` char(8) COMMENT '交易所代码', `ProductID` char(32) COMMENT '品种代码', `ProductName` char(32) COMMENT '品种名称', `ProductClass` int COMMENT '品种类型', `VolumeMultiple` int COMMENT '合约乘数', `PriceTick` decimal(24,8) COMMENT '最小变动价位', `MaxMarketOrderVolume` bigint COMMENT '市价最大下单量', `MinMarketOrderVolume` bigint COMMENT '市价最小下单量', `MaxLimitOrderVolume` bigint COMMENT '限价最大下单量', `MinLimitOrderVolume` bigint COMMENT '限价最小下单量', `SessionName` char(32) COMMENT '交易节名称', PRIMARY KEY(ExchangeID, ProductID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
 	if (m_ProductCreateStatement == nullptr)
 	{
-		m_ProductCreateStatement = m_DBConnection->prepareStatement(sql);
+		m_ProductCreateStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_ProductCreateStatement->executeUpdate();
@@ -950,7 +495,7 @@ void Mariadb::DropProduct()
 	const char* sql = "DROP TABLE IF EXISTS `t_Product`;";
 	if (m_ProductDropStatement == nullptr)
 	{
-		m_ProductDropStatement = m_DBConnection->prepareStatement(sql);
+		m_ProductDropStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_ProductDropStatement->executeUpdate();
@@ -962,9 +507,9 @@ void Mariadb::InsertProduct(Product* record)
 	auto start = steady_clock::now();
 	if (m_ProductInsertStatement == nullptr)
 	{
-		m_ProductInsertStatement = m_DBConnection->prepareStatement("insert into t_Product Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+		m_ProductInsertStatement.reset(m_DBConnection->prepareStatement("insert into t_Product Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"));
 	}
-	SetStatementForProductRecord(m_ProductInsertStatement, record);
+	SetStatementForProductRecord(record);
 	
 	m_ProductInsertStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
@@ -1016,9 +561,9 @@ void Mariadb::DeleteProduct(Product* record)
 	auto start = steady_clock::now();
 	if (m_ProductDeleteStatement == nullptr)
 	{
-		m_ProductDeleteStatement = m_DBConnection->prepareStatement("delete from t_Product where ExchangeID = ? and ProductID = ?;");
+		m_ProductDeleteStatement.reset(m_DBConnection->prepareStatement("delete from t_Product where ExchangeID = ? and ProductID = ?;"));
 	}
-	SetStatementForProductPrimaryKey(m_ProductDeleteStatement, record->ExchangeID, record->ProductID);
+	SetStatementForProductPrimaryKey(record->ExchangeID, record->ProductID);
 	m_ProductDeleteStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1031,9 +576,9 @@ void Mariadb::UpdateProduct(Product* record)
 	auto start = steady_clock::now();
 	if (m_ProductUpdateStatement == nullptr)
 	{
-		m_ProductUpdateStatement = m_DBConnection->prepareStatement("update t_Product set ProductName = ?, ProductClass = ?, VolumeMultiple = ?, PriceTick = ?, MaxMarketOrderVolume = ?, MinMarketOrderVolume = ?, MaxLimitOrderVolume = ?, MinLimitOrderVolume = ?, SessionName = ? where ExchangeID = ? and ProductID = ?;");
+		m_ProductUpdateStatement.reset(m_DBConnection->prepareStatement("update t_Product set ProductName = ?, ProductClass = ?, VolumeMultiple = ?, PriceTick = ?, MaxMarketOrderVolume = ?, MinMarketOrderVolume = ?, MaxLimitOrderVolume = ?, MinLimitOrderVolume = ?, SessionName = ? where ExchangeID = ? and ProductID = ?;"));
 	}
-	SetStatementForProductRecordUpdate(m_ProductUpdateStatement, record);
+	SetStatementForProductRecordUpdate(record);
 	m_ProductUpdateStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1046,7 +591,7 @@ void Mariadb::SelectProduct(std::list<Product*>& records)
 	auto start = steady_clock::now();
 	if (m_ProductSelectStatement == nullptr)
 	{
-		m_ProductSelectStatement = m_DBConnection->prepareStatement("select * from t_Product;");
+		m_ProductSelectStatement.reset(m_DBConnection->prepareStatement("select * from t_Product;"));
 	}
 	auto result = m_ProductSelectStatement->executeQuery();
 	while (result->next())
@@ -1064,7 +609,7 @@ void Mariadb::TruncateProduct()
 	auto start = steady_clock::now();
 	if (m_ProductTruncateStatement == nullptr)
 	{
-		m_ProductTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Product;");
+		m_ProductTruncateStatement.reset(m_DBConnection->prepareStatement("truncate table t_Product;"));
 	}
 	m_ProductTruncateStatement->executeQuery();
 	WriteLog(LogLevel::Info, "TruncateProduct Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
@@ -1075,7 +620,7 @@ void Mariadb::CreateInstrument()
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Instrument` (`ExchangeID` char(8) COMMENT '交易所代码', `InstrumentID` char(32) COMMENT '合约代码', `ExchangeInstID` char(32) COMMENT '交易所合约代码', `InstrumentName` char(64) COMMENT '合约名称', `ProductID` char(32) COMMENT '品种代码', `ProductClass` int COMMENT '品种类型', `InstrumentClass` int COMMENT '合约类别', `Rank` int COMMENT '级别', `VolumeMultiple` int COMMENT '合约乘数', `PriceTick` decimal(24,8) COMMENT '最小变动价位', `MaxMarketOrderVolume` bigint COMMENT '市价最大下单量', `MinMarketOrderVolume` bigint COMMENT '市价最小下单量', `MaxLimitOrderVolume` bigint COMMENT '限价最大下单量', `MinLimitOrderVolume` bigint COMMENT '限价最小下单量', `SessionName` char(32) COMMENT '交易节名称', PRIMARY KEY(ExchangeID, InstrumentID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
 	if (m_InstrumentCreateStatement == nullptr)
 	{
-		m_InstrumentCreateStatement = m_DBConnection->prepareStatement(sql);
+		m_InstrumentCreateStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_InstrumentCreateStatement->executeUpdate();
@@ -1088,7 +633,7 @@ void Mariadb::DropInstrument()
 	const char* sql = "DROP TABLE IF EXISTS `t_Instrument`;";
 	if (m_InstrumentDropStatement == nullptr)
 	{
-		m_InstrumentDropStatement = m_DBConnection->prepareStatement(sql);
+		m_InstrumentDropStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_InstrumentDropStatement->executeUpdate();
@@ -1100,9 +645,9 @@ void Mariadb::InsertInstrument(Instrument* record)
 	auto start = steady_clock::now();
 	if (m_InstrumentInsertStatement == nullptr)
 	{
-		m_InstrumentInsertStatement = m_DBConnection->prepareStatement("insert into t_Instrument Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+		m_InstrumentInsertStatement.reset(m_DBConnection->prepareStatement("insert into t_Instrument Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"));
 	}
-	SetStatementForInstrumentRecord(m_InstrumentInsertStatement, record);
+	SetStatementForInstrumentRecord(record);
 	
 	m_InstrumentInsertStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
@@ -1154,9 +699,9 @@ void Mariadb::DeleteInstrument(Instrument* record)
 	auto start = steady_clock::now();
 	if (m_InstrumentDeleteStatement == nullptr)
 	{
-		m_InstrumentDeleteStatement = m_DBConnection->prepareStatement("delete from t_Instrument where ExchangeID = ? and InstrumentID = ?;");
+		m_InstrumentDeleteStatement.reset(m_DBConnection->prepareStatement("delete from t_Instrument where ExchangeID = ? and InstrumentID = ?;"));
 	}
-	SetStatementForInstrumentPrimaryKey(m_InstrumentDeleteStatement, record->ExchangeID, record->InstrumentID);
+	SetStatementForInstrumentPrimaryKey(record->ExchangeID, record->InstrumentID);
 	m_InstrumentDeleteStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1169,9 +714,9 @@ void Mariadb::UpdateInstrument(Instrument* record)
 	auto start = steady_clock::now();
 	if (m_InstrumentUpdateStatement == nullptr)
 	{
-		m_InstrumentUpdateStatement = m_DBConnection->prepareStatement("update t_Instrument set ExchangeInstID = ?, InstrumentName = ?, ProductID = ?, ProductClass = ?, InstrumentClass = ?, Rank = ?, VolumeMultiple = ?, PriceTick = ?, MaxMarketOrderVolume = ?, MinMarketOrderVolume = ?, MaxLimitOrderVolume = ?, MinLimitOrderVolume = ?, SessionName = ? where ExchangeID = ? and InstrumentID = ?;");
+		m_InstrumentUpdateStatement.reset(m_DBConnection->prepareStatement("update t_Instrument set ExchangeInstID = ?, InstrumentName = ?, ProductID = ?, ProductClass = ?, InstrumentClass = ?, Rank = ?, VolumeMultiple = ?, PriceTick = ?, MaxMarketOrderVolume = ?, MinMarketOrderVolume = ?, MaxLimitOrderVolume = ?, MinLimitOrderVolume = ?, SessionName = ? where ExchangeID = ? and InstrumentID = ?;"));
 	}
-	SetStatementForInstrumentRecordUpdate(m_InstrumentUpdateStatement, record);
+	SetStatementForInstrumentRecordUpdate(record);
 	m_InstrumentUpdateStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1184,7 +729,7 @@ void Mariadb::SelectInstrument(std::list<Instrument*>& records)
 	auto start = steady_clock::now();
 	if (m_InstrumentSelectStatement == nullptr)
 	{
-		m_InstrumentSelectStatement = m_DBConnection->prepareStatement("select * from t_Instrument;");
+		m_InstrumentSelectStatement.reset(m_DBConnection->prepareStatement("select * from t_Instrument;"));
 	}
 	auto result = m_InstrumentSelectStatement->executeQuery();
 	while (result->next())
@@ -1202,7 +747,7 @@ void Mariadb::TruncateInstrument()
 	auto start = steady_clock::now();
 	if (m_InstrumentTruncateStatement == nullptr)
 	{
-		m_InstrumentTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Instrument;");
+		m_InstrumentTruncateStatement.reset(m_DBConnection->prepareStatement("truncate table t_Instrument;"));
 	}
 	m_InstrumentTruncateStatement->executeQuery();
 	WriteLog(LogLevel::Info, "TruncateInstrument Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
@@ -1213,7 +758,7 @@ void Mariadb::CreatePrimaryAccount()
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_PrimaryAccount` (`PrimaryAccountID` char(32) COMMENT '主账户代码', `PrimaryAccountName` char(64) COMMENT '主账户名称', `AccountClass` int COMMENT '账户类别', `BrokerPassword` char(64) COMMENT '经纪公司密码', `OfferID` int COMMENT '报盘代码', `IsAllowLogin` bool COMMENT '是否允许登陆', `IsSimulateAccount` bool COMMENT '是否模拟账号', `LoginStatus` int COMMENT '登录状态', `InitStatus` int COMMENT '初始化状态', INDEX OfferID(OfferID), PRIMARY KEY(PrimaryAccountID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
 	if (m_PrimaryAccountCreateStatement == nullptr)
 	{
-		m_PrimaryAccountCreateStatement = m_DBConnection->prepareStatement(sql);
+		m_PrimaryAccountCreateStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_PrimaryAccountCreateStatement->executeUpdate();
@@ -1226,7 +771,7 @@ void Mariadb::DropPrimaryAccount()
 	const char* sql = "DROP TABLE IF EXISTS `t_PrimaryAccount`;";
 	if (m_PrimaryAccountDropStatement == nullptr)
 	{
-		m_PrimaryAccountDropStatement = m_DBConnection->prepareStatement(sql);
+		m_PrimaryAccountDropStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_PrimaryAccountDropStatement->executeUpdate();
@@ -1238,9 +783,9 @@ void Mariadb::InsertPrimaryAccount(PrimaryAccount* record)
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountInsertStatement == nullptr)
 	{
-		m_PrimaryAccountInsertStatement = m_DBConnection->prepareStatement("insert into t_PrimaryAccount Values(?, ?, ?, ?, ?, ?, ?, ?, ?);");
+		m_PrimaryAccountInsertStatement.reset(m_DBConnection->prepareStatement("insert into t_PrimaryAccount Values(?, ?, ?, ?, ?, ?, ?, ?, ?);"));
 	}
-	SetStatementForPrimaryAccountRecord(m_PrimaryAccountInsertStatement, record);
+	SetStatementForPrimaryAccountRecord(record);
 	
 	m_PrimaryAccountInsertStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
@@ -1292,9 +837,9 @@ void Mariadb::DeletePrimaryAccount(PrimaryAccount* record)
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountDeleteStatement == nullptr)
 	{
-		m_PrimaryAccountDeleteStatement = m_DBConnection->prepareStatement("delete from t_PrimaryAccount where PrimaryAccountID = ?;");
+		m_PrimaryAccountDeleteStatement.reset(m_DBConnection->prepareStatement("delete from t_PrimaryAccount where PrimaryAccountID = ?;"));
 	}
-	SetStatementForPrimaryAccountPrimaryKey(m_PrimaryAccountDeleteStatement, record->PrimaryAccountID);
+	SetStatementForPrimaryAccountPrimaryKey(record->PrimaryAccountID);
 	m_PrimaryAccountDeleteStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1307,9 +852,9 @@ void Mariadb::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountDeleteByOfferIDIndexStatement == nullptr)
 	{
-		m_PrimaryAccountDeleteByOfferIDIndexStatement = m_DBConnection->prepareStatement("delete from t_PrimaryAccount where OfferID = ?;");
+		m_PrimaryAccountDeleteByOfferIDIndexStatement.reset(m_DBConnection->prepareStatement("delete from t_PrimaryAccount where OfferID = ?;"));
 	}
-	SetStatementForPrimaryAccountIndexOfferID(m_PrimaryAccountDeleteByOfferIDIndexStatement, record);
+	SetStatementForPrimaryAccountIndexOfferID(record);
 	m_PrimaryAccountDeleteByOfferIDIndexStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1322,9 +867,9 @@ void Mariadb::UpdatePrimaryAccount(PrimaryAccount* record)
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountUpdateStatement == nullptr)
 	{
-		m_PrimaryAccountUpdateStatement = m_DBConnection->prepareStatement("update t_PrimaryAccount set PrimaryAccountName = ?, AccountClass = ?, BrokerPassword = ?, OfferID = ?, IsAllowLogin = ?, IsSimulateAccount = ?, LoginStatus = ?, InitStatus = ? where PrimaryAccountID = ?;");
+		m_PrimaryAccountUpdateStatement.reset(m_DBConnection->prepareStatement("update t_PrimaryAccount set PrimaryAccountName = ?, AccountClass = ?, BrokerPassword = ?, OfferID = ?, IsAllowLogin = ?, IsSimulateAccount = ?, LoginStatus = ?, InitStatus = ? where PrimaryAccountID = ?;"));
 	}
-	SetStatementForPrimaryAccountRecordUpdate(m_PrimaryAccountUpdateStatement, record);
+	SetStatementForPrimaryAccountRecordUpdate(record);
 	m_PrimaryAccountUpdateStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1337,7 +882,7 @@ void Mariadb::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountSelectStatement == nullptr)
 	{
-		m_PrimaryAccountSelectStatement = m_DBConnection->prepareStatement("select * from t_PrimaryAccount;");
+		m_PrimaryAccountSelectStatement.reset(m_DBConnection->prepareStatement("select * from t_PrimaryAccount;"));
 	}
 	auto result = m_PrimaryAccountSelectStatement->executeQuery();
 	while (result->next())
@@ -1355,7 +900,7 @@ void Mariadb::TruncatePrimaryAccount()
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountTruncateStatement == nullptr)
 	{
-		m_PrimaryAccountTruncateStatement = m_DBConnection->prepareStatement("truncate table t_PrimaryAccount;");
+		m_PrimaryAccountTruncateStatement.reset(m_DBConnection->prepareStatement("truncate table t_PrimaryAccount;"));
 	}
 	m_PrimaryAccountTruncateStatement->executeQuery();
 	WriteLog(LogLevel::Info, "TruncatePrimaryAccount Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
@@ -1366,7 +911,7 @@ void Mariadb::CreateAccount()
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Account` (`AccountID` char(32) COMMENT '账户代码', `AccountName` char(64) COMMENT '账户名称', `AccountType` int COMMENT '账户类型', `AccountStatus` int COMMENT '账户状态', `Password` char(64) COMMENT '密码', `TradeGroupID` int COMMENT '交易组代码', `RiskGroupID` int COMMENT '交易组代码', `CommissionGroupID` int COMMENT '交易组代码', PRIMARY KEY(AccountID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
 	if (m_AccountCreateStatement == nullptr)
 	{
-		m_AccountCreateStatement = m_DBConnection->prepareStatement(sql);
+		m_AccountCreateStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_AccountCreateStatement->executeUpdate();
@@ -1379,7 +924,7 @@ void Mariadb::DropAccount()
 	const char* sql = "DROP TABLE IF EXISTS `t_Account`;";
 	if (m_AccountDropStatement == nullptr)
 	{
-		m_AccountDropStatement = m_DBConnection->prepareStatement(sql);
+		m_AccountDropStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_AccountDropStatement->executeUpdate();
@@ -1391,9 +936,9 @@ void Mariadb::InsertAccount(Account* record)
 	auto start = steady_clock::now();
 	if (m_AccountInsertStatement == nullptr)
 	{
-		m_AccountInsertStatement = m_DBConnection->prepareStatement("insert into t_Account Values(?, ?, ?, ?, ?, ?, ?, ?);");
+		m_AccountInsertStatement.reset(m_DBConnection->prepareStatement("insert into t_Account Values(?, ?, ?, ?, ?, ?, ?, ?);"));
 	}
-	SetStatementForAccountRecord(m_AccountInsertStatement, record);
+	SetStatementForAccountRecord(record);
 	
 	m_AccountInsertStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
@@ -1445,9 +990,9 @@ void Mariadb::DeleteAccount(Account* record)
 	auto start = steady_clock::now();
 	if (m_AccountDeleteStatement == nullptr)
 	{
-		m_AccountDeleteStatement = m_DBConnection->prepareStatement("delete from t_Account where AccountID = ?;");
+		m_AccountDeleteStatement.reset(m_DBConnection->prepareStatement("delete from t_Account where AccountID = ?;"));
 	}
-	SetStatementForAccountPrimaryKey(m_AccountDeleteStatement, record->AccountID);
+	SetStatementForAccountPrimaryKey(record->AccountID);
 	m_AccountDeleteStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1460,9 +1005,9 @@ void Mariadb::UpdateAccount(Account* record)
 	auto start = steady_clock::now();
 	if (m_AccountUpdateStatement == nullptr)
 	{
-		m_AccountUpdateStatement = m_DBConnection->prepareStatement("update t_Account set AccountName = ?, AccountType = ?, AccountStatus = ?, Password = ?, TradeGroupID = ?, RiskGroupID = ?, CommissionGroupID = ? where AccountID = ?;");
+		m_AccountUpdateStatement.reset(m_DBConnection->prepareStatement("update t_Account set AccountName = ?, AccountType = ?, AccountStatus = ?, Password = ?, TradeGroupID = ?, RiskGroupID = ?, CommissionGroupID = ? where AccountID = ?;"));
 	}
-	SetStatementForAccountRecordUpdate(m_AccountUpdateStatement, record);
+	SetStatementForAccountRecordUpdate(record);
 	m_AccountUpdateStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1475,7 +1020,7 @@ void Mariadb::SelectAccount(std::list<Account*>& records)
 	auto start = steady_clock::now();
 	if (m_AccountSelectStatement == nullptr)
 	{
-		m_AccountSelectStatement = m_DBConnection->prepareStatement("select * from t_Account;");
+		m_AccountSelectStatement.reset(m_DBConnection->prepareStatement("select * from t_Account;"));
 	}
 	auto result = m_AccountSelectStatement->executeQuery();
 	while (result->next())
@@ -1493,7 +1038,7 @@ void Mariadb::TruncateAccount()
 	auto start = steady_clock::now();
 	if (m_AccountTruncateStatement == nullptr)
 	{
-		m_AccountTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Account;");
+		m_AccountTruncateStatement.reset(m_DBConnection->prepareStatement("truncate table t_Account;"));
 	}
 	m_AccountTruncateStatement->executeQuery();
 	WriteLog(LogLevel::Info, "TruncateAccount Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
@@ -1504,7 +1049,7 @@ void Mariadb::CreateCapital()
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Capital` (`TradingDay` char(16) COMMENT '交易日', `AccountID` char(32) COMMENT '账户代码', `AccountType` int COMMENT '账户类型', `Balance` decimal(24,8) COMMENT '权益', `PreBalance` decimal(24,8) COMMENT '上日权益', `Available` decimal(24,8) COMMENT '可用资金', `MarketValue` decimal(24,8) COMMENT '市值', `CashIn` decimal(24,8) COMMENT '现金收入', `CashOut` decimal(24,8) COMMENT '现金支出', `Margin` decimal(24,8) COMMENT '保证金', `Commission` decimal(24,8) COMMENT '手续费', `FrozenCash` decimal(24,8) COMMENT '冻结资金', `FrozenMargin` decimal(24,8) COMMENT '冻结保证金', `FrozenCommission` decimal(24,8) COMMENT '冻结手续费', `CloseProfitByDate` decimal(24,8) COMMENT '逐日平仓盈亏', `CloseProfitByTrade` decimal(24,8) COMMENT '逐笔平仓盈亏', `PositionProfitByDate` decimal(24,8) COMMENT '逐日持仓盈亏', `PositionProfitByTrade` decimal(24,8) COMMENT '逐笔持仓盈亏', `Deposit` decimal(24,8) COMMENT '入金', `Withdraw` decimal(24,8) COMMENT '出金', INDEX TradingDay(TradingDay), PRIMARY KEY(TradingDay, AccountID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
 	if (m_CapitalCreateStatement == nullptr)
 	{
-		m_CapitalCreateStatement = m_DBConnection->prepareStatement(sql);
+		m_CapitalCreateStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_CapitalCreateStatement->executeUpdate();
@@ -1517,7 +1062,7 @@ void Mariadb::DropCapital()
 	const char* sql = "DROP TABLE IF EXISTS `t_Capital`;";
 	if (m_CapitalDropStatement == nullptr)
 	{
-		m_CapitalDropStatement = m_DBConnection->prepareStatement(sql);
+		m_CapitalDropStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_CapitalDropStatement->executeUpdate();
@@ -1529,9 +1074,9 @@ void Mariadb::InsertCapital(Capital* record)
 	auto start = steady_clock::now();
 	if (m_CapitalInsertStatement == nullptr)
 	{
-		m_CapitalInsertStatement = m_DBConnection->prepareStatement("insert into t_Capital Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+		m_CapitalInsertStatement.reset(m_DBConnection->prepareStatement("insert into t_Capital Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"));
 	}
-	SetStatementForCapitalRecord(m_CapitalInsertStatement, record);
+	SetStatementForCapitalRecord(record);
 	
 	m_CapitalInsertStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
@@ -1583,9 +1128,9 @@ void Mariadb::DeleteCapital(Capital* record)
 	auto start = steady_clock::now();
 	if (m_CapitalDeleteStatement == nullptr)
 	{
-		m_CapitalDeleteStatement = m_DBConnection->prepareStatement("delete from t_Capital where TradingDay = ? and AccountID = ?;");
+		m_CapitalDeleteStatement.reset(m_DBConnection->prepareStatement("delete from t_Capital where TradingDay = ? and AccountID = ?;"));
 	}
-	SetStatementForCapitalPrimaryKey(m_CapitalDeleteStatement, record->TradingDay, record->AccountID);
+	SetStatementForCapitalPrimaryKey(record->TradingDay, record->AccountID);
 	m_CapitalDeleteStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1598,9 +1143,9 @@ void Mariadb::DeleteCapitalByTradingDayIndex(Capital* record)
 	auto start = steady_clock::now();
 	if (m_CapitalDeleteByTradingDayIndexStatement == nullptr)
 	{
-		m_CapitalDeleteByTradingDayIndexStatement = m_DBConnection->prepareStatement("delete from t_Capital where TradingDay = ?;");
+		m_CapitalDeleteByTradingDayIndexStatement.reset(m_DBConnection->prepareStatement("delete from t_Capital where TradingDay = ?;"));
 	}
-	SetStatementForCapitalIndexTradingDay(m_CapitalDeleteByTradingDayIndexStatement, record);
+	SetStatementForCapitalIndexTradingDay(record);
 	m_CapitalDeleteByTradingDayIndexStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1613,9 +1158,9 @@ void Mariadb::UpdateCapital(Capital* record)
 	auto start = steady_clock::now();
 	if (m_CapitalUpdateStatement == nullptr)
 	{
-		m_CapitalUpdateStatement = m_DBConnection->prepareStatement("update t_Capital set AccountType = ?, Balance = ?, PreBalance = ?, Available = ?, MarketValue = ?, CashIn = ?, CashOut = ?, Margin = ?, Commission = ?, FrozenCash = ?, FrozenMargin = ?, FrozenCommission = ?, CloseProfitByDate = ?, CloseProfitByTrade = ?, PositionProfitByDate = ?, PositionProfitByTrade = ?, Deposit = ?, Withdraw = ? where TradingDay = ? and AccountID = ?;");
+		m_CapitalUpdateStatement.reset(m_DBConnection->prepareStatement("update t_Capital set AccountType = ?, Balance = ?, PreBalance = ?, Available = ?, MarketValue = ?, CashIn = ?, CashOut = ?, Margin = ?, Commission = ?, FrozenCash = ?, FrozenMargin = ?, FrozenCommission = ?, CloseProfitByDate = ?, CloseProfitByTrade = ?, PositionProfitByDate = ?, PositionProfitByTrade = ?, Deposit = ?, Withdraw = ? where TradingDay = ? and AccountID = ?;"));
 	}
-	SetStatementForCapitalRecordUpdate(m_CapitalUpdateStatement, record);
+	SetStatementForCapitalRecordUpdate(record);
 	m_CapitalUpdateStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1628,7 +1173,7 @@ void Mariadb::SelectCapital(std::list<Capital*>& records)
 	auto start = steady_clock::now();
 	if (m_CapitalSelectStatement == nullptr)
 	{
-		m_CapitalSelectStatement = m_DBConnection->prepareStatement("select * from t_Capital;");
+		m_CapitalSelectStatement.reset(m_DBConnection->prepareStatement("select * from t_Capital;"));
 	}
 	auto result = m_CapitalSelectStatement->executeQuery();
 	while (result->next())
@@ -1646,7 +1191,7 @@ void Mariadb::TruncateCapital()
 	auto start = steady_clock::now();
 	if (m_CapitalTruncateStatement == nullptr)
 	{
-		m_CapitalTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Capital;");
+		m_CapitalTruncateStatement.reset(m_DBConnection->prepareStatement("truncate table t_Capital;"));
 	}
 	m_CapitalTruncateStatement->executeQuery();
 	WriteLog(LogLevel::Info, "TruncateCapital Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
@@ -1657,7 +1202,7 @@ void Mariadb::CreatePosition()
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Position` (`TradingDay` char(16) COMMENT '交易日', `AccountID` char(32) COMMENT '账户代码', `AccountType` int COMMENT '账户类型', `ExchangeID` char(8) COMMENT '交易所代码', `InstrumentID` char(32) COMMENT '合约代码', `ProductClass` int COMMENT '品种类型', `PosiDirection` int COMMENT '持仓方向', `TotalPosition` bigint COMMENT '持仓数量', `PositionFrozen` bigint COMMENT '冻结持仓', `TodayPosition` bigint COMMENT '今日持仓', `MarketValue` decimal(24,8) COMMENT '市值', `CashIn` decimal(24,8) COMMENT '现金收入', `CashOut` decimal(24,8) COMMENT '现金支出', `Margin` decimal(24,8) COMMENT '保证金', `Commission` decimal(24,8) COMMENT '手续费', `FrozenCash` decimal(24,8) COMMENT '冻结资金', `FrozenMargin` decimal(24,8) COMMENT '冻结保证金', `FrozenCommission` decimal(24,8) COMMENT '冻结手续费', `VolumeMultiple` int COMMENT '合约乘数', `CloseProfitByDate` decimal(24,8) COMMENT '逐日平仓盈亏', `CloseProfitByTrade` decimal(24,8) COMMENT '逐笔平仓盈亏', `PositionProfitByDate` decimal(24,8) COMMENT '逐日持仓盈亏', `PositionProfitByTrade` decimal(24,8) COMMENT '逐笔持仓盈亏', `SettlementPrice` decimal(24,8) COMMENT '结算价', `PreSettlementPrice` decimal(24,8) COMMENT '昨结算价', INDEX Account(TradingDay, AccountID), INDEX TradingDay(TradingDay), PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
 	if (m_PositionCreateStatement == nullptr)
 	{
-		m_PositionCreateStatement = m_DBConnection->prepareStatement(sql);
+		m_PositionCreateStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_PositionCreateStatement->executeUpdate();
@@ -1670,7 +1215,7 @@ void Mariadb::DropPosition()
 	const char* sql = "DROP TABLE IF EXISTS `t_Position`;";
 	if (m_PositionDropStatement == nullptr)
 	{
-		m_PositionDropStatement = m_DBConnection->prepareStatement(sql);
+		m_PositionDropStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_PositionDropStatement->executeUpdate();
@@ -1682,9 +1227,9 @@ void Mariadb::InsertPosition(Position* record)
 	auto start = steady_clock::now();
 	if (m_PositionInsertStatement == nullptr)
 	{
-		m_PositionInsertStatement = m_DBConnection->prepareStatement("insert into t_Position Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+		m_PositionInsertStatement.reset(m_DBConnection->prepareStatement("insert into t_Position Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"));
 	}
-	SetStatementForPositionRecord(m_PositionInsertStatement, record);
+	SetStatementForPositionRecord(record);
 	
 	m_PositionInsertStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
@@ -1736,9 +1281,9 @@ void Mariadb::DeletePosition(Position* record)
 	auto start = steady_clock::now();
 	if (m_PositionDeleteStatement == nullptr)
 	{
-		m_PositionDeleteStatement = m_DBConnection->prepareStatement("delete from t_Position where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and PosiDirection = ?;");
+		m_PositionDeleteStatement.reset(m_DBConnection->prepareStatement("delete from t_Position where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and PosiDirection = ?;"));
 	}
-	SetStatementForPositionPrimaryKey(m_PositionDeleteStatement, record->TradingDay, record->AccountID, record->ExchangeID, record->InstrumentID, record->PosiDirection);
+	SetStatementForPositionPrimaryKey(record->TradingDay, record->AccountID, record->ExchangeID, record->InstrumentID, record->PosiDirection);
 	m_PositionDeleteStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1751,9 +1296,9 @@ void Mariadb::DeletePositionByAccountIndex(Position* record)
 	auto start = steady_clock::now();
 	if (m_PositionDeleteByAccountIndexStatement == nullptr)
 	{
-		m_PositionDeleteByAccountIndexStatement = m_DBConnection->prepareStatement("delete from t_Position where TradingDay = ? and AccountID = ?;");
+		m_PositionDeleteByAccountIndexStatement.reset(m_DBConnection->prepareStatement("delete from t_Position where TradingDay = ? and AccountID = ?;"));
 	}
-	SetStatementForPositionIndexAccount(m_PositionDeleteByAccountIndexStatement, record);
+	SetStatementForPositionIndexAccount(record);
 	m_PositionDeleteByAccountIndexStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1766,9 +1311,9 @@ void Mariadb::DeletePositionByTradingDayIndex(Position* record)
 	auto start = steady_clock::now();
 	if (m_PositionDeleteByTradingDayIndexStatement == nullptr)
 	{
-		m_PositionDeleteByTradingDayIndexStatement = m_DBConnection->prepareStatement("delete from t_Position where TradingDay = ?;");
+		m_PositionDeleteByTradingDayIndexStatement.reset(m_DBConnection->prepareStatement("delete from t_Position where TradingDay = ?;"));
 	}
-	SetStatementForPositionIndexTradingDay(m_PositionDeleteByTradingDayIndexStatement, record);
+	SetStatementForPositionIndexTradingDay(record);
 	m_PositionDeleteByTradingDayIndexStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1781,9 +1326,9 @@ void Mariadb::UpdatePosition(Position* record)
 	auto start = steady_clock::now();
 	if (m_PositionUpdateStatement == nullptr)
 	{
-		m_PositionUpdateStatement = m_DBConnection->prepareStatement("update t_Position set AccountType = ?, ProductClass = ?, TotalPosition = ?, PositionFrozen = ?, TodayPosition = ?, MarketValue = ?, CashIn = ?, CashOut = ?, Margin = ?, Commission = ?, FrozenCash = ?, FrozenMargin = ?, FrozenCommission = ?, VolumeMultiple = ?, CloseProfitByDate = ?, CloseProfitByTrade = ?, PositionProfitByDate = ?, PositionProfitByTrade = ?, SettlementPrice = ?, PreSettlementPrice = ? where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and PosiDirection = ?;");
+		m_PositionUpdateStatement.reset(m_DBConnection->prepareStatement("update t_Position set AccountType = ?, ProductClass = ?, TotalPosition = ?, PositionFrozen = ?, TodayPosition = ?, MarketValue = ?, CashIn = ?, CashOut = ?, Margin = ?, Commission = ?, FrozenCash = ?, FrozenMargin = ?, FrozenCommission = ?, VolumeMultiple = ?, CloseProfitByDate = ?, CloseProfitByTrade = ?, PositionProfitByDate = ?, PositionProfitByTrade = ?, SettlementPrice = ?, PreSettlementPrice = ? where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and PosiDirection = ?;"));
 	}
-	SetStatementForPositionRecordUpdate(m_PositionUpdateStatement, record);
+	SetStatementForPositionRecordUpdate(record);
 	m_PositionUpdateStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1796,7 +1341,7 @@ void Mariadb::SelectPosition(std::list<Position*>& records)
 	auto start = steady_clock::now();
 	if (m_PositionSelectStatement == nullptr)
 	{
-		m_PositionSelectStatement = m_DBConnection->prepareStatement("select * from t_Position;");
+		m_PositionSelectStatement.reset(m_DBConnection->prepareStatement("select * from t_Position;"));
 	}
 	auto result = m_PositionSelectStatement->executeQuery();
 	while (result->next())
@@ -1814,7 +1359,7 @@ void Mariadb::TruncatePosition()
 	auto start = steady_clock::now();
 	if (m_PositionTruncateStatement == nullptr)
 	{
-		m_PositionTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Position;");
+		m_PositionTruncateStatement.reset(m_DBConnection->prepareStatement("truncate table t_Position;"));
 	}
 	m_PositionTruncateStatement->executeQuery();
 	WriteLog(LogLevel::Info, "TruncatePosition Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
@@ -1825,7 +1370,7 @@ void Mariadb::CreatePositionDetail()
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_PositionDetail` (`TradingDay` char(16) COMMENT '交易日', `AccountID` char(32) COMMENT '账户代码', `AccountType` int COMMENT '账户类型', `ExchangeID` char(8) COMMENT '交易所代码', `InstrumentID` char(32) COMMENT '合约代码', `ProductClass` int COMMENT '品种类型', `PosiDirection` int COMMENT '持仓方向', `OpenDate` char(16) COMMENT '开仓日期', `TradeID` char(64) COMMENT '成交编号', `Volume` bigint COMMENT '委托数量', `OpenPrice` decimal(24,8) COMMENT '开盘价', `MarketValue` decimal(24,8) COMMENT '市值', `CashIn` decimal(24,8) COMMENT '现金收入', `CashOut` decimal(24,8) COMMENT '现金支出', `Margin` decimal(24,8) COMMENT '保证金', `Commission` decimal(24,8) COMMENT '手续费', `VolumeMultiple` int COMMENT '合约乘数', `CloseProfitByDate` decimal(24,8) COMMENT '逐日平仓盈亏', `CloseProfitByTrade` decimal(24,8) COMMENT '逐笔平仓盈亏', `PositionProfitByDate` decimal(24,8) COMMENT '逐日持仓盈亏', `PositionProfitByTrade` decimal(24,8) COMMENT '逐笔持仓盈亏', `SettlementPrice` decimal(24,8) COMMENT '结算价', `PreSettlementPrice` decimal(24,8) COMMENT '昨结算价', `CloseVolume` bigint COMMENT '平仓数量', `CloseAmount` decimal(24,8) COMMENT '平仓金额', INDEX TradeMatch(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection), INDEX TradingDay(TradingDay), PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection, OpenDate, TradeID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
 	if (m_PositionDetailCreateStatement == nullptr)
 	{
-		m_PositionDetailCreateStatement = m_DBConnection->prepareStatement(sql);
+		m_PositionDetailCreateStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_PositionDetailCreateStatement->executeUpdate();
@@ -1838,7 +1383,7 @@ void Mariadb::DropPositionDetail()
 	const char* sql = "DROP TABLE IF EXISTS `t_PositionDetail`;";
 	if (m_PositionDetailDropStatement == nullptr)
 	{
-		m_PositionDetailDropStatement = m_DBConnection->prepareStatement(sql);
+		m_PositionDetailDropStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_PositionDetailDropStatement->executeUpdate();
@@ -1850,9 +1395,9 @@ void Mariadb::InsertPositionDetail(PositionDetail* record)
 	auto start = steady_clock::now();
 	if (m_PositionDetailInsertStatement == nullptr)
 	{
-		m_PositionDetailInsertStatement = m_DBConnection->prepareStatement("insert into t_PositionDetail Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+		m_PositionDetailInsertStatement.reset(m_DBConnection->prepareStatement("insert into t_PositionDetail Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"));
 	}
-	SetStatementForPositionDetailRecord(m_PositionDetailInsertStatement, record);
+	SetStatementForPositionDetailRecord(record);
 	
 	m_PositionDetailInsertStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
@@ -1904,9 +1449,9 @@ void Mariadb::DeletePositionDetail(PositionDetail* record)
 	auto start = steady_clock::now();
 	if (m_PositionDetailDeleteStatement == nullptr)
 	{
-		m_PositionDetailDeleteStatement = m_DBConnection->prepareStatement("delete from t_PositionDetail where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and PosiDirection = ? and OpenDate = ? and TradeID = ?;");
+		m_PositionDetailDeleteStatement.reset(m_DBConnection->prepareStatement("delete from t_PositionDetail where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and PosiDirection = ? and OpenDate = ? and TradeID = ?;"));
 	}
-	SetStatementForPositionDetailPrimaryKey(m_PositionDetailDeleteStatement, record->TradingDay, record->AccountID, record->ExchangeID, record->InstrumentID, record->PosiDirection, record->OpenDate, record->TradeID);
+	SetStatementForPositionDetailPrimaryKey(record->TradingDay, record->AccountID, record->ExchangeID, record->InstrumentID, record->PosiDirection, record->OpenDate, record->TradeID);
 	m_PositionDetailDeleteStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1919,9 +1464,9 @@ void Mariadb::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
 	auto start = steady_clock::now();
 	if (m_PositionDetailDeleteByTradeMatchIndexStatement == nullptr)
 	{
-		m_PositionDetailDeleteByTradeMatchIndexStatement = m_DBConnection->prepareStatement("delete from t_PositionDetail where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and PosiDirection = ?;");
+		m_PositionDetailDeleteByTradeMatchIndexStatement.reset(m_DBConnection->prepareStatement("delete from t_PositionDetail where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and PosiDirection = ?;"));
 	}
-	SetStatementForPositionDetailIndexTradeMatch(m_PositionDetailDeleteByTradeMatchIndexStatement, record);
+	SetStatementForPositionDetailIndexTradeMatch(record);
 	m_PositionDetailDeleteByTradeMatchIndexStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1934,9 +1479,9 @@ void Mariadb::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
 	auto start = steady_clock::now();
 	if (m_PositionDetailDeleteByTradingDayIndexStatement == nullptr)
 	{
-		m_PositionDetailDeleteByTradingDayIndexStatement = m_DBConnection->prepareStatement("delete from t_PositionDetail where TradingDay = ?;");
+		m_PositionDetailDeleteByTradingDayIndexStatement.reset(m_DBConnection->prepareStatement("delete from t_PositionDetail where TradingDay = ?;"));
 	}
-	SetStatementForPositionDetailIndexTradingDay(m_PositionDetailDeleteByTradingDayIndexStatement, record);
+	SetStatementForPositionDetailIndexTradingDay(record);
 	m_PositionDetailDeleteByTradingDayIndexStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1949,9 +1494,9 @@ void Mariadb::UpdatePositionDetail(PositionDetail* record)
 	auto start = steady_clock::now();
 	if (m_PositionDetailUpdateStatement == nullptr)
 	{
-		m_PositionDetailUpdateStatement = m_DBConnection->prepareStatement("update t_PositionDetail set AccountType = ?, ProductClass = ?, Volume = ?, OpenPrice = ?, MarketValue = ?, CashIn = ?, CashOut = ?, Margin = ?, Commission = ?, VolumeMultiple = ?, CloseProfitByDate = ?, CloseProfitByTrade = ?, PositionProfitByDate = ?, PositionProfitByTrade = ?, SettlementPrice = ?, PreSettlementPrice = ?, CloseVolume = ?, CloseAmount = ? where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and PosiDirection = ? and OpenDate = ? and TradeID = ?;");
+		m_PositionDetailUpdateStatement.reset(m_DBConnection->prepareStatement("update t_PositionDetail set AccountType = ?, ProductClass = ?, Volume = ?, OpenPrice = ?, MarketValue = ?, CashIn = ?, CashOut = ?, Margin = ?, Commission = ?, VolumeMultiple = ?, CloseProfitByDate = ?, CloseProfitByTrade = ?, PositionProfitByDate = ?, PositionProfitByTrade = ?, SettlementPrice = ?, PreSettlementPrice = ?, CloseVolume = ?, CloseAmount = ? where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and PosiDirection = ? and OpenDate = ? and TradeID = ?;"));
 	}
-	SetStatementForPositionDetailRecordUpdate(m_PositionDetailUpdateStatement, record);
+	SetStatementForPositionDetailRecordUpdate(record);
 	m_PositionDetailUpdateStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -1964,7 +1509,7 @@ void Mariadb::SelectPositionDetail(std::list<PositionDetail*>& records)
 	auto start = steady_clock::now();
 	if (m_PositionDetailSelectStatement == nullptr)
 	{
-		m_PositionDetailSelectStatement = m_DBConnection->prepareStatement("select * from t_PositionDetail;");
+		m_PositionDetailSelectStatement.reset(m_DBConnection->prepareStatement("select * from t_PositionDetail;"));
 	}
 	auto result = m_PositionDetailSelectStatement->executeQuery();
 	while (result->next())
@@ -1982,7 +1527,7 @@ void Mariadb::TruncatePositionDetail()
 	auto start = steady_clock::now();
 	if (m_PositionDetailTruncateStatement == nullptr)
 	{
-		m_PositionDetailTruncateStatement = m_DBConnection->prepareStatement("truncate table t_PositionDetail;");
+		m_PositionDetailTruncateStatement.reset(m_DBConnection->prepareStatement("truncate table t_PositionDetail;"));
 	}
 	m_PositionDetailTruncateStatement->executeQuery();
 	WriteLog(LogLevel::Info, "TruncatePositionDetail Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
@@ -1993,7 +1538,7 @@ void Mariadb::CreateOrder()
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Order` (`TradingDay` char(16) COMMENT '交易日', `AccountID` char(32) COMMENT '账户代码', `AccountType` int COMMENT '账户类型', `ExchangeID` char(8) COMMENT '交易所代码', `InstrumentID` char(32) COMMENT '合约代码', `ProductClass` int COMMENT '品种类型', `OrderID` int COMMENT '委托编号', `OrderSysID` char(64) COMMENT '系统委托编号', `Direction` int COMMENT '买卖方向', `OffsetFlag` int COMMENT '开平标志', `OrderPriceType` int COMMENT '委托价格类型', `Price` decimal(24,8) COMMENT '委托价格', `Volume` bigint COMMENT '委托数量', `VolumeTotal` bigint COMMENT '剩余数量', `VolumeTraded` bigint COMMENT '成交数量', `VolumeMultiple` int COMMENT '合约乘数', `OrderStatus` int COMMENT '委托状态', `OrderDate` char(16) COMMENT '委托日期', `OrderTime` char(16) COMMENT '委托时间', `CancelDate` char(16) COMMENT '撤单日期', `CancelTime` char(16) COMMENT '撤单时间', `SessionID` bigint COMMENT '会话编号', `ClientOrderID` int COMMENT '客户端委托编号', `RequestID` int COMMENT '客户端请求编号', `OfferID` int COMMENT '报盘代码', `TradeGroupID` int COMMENT '交易组代码', `RiskGroupID` int COMMENT '交易组代码', `CommissionGroupID` int COMMENT '交易组代码', `FrozenCash` decimal(24,8) COMMENT '冻结资金', `FrozenMargin` decimal(24,8) COMMENT '冻结保证金', `FrozenCommission` decimal(24,8) COMMENT '冻结手续费', `RebuildMark` bool COMMENT '重建标志', `IsForceClose` bool COMMENT '是否强平单', UNIQUE ClientOrderID(TradingDay, AccountID, ExchangeID, InstrumentID, SessionID, ClientOrderID), PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, OrderID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
 	if (m_OrderCreateStatement == nullptr)
 	{
-		m_OrderCreateStatement = m_DBConnection->prepareStatement(sql);
+		m_OrderCreateStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_OrderCreateStatement->executeUpdate();
@@ -2006,7 +1551,7 @@ void Mariadb::DropOrder()
 	const char* sql = "DROP TABLE IF EXISTS `t_Order`;";
 	if (m_OrderDropStatement == nullptr)
 	{
-		m_OrderDropStatement = m_DBConnection->prepareStatement(sql);
+		m_OrderDropStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_OrderDropStatement->executeUpdate();
@@ -2018,9 +1563,9 @@ void Mariadb::InsertOrder(Order* record)
 	auto start = steady_clock::now();
 	if (m_OrderInsertStatement == nullptr)
 	{
-		m_OrderInsertStatement = m_DBConnection->prepareStatement("insert into t_Order Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+		m_OrderInsertStatement.reset(m_DBConnection->prepareStatement("insert into t_Order Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"));
 	}
-	SetStatementForOrderRecord(m_OrderInsertStatement, record);
+	SetStatementForOrderRecord(record);
 	
 	m_OrderInsertStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
@@ -2072,9 +1617,9 @@ void Mariadb::DeleteOrder(Order* record)
 	auto start = steady_clock::now();
 	if (m_OrderDeleteStatement == nullptr)
 	{
-		m_OrderDeleteStatement = m_DBConnection->prepareStatement("delete from t_Order where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and OrderID = ?;");
+		m_OrderDeleteStatement.reset(m_DBConnection->prepareStatement("delete from t_Order where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and OrderID = ?;"));
 	}
-	SetStatementForOrderPrimaryKey(m_OrderDeleteStatement, record->TradingDay, record->AccountID, record->ExchangeID, record->InstrumentID, record->OrderID);
+	SetStatementForOrderPrimaryKey(record->TradingDay, record->AccountID, record->ExchangeID, record->InstrumentID, record->OrderID);
 	m_OrderDeleteStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -2087,9 +1632,9 @@ void Mariadb::UpdateOrder(Order* record)
 	auto start = steady_clock::now();
 	if (m_OrderUpdateStatement == nullptr)
 	{
-		m_OrderUpdateStatement = m_DBConnection->prepareStatement("update t_Order set AccountType = ?, ProductClass = ?, OrderSysID = ?, Direction = ?, OffsetFlag = ?, OrderPriceType = ?, Price = ?, Volume = ?, VolumeTotal = ?, VolumeTraded = ?, VolumeMultiple = ?, OrderStatus = ?, OrderDate = ?, OrderTime = ?, CancelDate = ?, CancelTime = ?, SessionID = ?, ClientOrderID = ?, RequestID = ?, OfferID = ?, TradeGroupID = ?, RiskGroupID = ?, CommissionGroupID = ?, FrozenCash = ?, FrozenMargin = ?, FrozenCommission = ?, RebuildMark = ?, IsForceClose = ? where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and OrderID = ?;");
+		m_OrderUpdateStatement.reset(m_DBConnection->prepareStatement("update t_Order set AccountType = ?, ProductClass = ?, OrderSysID = ?, Direction = ?, OffsetFlag = ?, OrderPriceType = ?, Price = ?, Volume = ?, VolumeTotal = ?, VolumeTraded = ?, VolumeMultiple = ?, OrderStatus = ?, OrderDate = ?, OrderTime = ?, CancelDate = ?, CancelTime = ?, SessionID = ?, ClientOrderID = ?, RequestID = ?, OfferID = ?, TradeGroupID = ?, RiskGroupID = ?, CommissionGroupID = ?, FrozenCash = ?, FrozenMargin = ?, FrozenCommission = ?, RebuildMark = ?, IsForceClose = ? where TradingDay = ? and AccountID = ? and ExchangeID = ? and InstrumentID = ? and OrderID = ?;"));
 	}
-	SetStatementForOrderRecordUpdate(m_OrderUpdateStatement, record);
+	SetStatementForOrderRecordUpdate(record);
 	m_OrderUpdateStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -2102,7 +1647,7 @@ void Mariadb::SelectOrder(std::list<Order*>& records)
 	auto start = steady_clock::now();
 	if (m_OrderSelectStatement == nullptr)
 	{
-		m_OrderSelectStatement = m_DBConnection->prepareStatement("select * from t_Order;");
+		m_OrderSelectStatement.reset(m_DBConnection->prepareStatement("select * from t_Order;"));
 	}
 	auto result = m_OrderSelectStatement->executeQuery();
 	while (result->next())
@@ -2120,7 +1665,7 @@ void Mariadb::TruncateOrder()
 	auto start = steady_clock::now();
 	if (m_OrderTruncateStatement == nullptr)
 	{
-		m_OrderTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Order;");
+		m_OrderTruncateStatement.reset(m_DBConnection->prepareStatement("truncate table t_Order;"));
 	}
 	m_OrderTruncateStatement->executeQuery();
 	WriteLog(LogLevel::Info, "TruncateOrder Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
@@ -2131,7 +1676,7 @@ void Mariadb::CreateTrade()
 	const char* sql = "CREATE TABLE IF NOT EXISTS `t_Trade` (`TradingDay` char(16) COMMENT '交易日', `AccountID` char(32) COMMENT '账户代码', `AccountType` int COMMENT '账户类型', `ExchangeID` char(8) COMMENT '交易所代码', `InstrumentID` char(32) COMMENT '合约代码', `ProductClass` int COMMENT '品种类型', `OrderID` int COMMENT '委托编号', `OrderSysID` char(64) COMMENT '系统委托编号', `TradeID` char(64) COMMENT '成交编号', `Direction` int COMMENT '买卖方向', `OffsetFlag` int COMMENT '开平标志', `Price` decimal(24,8) COMMENT '委托价格', `Volume` bigint COMMENT '委托数量', `VolumeMultiple` int COMMENT '合约乘数', `TradeAmount` decimal(24,8) COMMENT '成交金额', `Commission` decimal(24,8) COMMENT '手续费', `TradeDate` char(16) COMMENT '成交日期', `TradeTime` char(16) COMMENT '成交时间', PRIMARY KEY(TradingDay, ExchangeID, TradeID, Direction)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
 	if (m_TradeCreateStatement == nullptr)
 	{
-		m_TradeCreateStatement = m_DBConnection->prepareStatement(sql);
+		m_TradeCreateStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_TradeCreateStatement->executeUpdate();
@@ -2144,7 +1689,7 @@ void Mariadb::DropTrade()
 	const char* sql = "DROP TABLE IF EXISTS `t_Trade`;";
 	if (m_TradeDropStatement == nullptr)
 	{
-		m_TradeDropStatement = m_DBConnection->prepareStatement(sql);
+		m_TradeDropStatement.reset(m_DBConnection->prepareStatement(sql));
 	}
 	
 	m_TradeDropStatement->executeUpdate();
@@ -2156,9 +1701,9 @@ void Mariadb::InsertTrade(Trade* record)
 	auto start = steady_clock::now();
 	if (m_TradeInsertStatement == nullptr)
 	{
-		m_TradeInsertStatement = m_DBConnection->prepareStatement("insert into t_Trade Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+		m_TradeInsertStatement.reset(m_DBConnection->prepareStatement("insert into t_Trade Values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"));
 	}
-	SetStatementForTradeRecord(m_TradeInsertStatement, record);
+	SetStatementForTradeRecord(record);
 	
 	m_TradeInsertStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
@@ -2210,9 +1755,9 @@ void Mariadb::DeleteTrade(Trade* record)
 	auto start = steady_clock::now();
 	if (m_TradeDeleteStatement == nullptr)
 	{
-		m_TradeDeleteStatement = m_DBConnection->prepareStatement("delete from t_Trade where TradingDay = ? and ExchangeID = ? and TradeID = ? and Direction = ?;");
+		m_TradeDeleteStatement.reset(m_DBConnection->prepareStatement("delete from t_Trade where TradingDay = ? and ExchangeID = ? and TradeID = ? and Direction = ?;"));
 	}
-	SetStatementForTradePrimaryKey(m_TradeDeleteStatement, record->TradingDay, record->ExchangeID, record->TradeID, record->Direction);
+	SetStatementForTradePrimaryKey(record->TradingDay, record->ExchangeID, record->TradeID, record->Direction);
 	m_TradeDeleteStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -2225,9 +1770,9 @@ void Mariadb::UpdateTrade(Trade* record)
 	auto start = steady_clock::now();
 	if (m_TradeUpdateStatement == nullptr)
 	{
-		m_TradeUpdateStatement = m_DBConnection->prepareStatement("update t_Trade set AccountID = ?, AccountType = ?, InstrumentID = ?, ProductClass = ?, OrderID = ?, OrderSysID = ?, OffsetFlag = ?, Price = ?, Volume = ?, VolumeMultiple = ?, TradeAmount = ?, Commission = ?, TradeDate = ?, TradeTime = ? where TradingDay = ? and ExchangeID = ? and TradeID = ? and Direction = ?;");
+		m_TradeUpdateStatement.reset(m_DBConnection->prepareStatement("update t_Trade set AccountID = ?, AccountType = ?, InstrumentID = ?, ProductClass = ?, OrderID = ?, OrderSysID = ?, OffsetFlag = ?, Price = ?, Volume = ?, VolumeMultiple = ?, TradeAmount = ?, Commission = ?, TradeDate = ?, TradeTime = ? where TradingDay = ? and ExchangeID = ? and TradeID = ? and Direction = ?;"));
 	}
-	SetStatementForTradeRecordUpdate(m_TradeUpdateStatement, record);
+	SetStatementForTradeRecordUpdate(record);
 	m_TradeUpdateStatement->executeUpdate();
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
@@ -2240,7 +1785,7 @@ void Mariadb::SelectTrade(std::list<Trade*>& records)
 	auto start = steady_clock::now();
 	if (m_TradeSelectStatement == nullptr)
 	{
-		m_TradeSelectStatement = m_DBConnection->prepareStatement("select * from t_Trade;");
+		m_TradeSelectStatement.reset(m_DBConnection->prepareStatement("select * from t_Trade;"));
 	}
 	auto result = m_TradeSelectStatement->executeQuery();
 	while (result->next())
@@ -2258,28 +1803,28 @@ void Mariadb::TruncateTrade()
 	auto start = steady_clock::now();
 	if (m_TradeTruncateStatement == nullptr)
 	{
-		m_TradeTruncateStatement = m_DBConnection->prepareStatement("truncate table t_Trade;");
+		m_TradeTruncateStatement.reset(m_DBConnection->prepareStatement("truncate table t_Trade;"));
 	}
 	m_TradeTruncateStatement->executeQuery();
 	WriteLog(LogLevel::Info, "TruncateTrade Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
 
 
-void Mariadb::SetStatementForTradingDayRecord(sql::PreparedStatement* statement, TradingDay* record)
+void Mariadb::SetStatementForTradingDayRecord(TradingDay* record)
 {
-	statement->setInt(1, record->PK);
-	statement->setString(2, record->CurrTradingDay);
-	statement->setString(3, record->PreTradingDay);
+	m_TradingDayInsertStatement->setInt(1, record->PK);
+	m_TradingDayInsertStatement->setString(2, record->CurrTradingDay);
+	m_TradingDayInsertStatement->setString(3, record->PreTradingDay);
 }
-void Mariadb::SetStatementForTradingDayRecordUpdate(sql::PreparedStatement* statement, TradingDay* record)
+void Mariadb::SetStatementForTradingDayRecordUpdate(TradingDay* record)
 {
-	statement->setString(1, record->CurrTradingDay);
-	statement->setString(2, record->PreTradingDay);
-	statement->setInt(3, record->PK);
+	m_TradingDayUpdateStatement->setString(1, record->CurrTradingDay);
+	m_TradingDayUpdateStatement->setString(2, record->PreTradingDay);
+	m_TradingDayUpdateStatement->setInt(3, record->PK);
 }
-void Mariadb::SetStatementForTradingDayPrimaryKey(sql::PreparedStatement* statement, const IntType& PK)
+void Mariadb::SetStatementForTradingDayPrimaryKey(const IntType& PK)
 {
-	statement->setInt(1, PK);
+	m_TradingDayDeleteStatement->setInt(1, PK);
 }
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<TradingDay*>& records)
 {
@@ -2289,19 +1834,19 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<TradingDay*>& record
 	Utility::Strcpy(record->PreTradingDay, result->getString(3).c_str());
 	records.push_back(record);
 }
-void Mariadb::SetStatementForExchangeRecord(sql::PreparedStatement* statement, Exchange* record)
+void Mariadb::SetStatementForExchangeRecord(Exchange* record)
 {
-	statement->setString(1, record->ExchangeID);
-	statement->setString(2, record->ExchangeName);
+	m_ExchangeInsertStatement->setString(1, record->ExchangeID);
+	m_ExchangeInsertStatement->setString(2, record->ExchangeName);
 }
-void Mariadb::SetStatementForExchangeRecordUpdate(sql::PreparedStatement* statement, Exchange* record)
+void Mariadb::SetStatementForExchangeRecordUpdate(Exchange* record)
 {
-	statement->setString(1, record->ExchangeName);
-	statement->setString(2, record->ExchangeID);
+	m_ExchangeUpdateStatement->setString(1, record->ExchangeName);
+	m_ExchangeUpdateStatement->setString(2, record->ExchangeID);
 }
-void Mariadb::SetStatementForExchangePrimaryKey(sql::PreparedStatement* statement, const ExchangeIDType& ExchangeID)
+void Mariadb::SetStatementForExchangePrimaryKey(const ExchangeIDType& ExchangeID)
 {
-	statement->setString(1, ExchangeID);
+	m_ExchangeDeleteStatement->setString(1, ExchangeID);
 }
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Exchange*>& records)
 {
@@ -2310,38 +1855,38 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Exchange*>& records)
 	Utility::Strcpy(record->ExchangeName, result->getString(2).c_str());
 	records.push_back(record);
 }
-void Mariadb::SetStatementForProductRecord(sql::PreparedStatement* statement, Product* record)
+void Mariadb::SetStatementForProductRecord(Product* record)
 {
-	statement->setString(1, record->ExchangeID);
-	statement->setString(2, record->ProductID);
-	statement->setString(3, record->ProductName);
-	statement->setInt(4, int(record->ProductClass));
-	statement->setInt(5, record->VolumeMultiple);
-	statement->setDouble(6, record->PriceTick);
-	statement->setInt64(7, record->MaxMarketOrderVolume);
-	statement->setInt64(8, record->MinMarketOrderVolume);
-	statement->setInt64(9, record->MaxLimitOrderVolume);
-	statement->setInt64(10, record->MinLimitOrderVolume);
-	statement->setString(11, record->SessionName);
+	m_ProductInsertStatement->setString(1, record->ExchangeID);
+	m_ProductInsertStatement->setString(2, record->ProductID);
+	m_ProductInsertStatement->setString(3, record->ProductName);
+	m_ProductInsertStatement->setInt(4, int(record->ProductClass));
+	m_ProductInsertStatement->setInt(5, record->VolumeMultiple);
+	m_ProductInsertStatement->setDouble(6, record->PriceTick);
+	m_ProductInsertStatement->setInt64(7, record->MaxMarketOrderVolume);
+	m_ProductInsertStatement->setInt64(8, record->MinMarketOrderVolume);
+	m_ProductInsertStatement->setInt64(9, record->MaxLimitOrderVolume);
+	m_ProductInsertStatement->setInt64(10, record->MinLimitOrderVolume);
+	m_ProductInsertStatement->setString(11, record->SessionName);
 }
-void Mariadb::SetStatementForProductRecordUpdate(sql::PreparedStatement* statement, Product* record)
+void Mariadb::SetStatementForProductRecordUpdate(Product* record)
 {
-	statement->setString(1, record->ProductName);
-	statement->setInt(2, int(record->ProductClass));
-	statement->setInt(3, record->VolumeMultiple);
-	statement->setDouble(4, record->PriceTick);
-	statement->setInt64(5, record->MaxMarketOrderVolume);
-	statement->setInt64(6, record->MinMarketOrderVolume);
-	statement->setInt64(7, record->MaxLimitOrderVolume);
-	statement->setInt64(8, record->MinLimitOrderVolume);
-	statement->setString(9, record->SessionName);
-	statement->setString(10, record->ExchangeID);
-	statement->setString(11, record->ProductID);
+	m_ProductUpdateStatement->setString(1, record->ProductName);
+	m_ProductUpdateStatement->setInt(2, int(record->ProductClass));
+	m_ProductUpdateStatement->setInt(3, record->VolumeMultiple);
+	m_ProductUpdateStatement->setDouble(4, record->PriceTick);
+	m_ProductUpdateStatement->setInt64(5, record->MaxMarketOrderVolume);
+	m_ProductUpdateStatement->setInt64(6, record->MinMarketOrderVolume);
+	m_ProductUpdateStatement->setInt64(7, record->MaxLimitOrderVolume);
+	m_ProductUpdateStatement->setInt64(8, record->MinLimitOrderVolume);
+	m_ProductUpdateStatement->setString(9, record->SessionName);
+	m_ProductUpdateStatement->setString(10, record->ExchangeID);
+	m_ProductUpdateStatement->setString(11, record->ProductID);
 }
-void Mariadb::SetStatementForProductPrimaryKey(sql::PreparedStatement* statement, const ExchangeIDType& ExchangeID, const ProductIDType& ProductID)
+void Mariadb::SetStatementForProductPrimaryKey(const ExchangeIDType& ExchangeID, const ProductIDType& ProductID)
 {
-	statement->setString(1, ExchangeID);
-	statement->setString(2, ProductID);
+	m_ProductDeleteStatement->setString(1, ExchangeID);
+	m_ProductDeleteStatement->setString(2, ProductID);
 }
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Product*>& records)
 {
@@ -2359,46 +1904,46 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Product*>& records)
 	Utility::Strcpy(record->SessionName, result->getString(11).c_str());
 	records.push_back(record);
 }
-void Mariadb::SetStatementForInstrumentRecord(sql::PreparedStatement* statement, Instrument* record)
+void Mariadb::SetStatementForInstrumentRecord(Instrument* record)
 {
-	statement->setString(1, record->ExchangeID);
-	statement->setString(2, record->InstrumentID);
-	statement->setString(3, record->ExchangeInstID);
-	statement->setString(4, record->InstrumentName);
-	statement->setString(5, record->ProductID);
-	statement->setInt(6, int(record->ProductClass));
-	statement->setInt(7, int(record->InstrumentClass));
-	statement->setInt(8, record->Rank);
-	statement->setInt(9, record->VolumeMultiple);
-	statement->setDouble(10, record->PriceTick);
-	statement->setInt64(11, record->MaxMarketOrderVolume);
-	statement->setInt64(12, record->MinMarketOrderVolume);
-	statement->setInt64(13, record->MaxLimitOrderVolume);
-	statement->setInt64(14, record->MinLimitOrderVolume);
-	statement->setString(15, record->SessionName);
+	m_InstrumentInsertStatement->setString(1, record->ExchangeID);
+	m_InstrumentInsertStatement->setString(2, record->InstrumentID);
+	m_InstrumentInsertStatement->setString(3, record->ExchangeInstID);
+	m_InstrumentInsertStatement->setString(4, record->InstrumentName);
+	m_InstrumentInsertStatement->setString(5, record->ProductID);
+	m_InstrumentInsertStatement->setInt(6, int(record->ProductClass));
+	m_InstrumentInsertStatement->setInt(7, int(record->InstrumentClass));
+	m_InstrumentInsertStatement->setInt(8, record->Rank);
+	m_InstrumentInsertStatement->setInt(9, record->VolumeMultiple);
+	m_InstrumentInsertStatement->setDouble(10, record->PriceTick);
+	m_InstrumentInsertStatement->setInt64(11, record->MaxMarketOrderVolume);
+	m_InstrumentInsertStatement->setInt64(12, record->MinMarketOrderVolume);
+	m_InstrumentInsertStatement->setInt64(13, record->MaxLimitOrderVolume);
+	m_InstrumentInsertStatement->setInt64(14, record->MinLimitOrderVolume);
+	m_InstrumentInsertStatement->setString(15, record->SessionName);
 }
-void Mariadb::SetStatementForInstrumentRecordUpdate(sql::PreparedStatement* statement, Instrument* record)
+void Mariadb::SetStatementForInstrumentRecordUpdate(Instrument* record)
 {
-	statement->setString(1, record->ExchangeInstID);
-	statement->setString(2, record->InstrumentName);
-	statement->setString(3, record->ProductID);
-	statement->setInt(4, int(record->ProductClass));
-	statement->setInt(5, int(record->InstrumentClass));
-	statement->setInt(6, record->Rank);
-	statement->setInt(7, record->VolumeMultiple);
-	statement->setDouble(8, record->PriceTick);
-	statement->setInt64(9, record->MaxMarketOrderVolume);
-	statement->setInt64(10, record->MinMarketOrderVolume);
-	statement->setInt64(11, record->MaxLimitOrderVolume);
-	statement->setInt64(12, record->MinLimitOrderVolume);
-	statement->setString(13, record->SessionName);
-	statement->setString(14, record->ExchangeID);
-	statement->setString(15, record->InstrumentID);
+	m_InstrumentUpdateStatement->setString(1, record->ExchangeInstID);
+	m_InstrumentUpdateStatement->setString(2, record->InstrumentName);
+	m_InstrumentUpdateStatement->setString(3, record->ProductID);
+	m_InstrumentUpdateStatement->setInt(4, int(record->ProductClass));
+	m_InstrumentUpdateStatement->setInt(5, int(record->InstrumentClass));
+	m_InstrumentUpdateStatement->setInt(6, record->Rank);
+	m_InstrumentUpdateStatement->setInt(7, record->VolumeMultiple);
+	m_InstrumentUpdateStatement->setDouble(8, record->PriceTick);
+	m_InstrumentUpdateStatement->setInt64(9, record->MaxMarketOrderVolume);
+	m_InstrumentUpdateStatement->setInt64(10, record->MinMarketOrderVolume);
+	m_InstrumentUpdateStatement->setInt64(11, record->MaxLimitOrderVolume);
+	m_InstrumentUpdateStatement->setInt64(12, record->MinLimitOrderVolume);
+	m_InstrumentUpdateStatement->setString(13, record->SessionName);
+	m_InstrumentUpdateStatement->setString(14, record->ExchangeID);
+	m_InstrumentUpdateStatement->setString(15, record->InstrumentID);
 }
-void Mariadb::SetStatementForInstrumentPrimaryKey(sql::PreparedStatement* statement, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID)
+void Mariadb::SetStatementForInstrumentPrimaryKey(const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID)
 {
-	statement->setString(1, ExchangeID);
-	statement->setString(2, InstrumentID);
+	m_InstrumentDeleteStatement->setString(1, ExchangeID);
+	m_InstrumentDeleteStatement->setString(2, InstrumentID);
 }
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Instrument*>& records)
 {
@@ -2420,37 +1965,37 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Instrument*>& record
 	Utility::Strcpy(record->SessionName, result->getString(15).c_str());
 	records.push_back(record);
 }
-void Mariadb::SetStatementForPrimaryAccountRecord(sql::PreparedStatement* statement, PrimaryAccount* record)
+void Mariadb::SetStatementForPrimaryAccountRecord(PrimaryAccount* record)
 {
-	statement->setString(1, record->PrimaryAccountID);
-	statement->setString(2, record->PrimaryAccountName);
-	statement->setInt(3, int(record->AccountClass));
-	statement->setString(4, record->BrokerPassword);
-	statement->setInt(5, record->OfferID);
-	statement->setBoolean(6, record->IsAllowLogin);
-	statement->setBoolean(7, record->IsSimulateAccount);
-	statement->setInt(8, int(record->LoginStatus));
-	statement->setInt(9, int(record->InitStatus));
+	m_PrimaryAccountInsertStatement->setString(1, record->PrimaryAccountID);
+	m_PrimaryAccountInsertStatement->setString(2, record->PrimaryAccountName);
+	m_PrimaryAccountInsertStatement->setInt(3, int(record->AccountClass));
+	m_PrimaryAccountInsertStatement->setString(4, record->BrokerPassword);
+	m_PrimaryAccountInsertStatement->setInt(5, record->OfferID);
+	m_PrimaryAccountInsertStatement->setBoolean(6, record->IsAllowLogin);
+	m_PrimaryAccountInsertStatement->setBoolean(7, record->IsSimulateAccount);
+	m_PrimaryAccountInsertStatement->setInt(8, int(record->LoginStatus));
+	m_PrimaryAccountInsertStatement->setInt(9, int(record->InitStatus));
 }
-void Mariadb::SetStatementForPrimaryAccountRecordUpdate(sql::PreparedStatement* statement, PrimaryAccount* record)
+void Mariadb::SetStatementForPrimaryAccountRecordUpdate(PrimaryAccount* record)
 {
-	statement->setString(1, record->PrimaryAccountName);
-	statement->setInt(2, int(record->AccountClass));
-	statement->setString(3, record->BrokerPassword);
-	statement->setInt(4, record->OfferID);
-	statement->setBoolean(5, record->IsAllowLogin);
-	statement->setBoolean(6, record->IsSimulateAccount);
-	statement->setInt(7, int(record->LoginStatus));
-	statement->setInt(8, int(record->InitStatus));
-	statement->setString(9, record->PrimaryAccountID);
+	m_PrimaryAccountUpdateStatement->setString(1, record->PrimaryAccountName);
+	m_PrimaryAccountUpdateStatement->setInt(2, int(record->AccountClass));
+	m_PrimaryAccountUpdateStatement->setString(3, record->BrokerPassword);
+	m_PrimaryAccountUpdateStatement->setInt(4, record->OfferID);
+	m_PrimaryAccountUpdateStatement->setBoolean(5, record->IsAllowLogin);
+	m_PrimaryAccountUpdateStatement->setBoolean(6, record->IsSimulateAccount);
+	m_PrimaryAccountUpdateStatement->setInt(7, int(record->LoginStatus));
+	m_PrimaryAccountUpdateStatement->setInt(8, int(record->InitStatus));
+	m_PrimaryAccountUpdateStatement->setString(9, record->PrimaryAccountID);
 }
-void Mariadb::SetStatementForPrimaryAccountPrimaryKey(sql::PreparedStatement* statement, const AccountIDType& PrimaryAccountID)
+void Mariadb::SetStatementForPrimaryAccountPrimaryKey(const AccountIDType& PrimaryAccountID)
 {
-	statement->setString(1, PrimaryAccountID);
+	m_PrimaryAccountDeleteStatement->setString(1, PrimaryAccountID);
 }
-void Mariadb::SetStatementForPrimaryAccountIndexOfferID(sql::PreparedStatement* statement, PrimaryAccount* record)
+void Mariadb::SetStatementForPrimaryAccountIndexOfferID(PrimaryAccount* record)
 {
-	statement->setInt(1, record->OfferID);
+	m_PrimaryAccountDeleteByOfferIDIndexStatement->setInt(1, record->OfferID);
 }
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<PrimaryAccount*>& records)
 {
@@ -2466,31 +2011,31 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<PrimaryAccount*>& re
 	record->InitStatus = InitStatusType(result->getInt(9));
 	records.push_back(record);
 }
-void Mariadb::SetStatementForAccountRecord(sql::PreparedStatement* statement, Account* record)
+void Mariadb::SetStatementForAccountRecord(Account* record)
 {
-	statement->setString(1, record->AccountID);
-	statement->setString(2, record->AccountName);
-	statement->setInt(3, int(record->AccountType));
-	statement->setInt(4, int(record->AccountStatus));
-	statement->setString(5, record->Password);
-	statement->setInt(6, record->TradeGroupID);
-	statement->setInt(7, record->RiskGroupID);
-	statement->setInt(8, record->CommissionGroupID);
+	m_AccountInsertStatement->setString(1, record->AccountID);
+	m_AccountInsertStatement->setString(2, record->AccountName);
+	m_AccountInsertStatement->setInt(3, int(record->AccountType));
+	m_AccountInsertStatement->setInt(4, int(record->AccountStatus));
+	m_AccountInsertStatement->setString(5, record->Password);
+	m_AccountInsertStatement->setInt(6, record->TradeGroupID);
+	m_AccountInsertStatement->setInt(7, record->RiskGroupID);
+	m_AccountInsertStatement->setInt(8, record->CommissionGroupID);
 }
-void Mariadb::SetStatementForAccountRecordUpdate(sql::PreparedStatement* statement, Account* record)
+void Mariadb::SetStatementForAccountRecordUpdate(Account* record)
 {
-	statement->setString(1, record->AccountName);
-	statement->setInt(2, int(record->AccountType));
-	statement->setInt(3, int(record->AccountStatus));
-	statement->setString(4, record->Password);
-	statement->setInt(5, record->TradeGroupID);
-	statement->setInt(6, record->RiskGroupID);
-	statement->setInt(7, record->CommissionGroupID);
-	statement->setString(8, record->AccountID);
+	m_AccountUpdateStatement->setString(1, record->AccountName);
+	m_AccountUpdateStatement->setInt(2, int(record->AccountType));
+	m_AccountUpdateStatement->setInt(3, int(record->AccountStatus));
+	m_AccountUpdateStatement->setString(4, record->Password);
+	m_AccountUpdateStatement->setInt(5, record->TradeGroupID);
+	m_AccountUpdateStatement->setInt(6, record->RiskGroupID);
+	m_AccountUpdateStatement->setInt(7, record->CommissionGroupID);
+	m_AccountUpdateStatement->setString(8, record->AccountID);
 }
-void Mariadb::SetStatementForAccountPrimaryKey(sql::PreparedStatement* statement, const AccountIDType& AccountID)
+void Mariadb::SetStatementForAccountPrimaryKey(const AccountIDType& AccountID)
 {
-	statement->setString(1, AccountID);
+	m_AccountDeleteStatement->setString(1, AccountID);
 }
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Account*>& records)
 {
@@ -2505,60 +2050,60 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Account*>& records)
 	record->CommissionGroupID = result->getInt(8);
 	records.push_back(record);
 }
-void Mariadb::SetStatementForCapitalRecord(sql::PreparedStatement* statement, Capital* record)
+void Mariadb::SetStatementForCapitalRecord(Capital* record)
 {
-	statement->setString(1, record->TradingDay);
-	statement->setString(2, record->AccountID);
-	statement->setInt(3, int(record->AccountType));
-	statement->setDouble(4, record->Balance);
-	statement->setDouble(5, record->PreBalance);
-	statement->setDouble(6, record->Available);
-	statement->setDouble(7, record->MarketValue);
-	statement->setDouble(8, record->CashIn);
-	statement->setDouble(9, record->CashOut);
-	statement->setDouble(10, record->Margin);
-	statement->setDouble(11, record->Commission);
-	statement->setDouble(12, record->FrozenCash);
-	statement->setDouble(13, record->FrozenMargin);
-	statement->setDouble(14, record->FrozenCommission);
-	statement->setDouble(15, record->CloseProfitByDate);
-	statement->setDouble(16, record->CloseProfitByTrade);
-	statement->setDouble(17, record->PositionProfitByDate);
-	statement->setDouble(18, record->PositionProfitByTrade);
-	statement->setDouble(19, record->Deposit);
-	statement->setDouble(20, record->Withdraw);
+	m_CapitalInsertStatement->setString(1, record->TradingDay);
+	m_CapitalInsertStatement->setString(2, record->AccountID);
+	m_CapitalInsertStatement->setInt(3, int(record->AccountType));
+	m_CapitalInsertStatement->setDouble(4, record->Balance);
+	m_CapitalInsertStatement->setDouble(5, record->PreBalance);
+	m_CapitalInsertStatement->setDouble(6, record->Available);
+	m_CapitalInsertStatement->setDouble(7, record->MarketValue);
+	m_CapitalInsertStatement->setDouble(8, record->CashIn);
+	m_CapitalInsertStatement->setDouble(9, record->CashOut);
+	m_CapitalInsertStatement->setDouble(10, record->Margin);
+	m_CapitalInsertStatement->setDouble(11, record->Commission);
+	m_CapitalInsertStatement->setDouble(12, record->FrozenCash);
+	m_CapitalInsertStatement->setDouble(13, record->FrozenMargin);
+	m_CapitalInsertStatement->setDouble(14, record->FrozenCommission);
+	m_CapitalInsertStatement->setDouble(15, record->CloseProfitByDate);
+	m_CapitalInsertStatement->setDouble(16, record->CloseProfitByTrade);
+	m_CapitalInsertStatement->setDouble(17, record->PositionProfitByDate);
+	m_CapitalInsertStatement->setDouble(18, record->PositionProfitByTrade);
+	m_CapitalInsertStatement->setDouble(19, record->Deposit);
+	m_CapitalInsertStatement->setDouble(20, record->Withdraw);
 }
-void Mariadb::SetStatementForCapitalRecordUpdate(sql::PreparedStatement* statement, Capital* record)
+void Mariadb::SetStatementForCapitalRecordUpdate(Capital* record)
 {
-	statement->setInt(1, int(record->AccountType));
-	statement->setDouble(2, record->Balance);
-	statement->setDouble(3, record->PreBalance);
-	statement->setDouble(4, record->Available);
-	statement->setDouble(5, record->MarketValue);
-	statement->setDouble(6, record->CashIn);
-	statement->setDouble(7, record->CashOut);
-	statement->setDouble(8, record->Margin);
-	statement->setDouble(9, record->Commission);
-	statement->setDouble(10, record->FrozenCash);
-	statement->setDouble(11, record->FrozenMargin);
-	statement->setDouble(12, record->FrozenCommission);
-	statement->setDouble(13, record->CloseProfitByDate);
-	statement->setDouble(14, record->CloseProfitByTrade);
-	statement->setDouble(15, record->PositionProfitByDate);
-	statement->setDouble(16, record->PositionProfitByTrade);
-	statement->setDouble(17, record->Deposit);
-	statement->setDouble(18, record->Withdraw);
-	statement->setString(19, record->TradingDay);
-	statement->setString(20, record->AccountID);
+	m_CapitalUpdateStatement->setInt(1, int(record->AccountType));
+	m_CapitalUpdateStatement->setDouble(2, record->Balance);
+	m_CapitalUpdateStatement->setDouble(3, record->PreBalance);
+	m_CapitalUpdateStatement->setDouble(4, record->Available);
+	m_CapitalUpdateStatement->setDouble(5, record->MarketValue);
+	m_CapitalUpdateStatement->setDouble(6, record->CashIn);
+	m_CapitalUpdateStatement->setDouble(7, record->CashOut);
+	m_CapitalUpdateStatement->setDouble(8, record->Margin);
+	m_CapitalUpdateStatement->setDouble(9, record->Commission);
+	m_CapitalUpdateStatement->setDouble(10, record->FrozenCash);
+	m_CapitalUpdateStatement->setDouble(11, record->FrozenMargin);
+	m_CapitalUpdateStatement->setDouble(12, record->FrozenCommission);
+	m_CapitalUpdateStatement->setDouble(13, record->CloseProfitByDate);
+	m_CapitalUpdateStatement->setDouble(14, record->CloseProfitByTrade);
+	m_CapitalUpdateStatement->setDouble(15, record->PositionProfitByDate);
+	m_CapitalUpdateStatement->setDouble(16, record->PositionProfitByTrade);
+	m_CapitalUpdateStatement->setDouble(17, record->Deposit);
+	m_CapitalUpdateStatement->setDouble(18, record->Withdraw);
+	m_CapitalUpdateStatement->setString(19, record->TradingDay);
+	m_CapitalUpdateStatement->setString(20, record->AccountID);
 }
-void Mariadb::SetStatementForCapitalPrimaryKey(sql::PreparedStatement* statement, const DateType& TradingDay, const AccountIDType& AccountID)
+void Mariadb::SetStatementForCapitalPrimaryKey(const DateType& TradingDay, const AccountIDType& AccountID)
 {
-	statement->setString(1, TradingDay);
-	statement->setString(2, AccountID);
+	m_CapitalDeleteStatement->setString(1, TradingDay);
+	m_CapitalDeleteStatement->setString(2, AccountID);
 }
-void Mariadb::SetStatementForCapitalIndexTradingDay(sql::PreparedStatement* statement, Capital* record)
+void Mariadb::SetStatementForCapitalIndexTradingDay(Capital* record)
 {
-	statement->setString(1, record->TradingDay);
+	m_CapitalDeleteByTradingDayIndexStatement->setString(1, record->TradingDay);
 }
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Capital*>& records)
 {
@@ -2585,78 +2130,78 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Capital*>& records)
 	record->Withdraw = result->getDouble(20);
 	records.push_back(record);
 }
-void Mariadb::SetStatementForPositionRecord(sql::PreparedStatement* statement, Position* record)
+void Mariadb::SetStatementForPositionRecord(Position* record)
 {
-	statement->setString(1, record->TradingDay);
-	statement->setString(2, record->AccountID);
-	statement->setInt(3, int(record->AccountType));
-	statement->setString(4, record->ExchangeID);
-	statement->setString(5, record->InstrumentID);
-	statement->setInt(6, int(record->ProductClass));
-	statement->setInt(7, int(record->PosiDirection));
-	statement->setInt64(8, record->TotalPosition);
-	statement->setInt64(9, record->PositionFrozen);
-	statement->setInt64(10, record->TodayPosition);
-	statement->setDouble(11, record->MarketValue);
-	statement->setDouble(12, record->CashIn);
-	statement->setDouble(13, record->CashOut);
-	statement->setDouble(14, record->Margin);
-	statement->setDouble(15, record->Commission);
-	statement->setDouble(16, record->FrozenCash);
-	statement->setDouble(17, record->FrozenMargin);
-	statement->setDouble(18, record->FrozenCommission);
-	statement->setInt(19, record->VolumeMultiple);
-	statement->setDouble(20, record->CloseProfitByDate);
-	statement->setDouble(21, record->CloseProfitByTrade);
-	statement->setDouble(22, record->PositionProfitByDate);
-	statement->setDouble(23, record->PositionProfitByTrade);
-	statement->setDouble(24, record->SettlementPrice);
-	statement->setDouble(25, record->PreSettlementPrice);
+	m_PositionInsertStatement->setString(1, record->TradingDay);
+	m_PositionInsertStatement->setString(2, record->AccountID);
+	m_PositionInsertStatement->setInt(3, int(record->AccountType));
+	m_PositionInsertStatement->setString(4, record->ExchangeID);
+	m_PositionInsertStatement->setString(5, record->InstrumentID);
+	m_PositionInsertStatement->setInt(6, int(record->ProductClass));
+	m_PositionInsertStatement->setInt(7, int(record->PosiDirection));
+	m_PositionInsertStatement->setInt64(8, record->TotalPosition);
+	m_PositionInsertStatement->setInt64(9, record->PositionFrozen);
+	m_PositionInsertStatement->setInt64(10, record->TodayPosition);
+	m_PositionInsertStatement->setDouble(11, record->MarketValue);
+	m_PositionInsertStatement->setDouble(12, record->CashIn);
+	m_PositionInsertStatement->setDouble(13, record->CashOut);
+	m_PositionInsertStatement->setDouble(14, record->Margin);
+	m_PositionInsertStatement->setDouble(15, record->Commission);
+	m_PositionInsertStatement->setDouble(16, record->FrozenCash);
+	m_PositionInsertStatement->setDouble(17, record->FrozenMargin);
+	m_PositionInsertStatement->setDouble(18, record->FrozenCommission);
+	m_PositionInsertStatement->setInt(19, record->VolumeMultiple);
+	m_PositionInsertStatement->setDouble(20, record->CloseProfitByDate);
+	m_PositionInsertStatement->setDouble(21, record->CloseProfitByTrade);
+	m_PositionInsertStatement->setDouble(22, record->PositionProfitByDate);
+	m_PositionInsertStatement->setDouble(23, record->PositionProfitByTrade);
+	m_PositionInsertStatement->setDouble(24, record->SettlementPrice);
+	m_PositionInsertStatement->setDouble(25, record->PreSettlementPrice);
 }
-void Mariadb::SetStatementForPositionRecordUpdate(sql::PreparedStatement* statement, Position* record)
+void Mariadb::SetStatementForPositionRecordUpdate(Position* record)
 {
-	statement->setInt(1, int(record->AccountType));
-	statement->setInt(2, int(record->ProductClass));
-	statement->setInt64(3, record->TotalPosition);
-	statement->setInt64(4, record->PositionFrozen);
-	statement->setInt64(5, record->TodayPosition);
-	statement->setDouble(6, record->MarketValue);
-	statement->setDouble(7, record->CashIn);
-	statement->setDouble(8, record->CashOut);
-	statement->setDouble(9, record->Margin);
-	statement->setDouble(10, record->Commission);
-	statement->setDouble(11, record->FrozenCash);
-	statement->setDouble(12, record->FrozenMargin);
-	statement->setDouble(13, record->FrozenCommission);
-	statement->setInt(14, record->VolumeMultiple);
-	statement->setDouble(15, record->CloseProfitByDate);
-	statement->setDouble(16, record->CloseProfitByTrade);
-	statement->setDouble(17, record->PositionProfitByDate);
-	statement->setDouble(18, record->PositionProfitByTrade);
-	statement->setDouble(19, record->SettlementPrice);
-	statement->setDouble(20, record->PreSettlementPrice);
-	statement->setString(21, record->TradingDay);
-	statement->setString(22, record->AccountID);
-	statement->setString(23, record->ExchangeID);
-	statement->setString(24, record->InstrumentID);
-	statement->setInt(25, int(record->PosiDirection));
+	m_PositionUpdateStatement->setInt(1, int(record->AccountType));
+	m_PositionUpdateStatement->setInt(2, int(record->ProductClass));
+	m_PositionUpdateStatement->setInt64(3, record->TotalPosition);
+	m_PositionUpdateStatement->setInt64(4, record->PositionFrozen);
+	m_PositionUpdateStatement->setInt64(5, record->TodayPosition);
+	m_PositionUpdateStatement->setDouble(6, record->MarketValue);
+	m_PositionUpdateStatement->setDouble(7, record->CashIn);
+	m_PositionUpdateStatement->setDouble(8, record->CashOut);
+	m_PositionUpdateStatement->setDouble(9, record->Margin);
+	m_PositionUpdateStatement->setDouble(10, record->Commission);
+	m_PositionUpdateStatement->setDouble(11, record->FrozenCash);
+	m_PositionUpdateStatement->setDouble(12, record->FrozenMargin);
+	m_PositionUpdateStatement->setDouble(13, record->FrozenCommission);
+	m_PositionUpdateStatement->setInt(14, record->VolumeMultiple);
+	m_PositionUpdateStatement->setDouble(15, record->CloseProfitByDate);
+	m_PositionUpdateStatement->setDouble(16, record->CloseProfitByTrade);
+	m_PositionUpdateStatement->setDouble(17, record->PositionProfitByDate);
+	m_PositionUpdateStatement->setDouble(18, record->PositionProfitByTrade);
+	m_PositionUpdateStatement->setDouble(19, record->SettlementPrice);
+	m_PositionUpdateStatement->setDouble(20, record->PreSettlementPrice);
+	m_PositionUpdateStatement->setString(21, record->TradingDay);
+	m_PositionUpdateStatement->setString(22, record->AccountID);
+	m_PositionUpdateStatement->setString(23, record->ExchangeID);
+	m_PositionUpdateStatement->setString(24, record->InstrumentID);
+	m_PositionUpdateStatement->setInt(25, int(record->PosiDirection));
 }
-void Mariadb::SetStatementForPositionPrimaryKey(sql::PreparedStatement* statement, const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection)
+void Mariadb::SetStatementForPositionPrimaryKey(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection)
 {
-	statement->setString(1, TradingDay);
-	statement->setString(2, AccountID);
-	statement->setString(3, ExchangeID);
-	statement->setString(4, InstrumentID);
-	statement->setInt(5, int(PosiDirection));
+	m_PositionDeleteStatement->setString(1, TradingDay);
+	m_PositionDeleteStatement->setString(2, AccountID);
+	m_PositionDeleteStatement->setString(3, ExchangeID);
+	m_PositionDeleteStatement->setString(4, InstrumentID);
+	m_PositionDeleteStatement->setInt(5, int(PosiDirection));
 }
-void Mariadb::SetStatementForPositionIndexAccount(sql::PreparedStatement* statement, Position* record)
+void Mariadb::SetStatementForPositionIndexAccount(Position* record)
 {
-	statement->setString(1, record->TradingDay);
-	statement->setString(2, record->AccountID);
+	m_PositionDeleteByAccountIndexStatement->setString(1, record->TradingDay);
+	m_PositionDeleteByAccountIndexStatement->setString(2, record->AccountID);
 }
-void Mariadb::SetStatementForPositionIndexTradingDay(sql::PreparedStatement* statement, Position* record)
+void Mariadb::SetStatementForPositionIndexTradingDay(Position* record)
 {
-	statement->setString(1, record->TradingDay);
+	m_PositionDeleteByTradingDayIndexStatement->setString(1, record->TradingDay);
 }
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Position*>& records)
 {
@@ -2688,83 +2233,83 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Position*>& records)
 	record->PreSettlementPrice = result->getDouble(25);
 	records.push_back(record);
 }
-void Mariadb::SetStatementForPositionDetailRecord(sql::PreparedStatement* statement, PositionDetail* record)
+void Mariadb::SetStatementForPositionDetailRecord(PositionDetail* record)
 {
-	statement->setString(1, record->TradingDay);
-	statement->setString(2, record->AccountID);
-	statement->setInt(3, int(record->AccountType));
-	statement->setString(4, record->ExchangeID);
-	statement->setString(5, record->InstrumentID);
-	statement->setInt(6, int(record->ProductClass));
-	statement->setInt(7, int(record->PosiDirection));
-	statement->setString(8, record->OpenDate);
-	statement->setString(9, record->TradeID);
-	statement->setInt64(10, record->Volume);
-	statement->setDouble(11, record->OpenPrice);
-	statement->setDouble(12, record->MarketValue);
-	statement->setDouble(13, record->CashIn);
-	statement->setDouble(14, record->CashOut);
-	statement->setDouble(15, record->Margin);
-	statement->setDouble(16, record->Commission);
-	statement->setInt(17, record->VolumeMultiple);
-	statement->setDouble(18, record->CloseProfitByDate);
-	statement->setDouble(19, record->CloseProfitByTrade);
-	statement->setDouble(20, record->PositionProfitByDate);
-	statement->setDouble(21, record->PositionProfitByTrade);
-	statement->setDouble(22, record->SettlementPrice);
-	statement->setDouble(23, record->PreSettlementPrice);
-	statement->setInt64(24, record->CloseVolume);
-	statement->setDouble(25, record->CloseAmount);
+	m_PositionDetailInsertStatement->setString(1, record->TradingDay);
+	m_PositionDetailInsertStatement->setString(2, record->AccountID);
+	m_PositionDetailInsertStatement->setInt(3, int(record->AccountType));
+	m_PositionDetailInsertStatement->setString(4, record->ExchangeID);
+	m_PositionDetailInsertStatement->setString(5, record->InstrumentID);
+	m_PositionDetailInsertStatement->setInt(6, int(record->ProductClass));
+	m_PositionDetailInsertStatement->setInt(7, int(record->PosiDirection));
+	m_PositionDetailInsertStatement->setString(8, record->OpenDate);
+	m_PositionDetailInsertStatement->setString(9, record->TradeID);
+	m_PositionDetailInsertStatement->setInt64(10, record->Volume);
+	m_PositionDetailInsertStatement->setDouble(11, record->OpenPrice);
+	m_PositionDetailInsertStatement->setDouble(12, record->MarketValue);
+	m_PositionDetailInsertStatement->setDouble(13, record->CashIn);
+	m_PositionDetailInsertStatement->setDouble(14, record->CashOut);
+	m_PositionDetailInsertStatement->setDouble(15, record->Margin);
+	m_PositionDetailInsertStatement->setDouble(16, record->Commission);
+	m_PositionDetailInsertStatement->setInt(17, record->VolumeMultiple);
+	m_PositionDetailInsertStatement->setDouble(18, record->CloseProfitByDate);
+	m_PositionDetailInsertStatement->setDouble(19, record->CloseProfitByTrade);
+	m_PositionDetailInsertStatement->setDouble(20, record->PositionProfitByDate);
+	m_PositionDetailInsertStatement->setDouble(21, record->PositionProfitByTrade);
+	m_PositionDetailInsertStatement->setDouble(22, record->SettlementPrice);
+	m_PositionDetailInsertStatement->setDouble(23, record->PreSettlementPrice);
+	m_PositionDetailInsertStatement->setInt64(24, record->CloseVolume);
+	m_PositionDetailInsertStatement->setDouble(25, record->CloseAmount);
 }
-void Mariadb::SetStatementForPositionDetailRecordUpdate(sql::PreparedStatement* statement, PositionDetail* record)
+void Mariadb::SetStatementForPositionDetailRecordUpdate(PositionDetail* record)
 {
-	statement->setInt(1, int(record->AccountType));
-	statement->setInt(2, int(record->ProductClass));
-	statement->setInt64(3, record->Volume);
-	statement->setDouble(4, record->OpenPrice);
-	statement->setDouble(5, record->MarketValue);
-	statement->setDouble(6, record->CashIn);
-	statement->setDouble(7, record->CashOut);
-	statement->setDouble(8, record->Margin);
-	statement->setDouble(9, record->Commission);
-	statement->setInt(10, record->VolumeMultiple);
-	statement->setDouble(11, record->CloseProfitByDate);
-	statement->setDouble(12, record->CloseProfitByTrade);
-	statement->setDouble(13, record->PositionProfitByDate);
-	statement->setDouble(14, record->PositionProfitByTrade);
-	statement->setDouble(15, record->SettlementPrice);
-	statement->setDouble(16, record->PreSettlementPrice);
-	statement->setInt64(17, record->CloseVolume);
-	statement->setDouble(18, record->CloseAmount);
-	statement->setString(19, record->TradingDay);
-	statement->setString(20, record->AccountID);
-	statement->setString(21, record->ExchangeID);
-	statement->setString(22, record->InstrumentID);
-	statement->setInt(23, int(record->PosiDirection));
-	statement->setString(24, record->OpenDate);
-	statement->setString(25, record->TradeID);
+	m_PositionDetailUpdateStatement->setInt(1, int(record->AccountType));
+	m_PositionDetailUpdateStatement->setInt(2, int(record->ProductClass));
+	m_PositionDetailUpdateStatement->setInt64(3, record->Volume);
+	m_PositionDetailUpdateStatement->setDouble(4, record->OpenPrice);
+	m_PositionDetailUpdateStatement->setDouble(5, record->MarketValue);
+	m_PositionDetailUpdateStatement->setDouble(6, record->CashIn);
+	m_PositionDetailUpdateStatement->setDouble(7, record->CashOut);
+	m_PositionDetailUpdateStatement->setDouble(8, record->Margin);
+	m_PositionDetailUpdateStatement->setDouble(9, record->Commission);
+	m_PositionDetailUpdateStatement->setInt(10, record->VolumeMultiple);
+	m_PositionDetailUpdateStatement->setDouble(11, record->CloseProfitByDate);
+	m_PositionDetailUpdateStatement->setDouble(12, record->CloseProfitByTrade);
+	m_PositionDetailUpdateStatement->setDouble(13, record->PositionProfitByDate);
+	m_PositionDetailUpdateStatement->setDouble(14, record->PositionProfitByTrade);
+	m_PositionDetailUpdateStatement->setDouble(15, record->SettlementPrice);
+	m_PositionDetailUpdateStatement->setDouble(16, record->PreSettlementPrice);
+	m_PositionDetailUpdateStatement->setInt64(17, record->CloseVolume);
+	m_PositionDetailUpdateStatement->setDouble(18, record->CloseAmount);
+	m_PositionDetailUpdateStatement->setString(19, record->TradingDay);
+	m_PositionDetailUpdateStatement->setString(20, record->AccountID);
+	m_PositionDetailUpdateStatement->setString(21, record->ExchangeID);
+	m_PositionDetailUpdateStatement->setString(22, record->InstrumentID);
+	m_PositionDetailUpdateStatement->setInt(23, int(record->PosiDirection));
+	m_PositionDetailUpdateStatement->setString(24, record->OpenDate);
+	m_PositionDetailUpdateStatement->setString(25, record->TradeID);
 }
-void Mariadb::SetStatementForPositionDetailPrimaryKey(sql::PreparedStatement* statement, const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIDType& TradeID)
+void Mariadb::SetStatementForPositionDetailPrimaryKey(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIDType& TradeID)
 {
-	statement->setString(1, TradingDay);
-	statement->setString(2, AccountID);
-	statement->setString(3, ExchangeID);
-	statement->setString(4, InstrumentID);
-	statement->setInt(5, int(PosiDirection));
-	statement->setString(6, OpenDate);
-	statement->setString(7, TradeID);
+	m_PositionDetailDeleteStatement->setString(1, TradingDay);
+	m_PositionDetailDeleteStatement->setString(2, AccountID);
+	m_PositionDetailDeleteStatement->setString(3, ExchangeID);
+	m_PositionDetailDeleteStatement->setString(4, InstrumentID);
+	m_PositionDetailDeleteStatement->setInt(5, int(PosiDirection));
+	m_PositionDetailDeleteStatement->setString(6, OpenDate);
+	m_PositionDetailDeleteStatement->setString(7, TradeID);
 }
-void Mariadb::SetStatementForPositionDetailIndexTradeMatch(sql::PreparedStatement* statement, PositionDetail* record)
+void Mariadb::SetStatementForPositionDetailIndexTradeMatch(PositionDetail* record)
 {
-	statement->setString(1, record->TradingDay);
-	statement->setString(2, record->AccountID);
-	statement->setString(3, record->ExchangeID);
-	statement->setString(4, record->InstrumentID);
-	statement->setInt(5, int(record->PosiDirection));
+	m_PositionDetailDeleteByTradeMatchIndexStatement->setString(1, record->TradingDay);
+	m_PositionDetailDeleteByTradeMatchIndexStatement->setString(2, record->AccountID);
+	m_PositionDetailDeleteByTradeMatchIndexStatement->setString(3, record->ExchangeID);
+	m_PositionDetailDeleteByTradeMatchIndexStatement->setString(4, record->InstrumentID);
+	m_PositionDetailDeleteByTradeMatchIndexStatement->setInt(5, int(record->PosiDirection));
 }
-void Mariadb::SetStatementForPositionDetailIndexTradingDay(sql::PreparedStatement* statement, PositionDetail* record)
+void Mariadb::SetStatementForPositionDetailIndexTradingDay(PositionDetail* record)
 {
-	statement->setString(1, record->TradingDay);
+	m_PositionDetailDeleteByTradingDayIndexStatement->setString(1, record->TradingDay);
 }
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<PositionDetail*>& records)
 {
@@ -2796,85 +2341,85 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<PositionDetail*>& re
 	record->CloseAmount = result->getDouble(25);
 	records.push_back(record);
 }
-void Mariadb::SetStatementForOrderRecord(sql::PreparedStatement* statement, Order* record)
+void Mariadb::SetStatementForOrderRecord(Order* record)
 {
-	statement->setString(1, record->TradingDay);
-	statement->setString(2, record->AccountID);
-	statement->setInt(3, int(record->AccountType));
-	statement->setString(4, record->ExchangeID);
-	statement->setString(5, record->InstrumentID);
-	statement->setInt(6, int(record->ProductClass));
-	statement->setInt(7, record->OrderID);
-	statement->setString(8, record->OrderSysID);
-	statement->setInt(9, int(record->Direction));
-	statement->setInt(10, int(record->OffsetFlag));
-	statement->setInt(11, int(record->OrderPriceType));
-	statement->setDouble(12, record->Price);
-	statement->setInt64(13, record->Volume);
-	statement->setInt64(14, record->VolumeTotal);
-	statement->setInt64(15, record->VolumeTraded);
-	statement->setInt(16, record->VolumeMultiple);
-	statement->setInt(17, int(record->OrderStatus));
-	statement->setString(18, record->OrderDate);
-	statement->setString(19, record->OrderTime);
-	statement->setString(20, record->CancelDate);
-	statement->setString(21, record->CancelTime);
-	statement->setInt64(22, record->SessionID);
-	statement->setInt(23, record->ClientOrderID);
-	statement->setInt(24, record->RequestID);
-	statement->setInt(25, record->OfferID);
-	statement->setInt(26, record->TradeGroupID);
-	statement->setInt(27, record->RiskGroupID);
-	statement->setInt(28, record->CommissionGroupID);
-	statement->setDouble(29, record->FrozenCash);
-	statement->setDouble(30, record->FrozenMargin);
-	statement->setDouble(31, record->FrozenCommission);
-	statement->setBoolean(32, record->RebuildMark);
-	statement->setBoolean(33, record->IsForceClose);
+	m_OrderInsertStatement->setString(1, record->TradingDay);
+	m_OrderInsertStatement->setString(2, record->AccountID);
+	m_OrderInsertStatement->setInt(3, int(record->AccountType));
+	m_OrderInsertStatement->setString(4, record->ExchangeID);
+	m_OrderInsertStatement->setString(5, record->InstrumentID);
+	m_OrderInsertStatement->setInt(6, int(record->ProductClass));
+	m_OrderInsertStatement->setInt(7, record->OrderID);
+	m_OrderInsertStatement->setString(8, record->OrderSysID);
+	m_OrderInsertStatement->setInt(9, int(record->Direction));
+	m_OrderInsertStatement->setInt(10, int(record->OffsetFlag));
+	m_OrderInsertStatement->setInt(11, int(record->OrderPriceType));
+	m_OrderInsertStatement->setDouble(12, record->Price);
+	m_OrderInsertStatement->setInt64(13, record->Volume);
+	m_OrderInsertStatement->setInt64(14, record->VolumeTotal);
+	m_OrderInsertStatement->setInt64(15, record->VolumeTraded);
+	m_OrderInsertStatement->setInt(16, record->VolumeMultiple);
+	m_OrderInsertStatement->setInt(17, int(record->OrderStatus));
+	m_OrderInsertStatement->setString(18, record->OrderDate);
+	m_OrderInsertStatement->setString(19, record->OrderTime);
+	m_OrderInsertStatement->setString(20, record->CancelDate);
+	m_OrderInsertStatement->setString(21, record->CancelTime);
+	m_OrderInsertStatement->setInt64(22, record->SessionID);
+	m_OrderInsertStatement->setInt(23, record->ClientOrderID);
+	m_OrderInsertStatement->setInt(24, record->RequestID);
+	m_OrderInsertStatement->setInt(25, record->OfferID);
+	m_OrderInsertStatement->setInt(26, record->TradeGroupID);
+	m_OrderInsertStatement->setInt(27, record->RiskGroupID);
+	m_OrderInsertStatement->setInt(28, record->CommissionGroupID);
+	m_OrderInsertStatement->setDouble(29, record->FrozenCash);
+	m_OrderInsertStatement->setDouble(30, record->FrozenMargin);
+	m_OrderInsertStatement->setDouble(31, record->FrozenCommission);
+	m_OrderInsertStatement->setBoolean(32, record->RebuildMark);
+	m_OrderInsertStatement->setBoolean(33, record->IsForceClose);
 }
-void Mariadb::SetStatementForOrderRecordUpdate(sql::PreparedStatement* statement, Order* record)
+void Mariadb::SetStatementForOrderRecordUpdate(Order* record)
 {
-	statement->setInt(1, int(record->AccountType));
-	statement->setInt(2, int(record->ProductClass));
-	statement->setString(3, record->OrderSysID);
-	statement->setInt(4, int(record->Direction));
-	statement->setInt(5, int(record->OffsetFlag));
-	statement->setInt(6, int(record->OrderPriceType));
-	statement->setDouble(7, record->Price);
-	statement->setInt64(8, record->Volume);
-	statement->setInt64(9, record->VolumeTotal);
-	statement->setInt64(10, record->VolumeTraded);
-	statement->setInt(11, record->VolumeMultiple);
-	statement->setInt(12, int(record->OrderStatus));
-	statement->setString(13, record->OrderDate);
-	statement->setString(14, record->OrderTime);
-	statement->setString(15, record->CancelDate);
-	statement->setString(16, record->CancelTime);
-	statement->setInt64(17, record->SessionID);
-	statement->setInt(18, record->ClientOrderID);
-	statement->setInt(19, record->RequestID);
-	statement->setInt(20, record->OfferID);
-	statement->setInt(21, record->TradeGroupID);
-	statement->setInt(22, record->RiskGroupID);
-	statement->setInt(23, record->CommissionGroupID);
-	statement->setDouble(24, record->FrozenCash);
-	statement->setDouble(25, record->FrozenMargin);
-	statement->setDouble(26, record->FrozenCommission);
-	statement->setBoolean(27, record->RebuildMark);
-	statement->setBoolean(28, record->IsForceClose);
-	statement->setString(29, record->TradingDay);
-	statement->setString(30, record->AccountID);
-	statement->setString(31, record->ExchangeID);
-	statement->setString(32, record->InstrumentID);
-	statement->setInt(33, record->OrderID);
+	m_OrderUpdateStatement->setInt(1, int(record->AccountType));
+	m_OrderUpdateStatement->setInt(2, int(record->ProductClass));
+	m_OrderUpdateStatement->setString(3, record->OrderSysID);
+	m_OrderUpdateStatement->setInt(4, int(record->Direction));
+	m_OrderUpdateStatement->setInt(5, int(record->OffsetFlag));
+	m_OrderUpdateStatement->setInt(6, int(record->OrderPriceType));
+	m_OrderUpdateStatement->setDouble(7, record->Price);
+	m_OrderUpdateStatement->setInt64(8, record->Volume);
+	m_OrderUpdateStatement->setInt64(9, record->VolumeTotal);
+	m_OrderUpdateStatement->setInt64(10, record->VolumeTraded);
+	m_OrderUpdateStatement->setInt(11, record->VolumeMultiple);
+	m_OrderUpdateStatement->setInt(12, int(record->OrderStatus));
+	m_OrderUpdateStatement->setString(13, record->OrderDate);
+	m_OrderUpdateStatement->setString(14, record->OrderTime);
+	m_OrderUpdateStatement->setString(15, record->CancelDate);
+	m_OrderUpdateStatement->setString(16, record->CancelTime);
+	m_OrderUpdateStatement->setInt64(17, record->SessionID);
+	m_OrderUpdateStatement->setInt(18, record->ClientOrderID);
+	m_OrderUpdateStatement->setInt(19, record->RequestID);
+	m_OrderUpdateStatement->setInt(20, record->OfferID);
+	m_OrderUpdateStatement->setInt(21, record->TradeGroupID);
+	m_OrderUpdateStatement->setInt(22, record->RiskGroupID);
+	m_OrderUpdateStatement->setInt(23, record->CommissionGroupID);
+	m_OrderUpdateStatement->setDouble(24, record->FrozenCash);
+	m_OrderUpdateStatement->setDouble(25, record->FrozenMargin);
+	m_OrderUpdateStatement->setDouble(26, record->FrozenCommission);
+	m_OrderUpdateStatement->setBoolean(27, record->RebuildMark);
+	m_OrderUpdateStatement->setBoolean(28, record->IsForceClose);
+	m_OrderUpdateStatement->setString(29, record->TradingDay);
+	m_OrderUpdateStatement->setString(30, record->AccountID);
+	m_OrderUpdateStatement->setString(31, record->ExchangeID);
+	m_OrderUpdateStatement->setString(32, record->InstrumentID);
+	m_OrderUpdateStatement->setInt(33, record->OrderID);
 }
-void Mariadb::SetStatementForOrderPrimaryKey(sql::PreparedStatement* statement, const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const OrderIDType& OrderID)
+void Mariadb::SetStatementForOrderPrimaryKey(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const OrderIDType& OrderID)
 {
-	statement->setString(1, TradingDay);
-	statement->setString(2, AccountID);
-	statement->setString(3, ExchangeID);
-	statement->setString(4, InstrumentID);
-	statement->setInt(5, OrderID);
+	m_OrderDeleteStatement->setString(1, TradingDay);
+	m_OrderDeleteStatement->setString(2, AccountID);
+	m_OrderDeleteStatement->setString(3, ExchangeID);
+	m_OrderDeleteStatement->setString(4, InstrumentID);
+	m_OrderDeleteStatement->setInt(5, OrderID);
 }
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Order*>& records)
 {
@@ -2914,54 +2459,54 @@ void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Order*>& records)
 	record->IsForceClose = result->getBoolean(33);
 	records.push_back(record);
 }
-void Mariadb::SetStatementForTradeRecord(sql::PreparedStatement* statement, Trade* record)
+void Mariadb::SetStatementForTradeRecord(Trade* record)
 {
-	statement->setString(1, record->TradingDay);
-	statement->setString(2, record->AccountID);
-	statement->setInt(3, int(record->AccountType));
-	statement->setString(4, record->ExchangeID);
-	statement->setString(5, record->InstrumentID);
-	statement->setInt(6, int(record->ProductClass));
-	statement->setInt(7, record->OrderID);
-	statement->setString(8, record->OrderSysID);
-	statement->setString(9, record->TradeID);
-	statement->setInt(10, int(record->Direction));
-	statement->setInt(11, int(record->OffsetFlag));
-	statement->setDouble(12, record->Price);
-	statement->setInt64(13, record->Volume);
-	statement->setInt(14, record->VolumeMultiple);
-	statement->setDouble(15, record->TradeAmount);
-	statement->setDouble(16, record->Commission);
-	statement->setString(17, record->TradeDate);
-	statement->setString(18, record->TradeTime);
+	m_TradeInsertStatement->setString(1, record->TradingDay);
+	m_TradeInsertStatement->setString(2, record->AccountID);
+	m_TradeInsertStatement->setInt(3, int(record->AccountType));
+	m_TradeInsertStatement->setString(4, record->ExchangeID);
+	m_TradeInsertStatement->setString(5, record->InstrumentID);
+	m_TradeInsertStatement->setInt(6, int(record->ProductClass));
+	m_TradeInsertStatement->setInt(7, record->OrderID);
+	m_TradeInsertStatement->setString(8, record->OrderSysID);
+	m_TradeInsertStatement->setString(9, record->TradeID);
+	m_TradeInsertStatement->setInt(10, int(record->Direction));
+	m_TradeInsertStatement->setInt(11, int(record->OffsetFlag));
+	m_TradeInsertStatement->setDouble(12, record->Price);
+	m_TradeInsertStatement->setInt64(13, record->Volume);
+	m_TradeInsertStatement->setInt(14, record->VolumeMultiple);
+	m_TradeInsertStatement->setDouble(15, record->TradeAmount);
+	m_TradeInsertStatement->setDouble(16, record->Commission);
+	m_TradeInsertStatement->setString(17, record->TradeDate);
+	m_TradeInsertStatement->setString(18, record->TradeTime);
 }
-void Mariadb::SetStatementForTradeRecordUpdate(sql::PreparedStatement* statement, Trade* record)
+void Mariadb::SetStatementForTradeRecordUpdate(Trade* record)
 {
-	statement->setString(1, record->AccountID);
-	statement->setInt(2, int(record->AccountType));
-	statement->setString(3, record->InstrumentID);
-	statement->setInt(4, int(record->ProductClass));
-	statement->setInt(5, record->OrderID);
-	statement->setString(6, record->OrderSysID);
-	statement->setInt(7, int(record->OffsetFlag));
-	statement->setDouble(8, record->Price);
-	statement->setInt64(9, record->Volume);
-	statement->setInt(10, record->VolumeMultiple);
-	statement->setDouble(11, record->TradeAmount);
-	statement->setDouble(12, record->Commission);
-	statement->setString(13, record->TradeDate);
-	statement->setString(14, record->TradeTime);
-	statement->setString(15, record->TradingDay);
-	statement->setString(16, record->ExchangeID);
-	statement->setString(17, record->TradeID);
-	statement->setInt(18, int(record->Direction));
+	m_TradeUpdateStatement->setString(1, record->AccountID);
+	m_TradeUpdateStatement->setInt(2, int(record->AccountType));
+	m_TradeUpdateStatement->setString(3, record->InstrumentID);
+	m_TradeUpdateStatement->setInt(4, int(record->ProductClass));
+	m_TradeUpdateStatement->setInt(5, record->OrderID);
+	m_TradeUpdateStatement->setString(6, record->OrderSysID);
+	m_TradeUpdateStatement->setInt(7, int(record->OffsetFlag));
+	m_TradeUpdateStatement->setDouble(8, record->Price);
+	m_TradeUpdateStatement->setInt64(9, record->Volume);
+	m_TradeUpdateStatement->setInt(10, record->VolumeMultiple);
+	m_TradeUpdateStatement->setDouble(11, record->TradeAmount);
+	m_TradeUpdateStatement->setDouble(12, record->Commission);
+	m_TradeUpdateStatement->setString(13, record->TradeDate);
+	m_TradeUpdateStatement->setString(14, record->TradeTime);
+	m_TradeUpdateStatement->setString(15, record->TradingDay);
+	m_TradeUpdateStatement->setString(16, record->ExchangeID);
+	m_TradeUpdateStatement->setString(17, record->TradeID);
+	m_TradeUpdateStatement->setInt(18, int(record->Direction));
 }
-void Mariadb::SetStatementForTradePrimaryKey(sql::PreparedStatement* statement, const DateType& TradingDay, const ExchangeIDType& ExchangeID, const TradeIDType& TradeID, const DirectionType& Direction)
+void Mariadb::SetStatementForTradePrimaryKey(const DateType& TradingDay, const ExchangeIDType& ExchangeID, const TradeIDType& TradeID, const DirectionType& Direction)
 {
-	statement->setString(1, TradingDay);
-	statement->setString(2, ExchangeID);
-	statement->setString(3, TradeID);
-	statement->setInt(4, int(Direction));
+	m_TradeDeleteStatement->setString(1, TradingDay);
+	m_TradeDeleteStatement->setString(2, ExchangeID);
+	m_TradeDeleteStatement->setString(3, TradeID);
+	m_TradeDeleteStatement->setInt(4, int(Direction));
 }
 void Mariadb::ParseRecord(sql::ResultSet* result, std::list<Trade*>& records)
 {
