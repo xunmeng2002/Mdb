@@ -2,3 +2,15 @@
 add_application(TestDB         ${CMAKE_CURRENT_SOURCE_DIR}/TestDB ${CMAKE_CURRENT_SOURCE_DIR}/TestDB)
 target_link_libraries(TestDB PRIVATE Mdb Mysql Mariadb Duckdb Sqlite)
 
+find_package(ZLIB REQUIRED)
+message(STATUS "ZLIB::ZLIB ZLIB_INCLUDE_DIRS:${ZLIB_INCLUDE_DIRS}, ZLIB_LIBRARIES:${ZLIB_LIBRARIES}, ZLIB_VERSION:${ZLIB_VERSION}, ZLIB_FOUND:${ZLIB_FOUND}")
+find_package(lz4 CONFIG REQUIRED)
+#message(STATUS "LZ4::LZ4 LZ4_INCLUDE_DIR:${LZ4_INCLUDE_DIR}, LZ4_LIBRARY:${LZ4_LIBRARY}")
+get_target_property(LZ4_DLL_RELEASE LZ4::lz4_shared IMPORTED_LOCATION_RELEASE)
+get_target_property(LZ4_DLL_DEBUG   LZ4::lz4_shared IMPORTED_LOCATION_DEBUG)
+message(STATUS "LZ4_DLL_RELEASE: ${LZ4_DLL_RELEASE}")
+message(STATUS "LZ4_DLL_DEBUG: ${LZ4_DLL_DEBUG}")
+
+copy_dll_file(TestDB)
+copy_dll_file_with_path(TestDB ${LZ4_DLL_DEBUG} ${LZ4_DLL_RELEASE})
+copy_zlib_dll_file(TestDB ${ZLIB_INCLUDE_DIRS})
