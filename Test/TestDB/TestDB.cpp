@@ -1,14 +1,14 @@
+#include "Mdb/Mdb/Mdb.h"
+#include "Mdb/Duckdb/DuckDB.h"
+#include "Mdb/Mysql/Mysql.h"
+#include "Mdb/Mariadb/Mariadb.h"
+#include "Mdb/Sqlite/Sqlite.h"
+#include "Mdb/Mdb/DB.h"
+#include "Mdb/Mdb/DBWriter.h"
+#include "Mdb/Mdb/InitMdbFromDB.h"
+#include "PersonalLib/Core/Core.h"
 #include <iostream>
-#include "Mdb.h"
-#include "DB.h"
-#include "DuckDB.h"
-//#include "MariaDB.h"
-#include "MysqlDB.h"
-#include "SqliteDB.h"
-#include "DBWriter.h"
-#include "InitMdbFromDB.h"
-#include "TimeUtility.h"
-#include "Logger.h"
+
 
 using namespace std;
 using namespace mdb;
@@ -16,18 +16,18 @@ using namespace mdb;
 const char* dbUser = "ams";
 const char* dbPasswd = "ams";
 const char* mariadbHost = "tcp://172.24.5.87:3306/Quant";
-const char* mysqldbHost = "tcp://172.24.5.87:3306/Quant";
-const char* sqliteDBName = "./Test.sqlitedb";
+const char* mysqlHost = "mysqlx://ams:ams@172.24.5.87:3306/Quant";
+const char* sqliteDBName = "./Test.sqlite";
 const char* duckDBName = "./Test.duckdb";
 
 TradingDay* PrepareTradingDay()
 {
-	auto currDate = GetLocalDate();
+	auto currDate = TimeUtility::GetLocalDate();
 	TradingDay* tradingDay = new TradingDay();
 	memset(tradingDay, 0, sizeof(TradingDay));
 	tradingDay->PK = 1;
-	GetPreTradingDay(currDate.c_str(), tradingDay->PreTradingDay);
-	GetNextTradingDay(tradingDay->PreTradingDay, tradingDay->CurrTradingDay);
+	TimeUtility::GetPreTradingDay(currDate.c_str(), tradingDay->PreTradingDay);
+	TimeUtility::GetNextTradingDay(tradingDay->PreTradingDay, tradingDay->CurrTradingDay);
 	return tradingDay;
 }
 std::list<Exchange*>* PrepareExchanges()
@@ -207,24 +207,24 @@ static void TestDB(DB* db)
 }
 static void Test()
 {
-	MysqlDB* mysqldb = new MysqlDB(mysqldbHost, dbUser, dbPasswd);
-	//MariaDB* mariadb = new MariaDB(mariadbHost, dbUser, dbPasswd);
-	DuckDB* duckdb = new DuckDB(duckDBName);
-	SqliteDB* sqlitedb = new SqliteDB(sqliteDBName);
+	Mysql* mysql = new Mysql(mysqlHost);
+	Mariadb* mariadb = new Mariadb(mariadbHost, dbUser, dbPasswd);
+	Duckdb* duckdb = new Duckdb(duckDBName);
+	Sqlite* sqlite = new Sqlite(sqliteDBName);
 
-	//TestDB(mysqldb);
+	//TestDB(mysql);
 	//TestMdb(mariadb);
 	//TestDB(duckdb);
-	//TestDB(sqlitedb);
+	//TestDB(sqlite);
 
 	WriteLog(LogLevel::Info, "TestMdb with Mysql");
-	TestMdb(mysqldb);
-	//WriteLog(LogLevel::Info, "TestMdb with MariaDB");
-	//TestMdb(mariadb);
-	//WriteLog(LogLevel::Info, "TestMdb with Duckdb");
+	TestMdb(mysql);
+	WriteLog(LogLevel::Info, "TestMdb with MariaDB");
+	TestMdb(mariadb);
+	WriteLog(LogLevel::Info, "TestMdb with Duckdb");
 	TestMdb(duckdb);
 	WriteLog(LogLevel::Info, "TestMdb with Sqlite");
-	TestMdb(sqlitedb);
+	TestMdb(sqlite);
 }
 
 int main(int argc, char* argv[])

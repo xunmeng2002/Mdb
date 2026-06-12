@@ -38,3 +38,4 @@
 pumptemp.py
 *.duckdb*
 *.sqlitedb*
+/bin

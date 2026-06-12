@@ -73,6 +73,5 @@ target_link_libraries(Mysql PUBLIC Mdb unofficial::mysql-connector-cpp::connecto
 target_link_libraries(Mariadb PUBLIC Mdb unofficial::mariadb-connector-cpp::mariadbcpp)
 target_link_libraries(Duckdb PUBLIC Mdb duckdb)
 target_link_libraries(Sqlite PUBLIC Mdb unofficial::sqlite3::sqlite3)
-#target_include_directories(Sqlite PUBLIC ${SQLite3_INCLUDE_DIR})
 
-#add_subdirectory(test)
+add_subdirectory(test)
