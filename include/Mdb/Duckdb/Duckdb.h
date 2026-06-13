@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Mdb/Mdb/DB.h"
-#include "duckdb.hpp"
+#include <duckdb.hpp>
 #include <string>
 #include <list>
 

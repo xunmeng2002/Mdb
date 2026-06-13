@@ -1,6 +1,6 @@
 ﻿#include "Mdb/Mdb/MdbTables.h"
 #include "Mdb/Mdb/Mdb.h"
-#include "PersonalLib/Core/Logger/Logger.h"
+#include <PersonalLib/Core/Logger/Logger.h>
 #include <string>
 #include <string.h>
 #include <set>

@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "PersonalLib/TemplateLib/DB/DBOperate.h"
+#include <PersonalLib/Core/DB/DBOperate.h>
 
 class DBOperateImpl : public DBOperate
 {

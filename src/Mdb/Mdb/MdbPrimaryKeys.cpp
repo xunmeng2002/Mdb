@@ -1,6 +1,6 @@
 ﻿#include "Mdb/Mdb/MdbPrimaryKeys.h"
 #include "Mdb/Mdb/MdbTables.h"
-#include "PersonalLib/Core/Utility/Utility.h"
+#include <PersonalLib/Core/Utility/Utility.h>
 #include <string.h>
 
 using std::unordered_set;

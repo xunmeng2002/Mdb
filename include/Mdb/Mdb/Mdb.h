@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Mdb/Mdb/MdbTables.h"
 #include "Mdb/Mdb/MdbSubscriber.h"
-#include "PersonalLib/TemplateLib/DB/DBSubscriber.h"
+#include <PersonalLib/Core/DB/DBSubscriber.h>
 
 
 namespace mdb

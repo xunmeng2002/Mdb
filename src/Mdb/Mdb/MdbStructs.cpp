@@ -1,5 +1,5 @@
 ﻿#include "Mdb/Mdb/MdbStructs.h"
-#include "PersonalLib/TemplateLib/TemplateLib.h"
+#include <PersonalLib/TemplateLib/TemplateLib.h>
 #include <string>
 #include <cstring>
 

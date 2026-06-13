@@ -1,6 +1,6 @@
 ﻿#include "Mdb/Mariadb/Mariadb.h"
-#include "PersonalLib/TemplateLib/TemplateLib.h"
-#include "PersonalLib/Core/Core.h"
+#include <PersonalLib/TemplateLib/TemplateLib.h>
+#include <PersonalLib/Core/Core.h>
 #include <mariadb/conncpp.hpp>
 #include <string.h>
 #include <cstring>

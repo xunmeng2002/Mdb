@@ -1,9 +1,7 @@
 ﻿#include "Mdb/Duckdb/Duckdb.h"
 #include "Mdb/Duckdb/DuckdbCommon.h"
-#include "PersonalLib/TemplateLib/Constant/Constant.h"
-#include "PersonalLib/Core/Logger/Logger.h"
-#include "PersonalLib/Core/Utility/Utility.h"
-#include "PersonalLib/Core/Utility/TimeUtility.h"
+#include <PersonalLib/TemplateLib/TemplateLib.h>
+#include <PersonalLib/Core/Core.h>
 #include <string.h>
 #include <cstring>
 

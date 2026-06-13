@@ -1,7 +1,6 @@
 ﻿#pragma warning(disable: 4311)
 #include "Mdb/Mysql/Mysql.h"
-#include "PersonalLib/TemplateLib/Constant/Constant.h"
-#include "PersonalLib/Core/Core.h"
+#include <PersonalLib/Core/Core.h>
 #include <mysqlx/xdevapi.h>
 #include <string.h>
 #include <cstring>

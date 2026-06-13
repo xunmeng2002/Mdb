@@ -2,8 +2,8 @@
 #include "Mdb/Mdb/MdbSubscriber.h"
 #include "Mdb/Mdb/MdbStructs.h"
 #include "Mdb/Mdb/DB.h"
-#include "PersonalLib/TemplateLib/TemplateLib.h"
-#include "PersonalLib/Core/Core.h"
+#include <PersonalLib/TemplateLib/TemplateLib.h>
+#include <PersonalLib/Core/Core.h>
 #include <list>
 #include <atomic>
 #include <mutex>

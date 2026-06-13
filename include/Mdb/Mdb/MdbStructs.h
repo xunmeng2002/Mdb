@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "PersonalLib/Types.h"
+#include <PersonalLib/Types.h>
 
 namespace mdb
 {

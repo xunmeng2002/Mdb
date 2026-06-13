@@ -1,6 +1,6 @@
 ﻿#include "Mdb/Sqlite/Sqlite.h"
-#include "PersonalLib/TemplateLib/Constant/Constant.h"
-#include "PersonalLib/Core/Core.h"
+#include <PersonalLib/TemplateLib/TemplateLib.h>
+#include <PersonalLib/Core/Core.h>
 #include <string.h>
 #include <cstring>
 #include <chrono>
