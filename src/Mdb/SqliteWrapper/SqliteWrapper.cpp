@@ -1,4 +1,4 @@
-﻿#include "Mdb/Sqlite/Sqlite.h"
+﻿#include <Mdb/SqliteWrapper/SqliteWrapper.h>
 #include <PersonalLib/TemplateLib/TemplateLib.h>
 #include <PersonalLib/Core/Core.h>
 #include <string.h>
@@ -9,7 +9,7 @@ using namespace mdb;
 using namespace std;
 using namespace std::chrono;
 
-Sqlite::Sqlite(const std::string& dbName)
+SqliteWrapper::SqliteWrapper(const std::string& dbName)
 	:m_DBName(dbName), m_DB(nullptr)
 {
 	m_SqlBuff = new char[BuffSize];
@@ -87,7 +87,7 @@ Sqlite::Sqlite(const std::string& dbName)
 	m_TradeTruncateStatement = nullptr;
 
 }
-Sqlite::~Sqlite()
+SqliteWrapper::~SqliteWrapper()
 {
 	delete[] m_SqlBuff;
 	DisConnect();
@@ -96,7 +96,7 @@ Sqlite::~Sqlite()
 		sqlite3_close(m_DB);
 	}
 }
-bool Sqlite::Connect()
+bool SqliteWrapper::Connect()
 {
 	int result = sqlite3_open(m_DBName.c_str(), &m_DB);
 	if (result != SQLITE_OK)
@@ -106,7 +106,7 @@ bool Sqlite::Connect()
 	}
 	return true;
 }
-void Sqlite::DisConnect()
+void SqliteWrapper::DisConnect()
 {
 	if (m_DB != nullptr)
 	{
@@ -419,7 +419,7 @@ void Sqlite::DisConnect()
 		m_TradeTruncateStatement = nullptr;
 	}
 }
-void Sqlite::InitDB()
+void SqliteWrapper::InitDB()
 {
 	Exec("Truncate Table t_TradingDay;");
 	Exec("Insert Into t_TradingDay select * from Init.t_TradingDay;");
@@ -444,7 +444,7 @@ void Sqlite::InitDB()
 	Exec("Truncate Table t_Trade;");
 	Exec("Insert Into t_Trade select * from Init.t_Trade;");
 }
-void Sqlite::CreateTables()
+void SqliteWrapper::CreateTables()
 {
 	CreateTradingDay();
 	CreateExchange();
@@ -458,7 +458,7 @@ void Sqlite::CreateTables()
 	CreateOrder();
 	CreateTrade();
 }
-void Sqlite::DropTables()
+void SqliteWrapper::DropTables()
 {
 	DropTradingDay();
 	DropExchange();
@@ -472,7 +472,7 @@ void Sqlite::DropTables()
 	DropOrder();
 	DropTrade();
 }
-void Sqlite::TruncateTables()
+void SqliteWrapper::TruncateTables()
 {
 	TruncateTradingDay();
 	TruncateExchange();
@@ -485,12 +485,12 @@ void Sqlite::TruncateTables()
 	TruncateOrder();
 	TruncateTrade();
 }
-void Sqlite::TruncateSessionTables()
+void SqliteWrapper::TruncateSessionTables()
 {
 	auto start = steady_clock::now();
 	WriteLog(LogLevel::Info, "TruncateSessionTables Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-bool Sqlite::Exec(const char* sql)
+bool SqliteWrapper::Exec(const char* sql)
 {
 	char* t_ErrorMsg;
 	auto ret = sqlite3_exec(m_DB, sql, nullptr, nullptr, &t_ErrorMsg);
@@ -503,7 +503,7 @@ bool Sqlite::Exec(const char* sql)
 	return true;
 }
 
-void Sqlite::CreateTradingDay()
+void SqliteWrapper::CreateTradingDay()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -518,7 +518,7 @@ void Sqlite::CreateTradingDay()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateTradingDay Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::DropTradingDay()
+void SqliteWrapper::DropTradingDay()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -533,7 +533,7 @@ void Sqlite::DropTradingDay()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropTradingDay Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::InsertTradingDay(TradingDay* record)
+void SqliteWrapper::InsertTradingDay(TradingDay* record)
 {
 	auto start = steady_clock::now();
 	if (m_TradingDayInsertStatement == nullptr)
@@ -555,7 +555,7 @@ void Sqlite::InsertTradingDay(TradingDay* record)
 		WriteLog(LogLevel::Warning, "InsertTradingDay Spend:%lldms", duration);
 	}
 }
-void Sqlite::BatchInsertTradingDay(std::list<TradingDay*>* records)
+void SqliteWrapper::BatchInsertTradingDay(std::list<TradingDay*>* records)
 {
 	auto start = steady_clock::now();
 	memset(m_SqlBuff, 0, BuffSize);
@@ -595,7 +595,7 @@ void Sqlite::BatchInsertTradingDay(std::list<TradingDay*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertTradingDay RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Sqlite::DeleteTradingDay(TradingDay* record)
+void SqliteWrapper::DeleteTradingDay(TradingDay* record)
 {
 	auto start = steady_clock::now();
 	if (m_TradingDayDeleteStatement == nullptr)
@@ -617,7 +617,7 @@ void Sqlite::DeleteTradingDay(TradingDay* record)
 		WriteLog(LogLevel::Warning, "DeleteTradingDay Spend:%lldms", duration);
 	}
 }
-void Sqlite::UpdateTradingDay(TradingDay* record)
+void SqliteWrapper::UpdateTradingDay(TradingDay* record)
 {
 	auto start = steady_clock::now();
 	if (m_TradingDayUpdateStatement == nullptr)
@@ -639,7 +639,7 @@ void Sqlite::UpdateTradingDay(TradingDay* record)
 		WriteLog(LogLevel::Warning, "UpdateTradingDay Spend:%lldms", duration);
 	}
 }
-void Sqlite::SelectTradingDay(std::list<TradingDay*>& records)
+void SqliteWrapper::SelectTradingDay(std::list<TradingDay*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_TradingDaySelectStatement == nullptr)
@@ -659,7 +659,7 @@ void Sqlite::SelectTradingDay(std::list<TradingDay*>& records)
 		WriteLog(LogLevel::Warning, "SelectTradingDay Spend:%lldms", duration);
 	}
 }
-void Sqlite::TruncateTradingDay()
+void SqliteWrapper::TruncateTradingDay()
 {
 	auto start = steady_clock::now();
 	if (m_TradingDayTruncateStatement == nullptr)
@@ -676,7 +676,7 @@ void Sqlite::TruncateTradingDay()
 	
 	WriteLog(LogLevel::Info, "TruncateTradingDay Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Sqlite::CreateExchange()
+void SqliteWrapper::CreateExchange()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -691,7 +691,7 @@ void Sqlite::CreateExchange()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateExchange Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::DropExchange()
+void SqliteWrapper::DropExchange()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -706,7 +706,7 @@ void Sqlite::DropExchange()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropExchange Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::InsertExchange(Exchange* record)
+void SqliteWrapper::InsertExchange(Exchange* record)
 {
 	auto start = steady_clock::now();
 	if (m_ExchangeInsertStatement == nullptr)
@@ -728,7 +728,7 @@ void Sqlite::InsertExchange(Exchange* record)
 		WriteLog(LogLevel::Warning, "InsertExchange Spend:%lldms", duration);
 	}
 }
-void Sqlite::BatchInsertExchange(std::list<Exchange*>* records)
+void SqliteWrapper::BatchInsertExchange(std::list<Exchange*>* records)
 {
 	auto start = steady_clock::now();
 	memset(m_SqlBuff, 0, BuffSize);
@@ -768,7 +768,7 @@ void Sqlite::BatchInsertExchange(std::list<Exchange*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertExchange RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Sqlite::DeleteExchange(Exchange* record)
+void SqliteWrapper::DeleteExchange(Exchange* record)
 {
 	auto start = steady_clock::now();
 	if (m_ExchangeDeleteStatement == nullptr)
@@ -790,7 +790,7 @@ void Sqlite::DeleteExchange(Exchange* record)
 		WriteLog(LogLevel::Warning, "DeleteExchange Spend:%lldms", duration);
 	}
 }
-void Sqlite::UpdateExchange(Exchange* record)
+void SqliteWrapper::UpdateExchange(Exchange* record)
 {
 	auto start = steady_clock::now();
 	if (m_ExchangeUpdateStatement == nullptr)
@@ -812,7 +812,7 @@ void Sqlite::UpdateExchange(Exchange* record)
 		WriteLog(LogLevel::Warning, "UpdateExchange Spend:%lldms", duration);
 	}
 }
-void Sqlite::SelectExchange(std::list<Exchange*>& records)
+void SqliteWrapper::SelectExchange(std::list<Exchange*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_ExchangeSelectStatement == nullptr)
@@ -832,7 +832,7 @@ void Sqlite::SelectExchange(std::list<Exchange*>& records)
 		WriteLog(LogLevel::Warning, "SelectExchange Spend:%lldms", duration);
 	}
 }
-void Sqlite::TruncateExchange()
+void SqliteWrapper::TruncateExchange()
 {
 	auto start = steady_clock::now();
 	if (m_ExchangeTruncateStatement == nullptr)
@@ -849,7 +849,7 @@ void Sqlite::TruncateExchange()
 	
 	WriteLog(LogLevel::Info, "TruncateExchange Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Sqlite::CreateProduct()
+void SqliteWrapper::CreateProduct()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -864,7 +864,7 @@ void Sqlite::CreateProduct()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateProduct Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::DropProduct()
+void SqliteWrapper::DropProduct()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -879,7 +879,7 @@ void Sqlite::DropProduct()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropProduct Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::InsertProduct(Product* record)
+void SqliteWrapper::InsertProduct(Product* record)
 {
 	auto start = steady_clock::now();
 	if (m_ProductInsertStatement == nullptr)
@@ -901,7 +901,7 @@ void Sqlite::InsertProduct(Product* record)
 		WriteLog(LogLevel::Warning, "InsertProduct Spend:%lldms", duration);
 	}
 }
-void Sqlite::BatchInsertProduct(std::list<Product*>* records)
+void SqliteWrapper::BatchInsertProduct(std::list<Product*>* records)
 {
 	auto start = steady_clock::now();
 	memset(m_SqlBuff, 0, BuffSize);
@@ -941,7 +941,7 @@ void Sqlite::BatchInsertProduct(std::list<Product*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertProduct RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Sqlite::DeleteProduct(Product* record)
+void SqliteWrapper::DeleteProduct(Product* record)
 {
 	auto start = steady_clock::now();
 	if (m_ProductDeleteStatement == nullptr)
@@ -963,7 +963,7 @@ void Sqlite::DeleteProduct(Product* record)
 		WriteLog(LogLevel::Warning, "DeleteProduct Spend:%lldms", duration);
 	}
 }
-void Sqlite::UpdateProduct(Product* record)
+void SqliteWrapper::UpdateProduct(Product* record)
 {
 	auto start = steady_clock::now();
 	if (m_ProductUpdateStatement == nullptr)
@@ -985,7 +985,7 @@ void Sqlite::UpdateProduct(Product* record)
 		WriteLog(LogLevel::Warning, "UpdateProduct Spend:%lldms", duration);
 	}
 }
-void Sqlite::SelectProduct(std::list<Product*>& records)
+void SqliteWrapper::SelectProduct(std::list<Product*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_ProductSelectStatement == nullptr)
@@ -1005,7 +1005,7 @@ void Sqlite::SelectProduct(std::list<Product*>& records)
 		WriteLog(LogLevel::Warning, "SelectProduct Spend:%lldms", duration);
 	}
 }
-void Sqlite::TruncateProduct()
+void SqliteWrapper::TruncateProduct()
 {
 	auto start = steady_clock::now();
 	if (m_ProductTruncateStatement == nullptr)
@@ -1022,7 +1022,7 @@ void Sqlite::TruncateProduct()
 	
 	WriteLog(LogLevel::Info, "TruncateProduct Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Sqlite::CreateInstrument()
+void SqliteWrapper::CreateInstrument()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -1037,7 +1037,7 @@ void Sqlite::CreateInstrument()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateInstrument Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::DropInstrument()
+void SqliteWrapper::DropInstrument()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -1052,7 +1052,7 @@ void Sqlite::DropInstrument()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropInstrument Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::InsertInstrument(Instrument* record)
+void SqliteWrapper::InsertInstrument(Instrument* record)
 {
 	auto start = steady_clock::now();
 	if (m_InstrumentInsertStatement == nullptr)
@@ -1074,7 +1074,7 @@ void Sqlite::InsertInstrument(Instrument* record)
 		WriteLog(LogLevel::Warning, "InsertInstrument Spend:%lldms", duration);
 	}
 }
-void Sqlite::BatchInsertInstrument(std::list<Instrument*>* records)
+void SqliteWrapper::BatchInsertInstrument(std::list<Instrument*>* records)
 {
 	auto start = steady_clock::now();
 	memset(m_SqlBuff, 0, BuffSize);
@@ -1114,7 +1114,7 @@ void Sqlite::BatchInsertInstrument(std::list<Instrument*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertInstrument RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Sqlite::DeleteInstrument(Instrument* record)
+void SqliteWrapper::DeleteInstrument(Instrument* record)
 {
 	auto start = steady_clock::now();
 	if (m_InstrumentDeleteStatement == nullptr)
@@ -1136,7 +1136,7 @@ void Sqlite::DeleteInstrument(Instrument* record)
 		WriteLog(LogLevel::Warning, "DeleteInstrument Spend:%lldms", duration);
 	}
 }
-void Sqlite::UpdateInstrument(Instrument* record)
+void SqliteWrapper::UpdateInstrument(Instrument* record)
 {
 	auto start = steady_clock::now();
 	if (m_InstrumentUpdateStatement == nullptr)
@@ -1158,7 +1158,7 @@ void Sqlite::UpdateInstrument(Instrument* record)
 		WriteLog(LogLevel::Warning, "UpdateInstrument Spend:%lldms", duration);
 	}
 }
-void Sqlite::SelectInstrument(std::list<Instrument*>& records)
+void SqliteWrapper::SelectInstrument(std::list<Instrument*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_InstrumentSelectStatement == nullptr)
@@ -1178,7 +1178,7 @@ void Sqlite::SelectInstrument(std::list<Instrument*>& records)
 		WriteLog(LogLevel::Warning, "SelectInstrument Spend:%lldms", duration);
 	}
 }
-void Sqlite::TruncateInstrument()
+void SqliteWrapper::TruncateInstrument()
 {
 	auto start = steady_clock::now();
 	if (m_InstrumentTruncateStatement == nullptr)
@@ -1195,7 +1195,7 @@ void Sqlite::TruncateInstrument()
 	
 	WriteLog(LogLevel::Info, "TruncateInstrument Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Sqlite::CreatePrimaryAccount()
+void SqliteWrapper::CreatePrimaryAccount()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -1210,7 +1210,7 @@ void Sqlite::CreatePrimaryAccount()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreatePrimaryAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::DropPrimaryAccount()
+void SqliteWrapper::DropPrimaryAccount()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -1225,7 +1225,7 @@ void Sqlite::DropPrimaryAccount()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropPrimaryAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::InsertPrimaryAccount(PrimaryAccount* record)
+void SqliteWrapper::InsertPrimaryAccount(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountInsertStatement == nullptr)
@@ -1247,7 +1247,7 @@ void Sqlite::InsertPrimaryAccount(PrimaryAccount* record)
 		WriteLog(LogLevel::Warning, "InsertPrimaryAccount Spend:%lldms", duration);
 	}
 }
-void Sqlite::BatchInsertPrimaryAccount(std::list<PrimaryAccount*>* records)
+void SqliteWrapper::BatchInsertPrimaryAccount(std::list<PrimaryAccount*>* records)
 {
 	auto start = steady_clock::now();
 	memset(m_SqlBuff, 0, BuffSize);
@@ -1287,7 +1287,7 @@ void Sqlite::BatchInsertPrimaryAccount(std::list<PrimaryAccount*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertPrimaryAccount RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Sqlite::DeletePrimaryAccount(PrimaryAccount* record)
+void SqliteWrapper::DeletePrimaryAccount(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountDeleteStatement == nullptr)
@@ -1309,7 +1309,7 @@ void Sqlite::DeletePrimaryAccount(PrimaryAccount* record)
 		WriteLog(LogLevel::Warning, "DeletePrimaryAccount Spend:%lldms", duration);
 	}
 }
-void Sqlite::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
+void SqliteWrapper::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountDeleteByOfferIDIndexStatement == nullptr)
@@ -1331,7 +1331,7 @@ void Sqlite::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
 		WriteLog(LogLevel::Warning, "DeletePrimaryAccountByOfferIDIndex Spend:%lldms", duration);
 	}
 }
-void Sqlite::UpdatePrimaryAccount(PrimaryAccount* record)
+void SqliteWrapper::UpdatePrimaryAccount(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountUpdateStatement == nullptr)
@@ -1353,7 +1353,7 @@ void Sqlite::UpdatePrimaryAccount(PrimaryAccount* record)
 		WriteLog(LogLevel::Warning, "UpdatePrimaryAccount Spend:%lldms", duration);
 	}
 }
-void Sqlite::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
+void SqliteWrapper::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountSelectStatement == nullptr)
@@ -1373,7 +1373,7 @@ void Sqlite::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 		WriteLog(LogLevel::Warning, "SelectPrimaryAccount Spend:%lldms", duration);
 	}
 }
-void Sqlite::TruncatePrimaryAccount()
+void SqliteWrapper::TruncatePrimaryAccount()
 {
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountTruncateStatement == nullptr)
@@ -1390,7 +1390,7 @@ void Sqlite::TruncatePrimaryAccount()
 	
 	WriteLog(LogLevel::Info, "TruncatePrimaryAccount Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Sqlite::CreateAccount()
+void SqliteWrapper::CreateAccount()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -1405,7 +1405,7 @@ void Sqlite::CreateAccount()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::DropAccount()
+void SqliteWrapper::DropAccount()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -1420,7 +1420,7 @@ void Sqlite::DropAccount()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::InsertAccount(Account* record)
+void SqliteWrapper::InsertAccount(Account* record)
 {
 	auto start = steady_clock::now();
 	if (m_AccountInsertStatement == nullptr)
@@ -1442,7 +1442,7 @@ void Sqlite::InsertAccount(Account* record)
 		WriteLog(LogLevel::Warning, "InsertAccount Spend:%lldms", duration);
 	}
 }
-void Sqlite::BatchInsertAccount(std::list<Account*>* records)
+void SqliteWrapper::BatchInsertAccount(std::list<Account*>* records)
 {
 	auto start = steady_clock::now();
 	memset(m_SqlBuff, 0, BuffSize);
@@ -1482,7 +1482,7 @@ void Sqlite::BatchInsertAccount(std::list<Account*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertAccount RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Sqlite::DeleteAccount(Account* record)
+void SqliteWrapper::DeleteAccount(Account* record)
 {
 	auto start = steady_clock::now();
 	if (m_AccountDeleteStatement == nullptr)
@@ -1504,7 +1504,7 @@ void Sqlite::DeleteAccount(Account* record)
 		WriteLog(LogLevel::Warning, "DeleteAccount Spend:%lldms", duration);
 	}
 }
-void Sqlite::UpdateAccount(Account* record)
+void SqliteWrapper::UpdateAccount(Account* record)
 {
 	auto start = steady_clock::now();
 	if (m_AccountUpdateStatement == nullptr)
@@ -1526,7 +1526,7 @@ void Sqlite::UpdateAccount(Account* record)
 		WriteLog(LogLevel::Warning, "UpdateAccount Spend:%lldms", duration);
 	}
 }
-void Sqlite::SelectAccount(std::list<Account*>& records)
+void SqliteWrapper::SelectAccount(std::list<Account*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_AccountSelectStatement == nullptr)
@@ -1546,7 +1546,7 @@ void Sqlite::SelectAccount(std::list<Account*>& records)
 		WriteLog(LogLevel::Warning, "SelectAccount Spend:%lldms", duration);
 	}
 }
-void Sqlite::TruncateAccount()
+void SqliteWrapper::TruncateAccount()
 {
 	auto start = steady_clock::now();
 	if (m_AccountTruncateStatement == nullptr)
@@ -1563,7 +1563,7 @@ void Sqlite::TruncateAccount()
 	
 	WriteLog(LogLevel::Info, "TruncateAccount Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Sqlite::CreateCapital()
+void SqliteWrapper::CreateCapital()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -1578,7 +1578,7 @@ void Sqlite::CreateCapital()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateCapital Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::DropCapital()
+void SqliteWrapper::DropCapital()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -1593,7 +1593,7 @@ void Sqlite::DropCapital()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropCapital Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::InsertCapital(Capital* record)
+void SqliteWrapper::InsertCapital(Capital* record)
 {
 	auto start = steady_clock::now();
 	if (m_CapitalInsertStatement == nullptr)
@@ -1615,7 +1615,7 @@ void Sqlite::InsertCapital(Capital* record)
 		WriteLog(LogLevel::Warning, "InsertCapital Spend:%lldms", duration);
 	}
 }
-void Sqlite::BatchInsertCapital(std::list<Capital*>* records)
+void SqliteWrapper::BatchInsertCapital(std::list<Capital*>* records)
 {
 	auto start = steady_clock::now();
 	memset(m_SqlBuff, 0, BuffSize);
@@ -1655,7 +1655,7 @@ void Sqlite::BatchInsertCapital(std::list<Capital*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertCapital RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Sqlite::DeleteCapital(Capital* record)
+void SqliteWrapper::DeleteCapital(Capital* record)
 {
 	auto start = steady_clock::now();
 	if (m_CapitalDeleteStatement == nullptr)
@@ -1677,7 +1677,7 @@ void Sqlite::DeleteCapital(Capital* record)
 		WriteLog(LogLevel::Warning, "DeleteCapital Spend:%lldms", duration);
 	}
 }
-void Sqlite::DeleteCapitalByTradingDayIndex(Capital* record)
+void SqliteWrapper::DeleteCapitalByTradingDayIndex(Capital* record)
 {
 	auto start = steady_clock::now();
 	if (m_CapitalDeleteByTradingDayIndexStatement == nullptr)
@@ -1699,7 +1699,7 @@ void Sqlite::DeleteCapitalByTradingDayIndex(Capital* record)
 		WriteLog(LogLevel::Warning, "DeleteCapitalByTradingDayIndex Spend:%lldms", duration);
 	}
 }
-void Sqlite::UpdateCapital(Capital* record)
+void SqliteWrapper::UpdateCapital(Capital* record)
 {
 	auto start = steady_clock::now();
 	if (m_CapitalUpdateStatement == nullptr)
@@ -1721,7 +1721,7 @@ void Sqlite::UpdateCapital(Capital* record)
 		WriteLog(LogLevel::Warning, "UpdateCapital Spend:%lldms", duration);
 	}
 }
-void Sqlite::SelectCapital(std::list<Capital*>& records)
+void SqliteWrapper::SelectCapital(std::list<Capital*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_CapitalSelectStatement == nullptr)
@@ -1741,7 +1741,7 @@ void Sqlite::SelectCapital(std::list<Capital*>& records)
 		WriteLog(LogLevel::Warning, "SelectCapital Spend:%lldms", duration);
 	}
 }
-void Sqlite::TruncateCapital()
+void SqliteWrapper::TruncateCapital()
 {
 	auto start = steady_clock::now();
 	if (m_CapitalTruncateStatement == nullptr)
@@ -1758,7 +1758,7 @@ void Sqlite::TruncateCapital()
 	
 	WriteLog(LogLevel::Info, "TruncateCapital Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Sqlite::CreatePosition()
+void SqliteWrapper::CreatePosition()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -1773,7 +1773,7 @@ void Sqlite::CreatePosition()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreatePosition Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::DropPosition()
+void SqliteWrapper::DropPosition()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -1788,7 +1788,7 @@ void Sqlite::DropPosition()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropPosition Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::InsertPosition(Position* record)
+void SqliteWrapper::InsertPosition(Position* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionInsertStatement == nullptr)
@@ -1810,7 +1810,7 @@ void Sqlite::InsertPosition(Position* record)
 		WriteLog(LogLevel::Warning, "InsertPosition Spend:%lldms", duration);
 	}
 }
-void Sqlite::BatchInsertPosition(std::list<Position*>* records)
+void SqliteWrapper::BatchInsertPosition(std::list<Position*>* records)
 {
 	auto start = steady_clock::now();
 	memset(m_SqlBuff, 0, BuffSize);
@@ -1850,7 +1850,7 @@ void Sqlite::BatchInsertPosition(std::list<Position*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertPosition RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Sqlite::DeletePosition(Position* record)
+void SqliteWrapper::DeletePosition(Position* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDeleteStatement == nullptr)
@@ -1872,7 +1872,7 @@ void Sqlite::DeletePosition(Position* record)
 		WriteLog(LogLevel::Warning, "DeletePosition Spend:%lldms", duration);
 	}
 }
-void Sqlite::DeletePositionByAccountIndex(Position* record)
+void SqliteWrapper::DeletePositionByAccountIndex(Position* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDeleteByAccountIndexStatement == nullptr)
@@ -1894,7 +1894,7 @@ void Sqlite::DeletePositionByAccountIndex(Position* record)
 		WriteLog(LogLevel::Warning, "DeletePositionByAccountIndex Spend:%lldms", duration);
 	}
 }
-void Sqlite::DeletePositionByTradingDayIndex(Position* record)
+void SqliteWrapper::DeletePositionByTradingDayIndex(Position* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDeleteByTradingDayIndexStatement == nullptr)
@@ -1916,7 +1916,7 @@ void Sqlite::DeletePositionByTradingDayIndex(Position* record)
 		WriteLog(LogLevel::Warning, "DeletePositionByTradingDayIndex Spend:%lldms", duration);
 	}
 }
-void Sqlite::UpdatePosition(Position* record)
+void SqliteWrapper::UpdatePosition(Position* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionUpdateStatement == nullptr)
@@ -1938,7 +1938,7 @@ void Sqlite::UpdatePosition(Position* record)
 		WriteLog(LogLevel::Warning, "UpdatePosition Spend:%lldms", duration);
 	}
 }
-void Sqlite::SelectPosition(std::list<Position*>& records)
+void SqliteWrapper::SelectPosition(std::list<Position*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_PositionSelectStatement == nullptr)
@@ -1958,7 +1958,7 @@ void Sqlite::SelectPosition(std::list<Position*>& records)
 		WriteLog(LogLevel::Warning, "SelectPosition Spend:%lldms", duration);
 	}
 }
-void Sqlite::TruncatePosition()
+void SqliteWrapper::TruncatePosition()
 {
 	auto start = steady_clock::now();
 	if (m_PositionTruncateStatement == nullptr)
@@ -1975,7 +1975,7 @@ void Sqlite::TruncatePosition()
 	
 	WriteLog(LogLevel::Info, "TruncatePosition Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Sqlite::CreatePositionDetail()
+void SqliteWrapper::CreatePositionDetail()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -1990,7 +1990,7 @@ void Sqlite::CreatePositionDetail()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreatePositionDetail Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::DropPositionDetail()
+void SqliteWrapper::DropPositionDetail()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -2005,7 +2005,7 @@ void Sqlite::DropPositionDetail()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropPositionDetail Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::InsertPositionDetail(PositionDetail* record)
+void SqliteWrapper::InsertPositionDetail(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailInsertStatement == nullptr)
@@ -2027,7 +2027,7 @@ void Sqlite::InsertPositionDetail(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "InsertPositionDetail Spend:%lldms", duration);
 	}
 }
-void Sqlite::BatchInsertPositionDetail(std::list<PositionDetail*>* records)
+void SqliteWrapper::BatchInsertPositionDetail(std::list<PositionDetail*>* records)
 {
 	auto start = steady_clock::now();
 	memset(m_SqlBuff, 0, BuffSize);
@@ -2067,7 +2067,7 @@ void Sqlite::BatchInsertPositionDetail(std::list<PositionDetail*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertPositionDetail RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Sqlite::DeletePositionDetail(PositionDetail* record)
+void SqliteWrapper::DeletePositionDetail(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailDeleteStatement == nullptr)
@@ -2089,7 +2089,7 @@ void Sqlite::DeletePositionDetail(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "DeletePositionDetail Spend:%lldms", duration);
 	}
 }
-void Sqlite::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
+void SqliteWrapper::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailDeleteByTradeMatchIndexStatement == nullptr)
@@ -2111,7 +2111,7 @@ void Sqlite::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "DeletePositionDetailByTradeMatchIndex Spend:%lldms", duration);
 	}
 }
-void Sqlite::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
+void SqliteWrapper::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailDeleteByTradingDayIndexStatement == nullptr)
@@ -2133,7 +2133,7 @@ void Sqlite::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "DeletePositionDetailByTradingDayIndex Spend:%lldms", duration);
 	}
 }
-void Sqlite::UpdatePositionDetail(PositionDetail* record)
+void SqliteWrapper::UpdatePositionDetail(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailUpdateStatement == nullptr)
@@ -2155,7 +2155,7 @@ void Sqlite::UpdatePositionDetail(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "UpdatePositionDetail Spend:%lldms", duration);
 	}
 }
-void Sqlite::SelectPositionDetail(std::list<PositionDetail*>& records)
+void SqliteWrapper::SelectPositionDetail(std::list<PositionDetail*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailSelectStatement == nullptr)
@@ -2175,7 +2175,7 @@ void Sqlite::SelectPositionDetail(std::list<PositionDetail*>& records)
 		WriteLog(LogLevel::Warning, "SelectPositionDetail Spend:%lldms", duration);
 	}
 }
-void Sqlite::TruncatePositionDetail()
+void SqliteWrapper::TruncatePositionDetail()
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailTruncateStatement == nullptr)
@@ -2192,7 +2192,7 @@ void Sqlite::TruncatePositionDetail()
 	
 	WriteLog(LogLevel::Info, "TruncatePositionDetail Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Sqlite::CreateOrder()
+void SqliteWrapper::CreateOrder()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -2207,7 +2207,7 @@ void Sqlite::CreateOrder()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateOrder Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::DropOrder()
+void SqliteWrapper::DropOrder()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -2222,7 +2222,7 @@ void Sqlite::DropOrder()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropOrder Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::InsertOrder(Order* record)
+void SqliteWrapper::InsertOrder(Order* record)
 {
 	auto start = steady_clock::now();
 	if (m_OrderInsertStatement == nullptr)
@@ -2244,7 +2244,7 @@ void Sqlite::InsertOrder(Order* record)
 		WriteLog(LogLevel::Warning, "InsertOrder Spend:%lldms", duration);
 	}
 }
-void Sqlite::BatchInsertOrder(std::list<Order*>* records)
+void SqliteWrapper::BatchInsertOrder(std::list<Order*>* records)
 {
 	auto start = steady_clock::now();
 	memset(m_SqlBuff, 0, BuffSize);
@@ -2284,7 +2284,7 @@ void Sqlite::BatchInsertOrder(std::list<Order*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertOrder RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Sqlite::DeleteOrder(Order* record)
+void SqliteWrapper::DeleteOrder(Order* record)
 {
 	auto start = steady_clock::now();
 	if (m_OrderDeleteStatement == nullptr)
@@ -2306,7 +2306,7 @@ void Sqlite::DeleteOrder(Order* record)
 		WriteLog(LogLevel::Warning, "DeleteOrder Spend:%lldms", duration);
 	}
 }
-void Sqlite::UpdateOrder(Order* record)
+void SqliteWrapper::UpdateOrder(Order* record)
 {
 	auto start = steady_clock::now();
 	if (m_OrderUpdateStatement == nullptr)
@@ -2328,7 +2328,7 @@ void Sqlite::UpdateOrder(Order* record)
 		WriteLog(LogLevel::Warning, "UpdateOrder Spend:%lldms", duration);
 	}
 }
-void Sqlite::SelectOrder(std::list<Order*>& records)
+void SqliteWrapper::SelectOrder(std::list<Order*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_OrderSelectStatement == nullptr)
@@ -2348,7 +2348,7 @@ void Sqlite::SelectOrder(std::list<Order*>& records)
 		WriteLog(LogLevel::Warning, "SelectOrder Spend:%lldms", duration);
 	}
 }
-void Sqlite::TruncateOrder()
+void SqliteWrapper::TruncateOrder()
 {
 	auto start = steady_clock::now();
 	if (m_OrderTruncateStatement == nullptr)
@@ -2365,7 +2365,7 @@ void Sqlite::TruncateOrder()
 	
 	WriteLog(LogLevel::Info, "TruncateOrder Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Sqlite::CreateTrade()
+void SqliteWrapper::CreateTrade()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -2380,7 +2380,7 @@ void Sqlite::CreateTrade()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateTrade Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::DropTrade()
+void SqliteWrapper::DropTrade()
 {
 	auto start = steady_clock::now();
 	char* t_ErrorMsg;
@@ -2395,7 +2395,7 @@ void Sqlite::DropTrade()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropTrade Spend:%lldms, sql:%s", duration, sql);
 }
-void Sqlite::InsertTrade(Trade* record)
+void SqliteWrapper::InsertTrade(Trade* record)
 {
 	auto start = steady_clock::now();
 	if (m_TradeInsertStatement == nullptr)
@@ -2417,7 +2417,7 @@ void Sqlite::InsertTrade(Trade* record)
 		WriteLog(LogLevel::Warning, "InsertTrade Spend:%lldms", duration);
 	}
 }
-void Sqlite::BatchInsertTrade(std::list<Trade*>* records)
+void SqliteWrapper::BatchInsertTrade(std::list<Trade*>* records)
 {
 	auto start = steady_clock::now();
 	memset(m_SqlBuff, 0, BuffSize);
@@ -2457,7 +2457,7 @@ void Sqlite::BatchInsertTrade(std::list<Trade*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertTrade RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Sqlite::DeleteTrade(Trade* record)
+void SqliteWrapper::DeleteTrade(Trade* record)
 {
 	auto start = steady_clock::now();
 	if (m_TradeDeleteStatement == nullptr)
@@ -2479,7 +2479,7 @@ void Sqlite::DeleteTrade(Trade* record)
 		WriteLog(LogLevel::Warning, "DeleteTrade Spend:%lldms", duration);
 	}
 }
-void Sqlite::UpdateTrade(Trade* record)
+void SqliteWrapper::UpdateTrade(Trade* record)
 {
 	auto start = steady_clock::now();
 	if (m_TradeUpdateStatement == nullptr)
@@ -2501,7 +2501,7 @@ void Sqlite::UpdateTrade(Trade* record)
 		WriteLog(LogLevel::Warning, "UpdateTrade Spend:%lldms", duration);
 	}
 }
-void Sqlite::SelectTrade(std::list<Trade*>& records)
+void SqliteWrapper::SelectTrade(std::list<Trade*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_TradeSelectStatement == nullptr)
@@ -2521,7 +2521,7 @@ void Sqlite::SelectTrade(std::list<Trade*>& records)
 		WriteLog(LogLevel::Warning, "SelectTrade Spend:%lldms", duration);
 	}
 }
-void Sqlite::TruncateTrade()
+void SqliteWrapper::TruncateTrade()
 {
 	auto start = steady_clock::now();
 	if (m_TradeTruncateStatement == nullptr)
@@ -2540,23 +2540,23 @@ void Sqlite::TruncateTrade()
 }
 
 
-void Sqlite::SetStatementForTradingDayRecord(sqlite3_stmt* statement, TradingDay* record)
+void SqliteWrapper::SetStatementForTradingDayRecord(sqlite3_stmt* statement, TradingDay* record)
 {
 	sqlite3_bind_int(statement, 1, record->PK);
 	sqlite3_bind_text(statement, 2, record->CurrTradingDay, sizeof(record->CurrTradingDay), nullptr);
 	sqlite3_bind_text(statement, 3, record->PreTradingDay, sizeof(record->PreTradingDay), nullptr);
 }
-void Sqlite::SetStatementForTradingDayRecordUpdate(sqlite3_stmt* statement, TradingDay* record)
+void SqliteWrapper::SetStatementForTradingDayRecordUpdate(sqlite3_stmt* statement, TradingDay* record)
 {
 	sqlite3_bind_text(statement, 1, record->CurrTradingDay, sizeof(record->CurrTradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, record->PreTradingDay, sizeof(record->PreTradingDay), nullptr);
 	sqlite3_bind_int(statement, 3, record->PK);
 }
-void Sqlite::SetStatementForTradingDayPrimaryKey(sqlite3_stmt* statement, const IntType& PK)
+void SqliteWrapper::SetStatementForTradingDayPrimaryKey(sqlite3_stmt* statement, const IntType& PK)
 {
 	sqlite3_bind_int(statement, 1, PK);
 }
-void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<TradingDay*>& records)
+void SqliteWrapper::ParseRecord(sqlite3_stmt* statement, std::list<TradingDay*>& records)
 {
 	TradingDay* record = TradingDay::Allocate();
 	record->PK = sqlite3_column_int(statement, 0);
@@ -2564,28 +2564,28 @@ void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<TradingDay*>& record
 	Utility::Strcpy(record->PreTradingDay, (const char*)sqlite3_column_text(statement, 2));
 	records.push_back(record);
 }
-void Sqlite::SetStatementForExchangeRecord(sqlite3_stmt* statement, Exchange* record)
+void SqliteWrapper::SetStatementForExchangeRecord(sqlite3_stmt* statement, Exchange* record)
 {
 	sqlite3_bind_text(statement, 1, record->ExchangeID, sizeof(record->ExchangeID), nullptr);
 	sqlite3_bind_text(statement, 2, record->ExchangeName, sizeof(record->ExchangeName), nullptr);
 }
-void Sqlite::SetStatementForExchangeRecordUpdate(sqlite3_stmt* statement, Exchange* record)
+void SqliteWrapper::SetStatementForExchangeRecordUpdate(sqlite3_stmt* statement, Exchange* record)
 {
 	sqlite3_bind_text(statement, 1, record->ExchangeName, sizeof(record->ExchangeName), nullptr);
 	sqlite3_bind_text(statement, 2, record->ExchangeID, sizeof(record->ExchangeID), nullptr);
 }
-void Sqlite::SetStatementForExchangePrimaryKey(sqlite3_stmt* statement, const ExchangeIDType& ExchangeID)
+void SqliteWrapper::SetStatementForExchangePrimaryKey(sqlite3_stmt* statement, const ExchangeIDType& ExchangeID)
 {
 	sqlite3_bind_text(statement, 1, ExchangeID, sizeof(ExchangeID), nullptr);
 }
-void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Exchange*>& records)
+void SqliteWrapper::ParseRecord(sqlite3_stmt* statement, std::list<Exchange*>& records)
 {
 	Exchange* record = Exchange::Allocate();
 	Utility::Strcpy(record->ExchangeID, (const char*)sqlite3_column_text(statement, 0));
 	Utility::Strcpy(record->ExchangeName, (const char*)sqlite3_column_text(statement, 1));
 	records.push_back(record);
 }
-void Sqlite::SetStatementForProductRecord(sqlite3_stmt* statement, Product* record)
+void SqliteWrapper::SetStatementForProductRecord(sqlite3_stmt* statement, Product* record)
 {
 	sqlite3_bind_text(statement, 1, record->ExchangeID, sizeof(record->ExchangeID), nullptr);
 	sqlite3_bind_text(statement, 2, record->ProductID, sizeof(record->ProductID), nullptr);
@@ -2599,7 +2599,7 @@ void Sqlite::SetStatementForProductRecord(sqlite3_stmt* statement, Product* reco
 	sqlite3_bind_int64(statement, 10, record->MinLimitOrderVolume);
 	sqlite3_bind_text(statement, 11, record->SessionName, sizeof(record->SessionName), nullptr);
 }
-void Sqlite::SetStatementForProductRecordUpdate(sqlite3_stmt* statement, Product* record)
+void SqliteWrapper::SetStatementForProductRecordUpdate(sqlite3_stmt* statement, Product* record)
 {
 	sqlite3_bind_text(statement, 1, record->ProductName, sizeof(record->ProductName), nullptr);
 	sqlite3_bind_int(statement, 2, int(record->ProductClass));
@@ -2613,12 +2613,12 @@ void Sqlite::SetStatementForProductRecordUpdate(sqlite3_stmt* statement, Product
 	sqlite3_bind_text(statement, 10, record->ExchangeID, sizeof(record->ExchangeID), nullptr);
 	sqlite3_bind_text(statement, 11, record->ProductID, sizeof(record->ProductID), nullptr);
 }
-void Sqlite::SetStatementForProductPrimaryKey(sqlite3_stmt* statement, const ExchangeIDType& ExchangeID, const ProductIDType& ProductID)
+void SqliteWrapper::SetStatementForProductPrimaryKey(sqlite3_stmt* statement, const ExchangeIDType& ExchangeID, const ProductIDType& ProductID)
 {
 	sqlite3_bind_text(statement, 1, ExchangeID, sizeof(ExchangeID), nullptr);
 	sqlite3_bind_text(statement, 2, ProductID, sizeof(ProductID), nullptr);
 }
-void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Product*>& records)
+void SqliteWrapper::ParseRecord(sqlite3_stmt* statement, std::list<Product*>& records)
 {
 	Product* record = Product::Allocate();
 	Utility::Strcpy(record->ExchangeID, (const char*)sqlite3_column_text(statement, 0));
@@ -2634,7 +2634,7 @@ void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Product*>& records)
 	Utility::Strcpy(record->SessionName, (const char*)sqlite3_column_text(statement, 10));
 	records.push_back(record);
 }
-void Sqlite::SetStatementForInstrumentRecord(sqlite3_stmt* statement, Instrument* record)
+void SqliteWrapper::SetStatementForInstrumentRecord(sqlite3_stmt* statement, Instrument* record)
 {
 	sqlite3_bind_text(statement, 1, record->ExchangeID, sizeof(record->ExchangeID), nullptr);
 	sqlite3_bind_text(statement, 2, record->InstrumentID, sizeof(record->InstrumentID), nullptr);
@@ -2652,7 +2652,7 @@ void Sqlite::SetStatementForInstrumentRecord(sqlite3_stmt* statement, Instrument
 	sqlite3_bind_int64(statement, 14, record->MinLimitOrderVolume);
 	sqlite3_bind_text(statement, 15, record->SessionName, sizeof(record->SessionName), nullptr);
 }
-void Sqlite::SetStatementForInstrumentRecordUpdate(sqlite3_stmt* statement, Instrument* record)
+void SqliteWrapper::SetStatementForInstrumentRecordUpdate(sqlite3_stmt* statement, Instrument* record)
 {
 	sqlite3_bind_text(statement, 1, record->ExchangeInstID, sizeof(record->ExchangeInstID), nullptr);
 	sqlite3_bind_text(statement, 2, record->InstrumentName, sizeof(record->InstrumentName), nullptr);
@@ -2670,12 +2670,12 @@ void Sqlite::SetStatementForInstrumentRecordUpdate(sqlite3_stmt* statement, Inst
 	sqlite3_bind_text(statement, 14, record->ExchangeID, sizeof(record->ExchangeID), nullptr);
 	sqlite3_bind_text(statement, 15, record->InstrumentID, sizeof(record->InstrumentID), nullptr);
 }
-void Sqlite::SetStatementForInstrumentPrimaryKey(sqlite3_stmt* statement, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID)
+void SqliteWrapper::SetStatementForInstrumentPrimaryKey(sqlite3_stmt* statement, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID)
 {
 	sqlite3_bind_text(statement, 1, ExchangeID, sizeof(ExchangeID), nullptr);
 	sqlite3_bind_text(statement, 2, InstrumentID, sizeof(InstrumentID), nullptr);
 }
-void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Instrument*>& records)
+void SqliteWrapper::ParseRecord(sqlite3_stmt* statement, std::list<Instrument*>& records)
 {
 	Instrument* record = Instrument::Allocate();
 	Utility::Strcpy(record->ExchangeID, (const char*)sqlite3_column_text(statement, 0));
@@ -2695,7 +2695,7 @@ void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Instrument*>& record
 	Utility::Strcpy(record->SessionName, (const char*)sqlite3_column_text(statement, 14));
 	records.push_back(record);
 }
-void Sqlite::SetStatementForPrimaryAccountRecord(sqlite3_stmt* statement, PrimaryAccount* record)
+void SqliteWrapper::SetStatementForPrimaryAccountRecord(sqlite3_stmt* statement, PrimaryAccount* record)
 {
 	sqlite3_bind_text(statement, 1, record->PrimaryAccountID, sizeof(record->PrimaryAccountID), nullptr);
 	sqlite3_bind_text(statement, 2, record->PrimaryAccountName, sizeof(record->PrimaryAccountName), nullptr);
@@ -2707,7 +2707,7 @@ void Sqlite::SetStatementForPrimaryAccountRecord(sqlite3_stmt* statement, Primar
 	sqlite3_bind_int(statement, 8, int(record->LoginStatus));
 	sqlite3_bind_int(statement, 9, int(record->InitStatus));
 }
-void Sqlite::SetStatementForPrimaryAccountRecordUpdate(sqlite3_stmt* statement, PrimaryAccount* record)
+void SqliteWrapper::SetStatementForPrimaryAccountRecordUpdate(sqlite3_stmt* statement, PrimaryAccount* record)
 {
 	sqlite3_bind_text(statement, 1, record->PrimaryAccountName, sizeof(record->PrimaryAccountName), nullptr);
 	sqlite3_bind_int(statement, 2, int(record->AccountClass));
@@ -2719,15 +2719,15 @@ void Sqlite::SetStatementForPrimaryAccountRecordUpdate(sqlite3_stmt* statement, 
 	sqlite3_bind_int(statement, 8, int(record->InitStatus));
 	sqlite3_bind_text(statement, 9, record->PrimaryAccountID, sizeof(record->PrimaryAccountID), nullptr);
 }
-void Sqlite::SetStatementForPrimaryAccountPrimaryKey(sqlite3_stmt* statement, const AccountIDType& PrimaryAccountID)
+void SqliteWrapper::SetStatementForPrimaryAccountPrimaryKey(sqlite3_stmt* statement, const AccountIDType& PrimaryAccountID)
 {
 	sqlite3_bind_text(statement, 1, PrimaryAccountID, sizeof(PrimaryAccountID), nullptr);
 }
-void Sqlite::SetStatementForPrimaryAccountIndexOfferID(sqlite3_stmt* statement, PrimaryAccount* record)
+void SqliteWrapper::SetStatementForPrimaryAccountIndexOfferID(sqlite3_stmt* statement, PrimaryAccount* record)
 {
 	sqlite3_bind_int(statement, 1, record->OfferID);
 }
-void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<PrimaryAccount*>& records)
+void SqliteWrapper::ParseRecord(sqlite3_stmt* statement, std::list<PrimaryAccount*>& records)
 {
 	PrimaryAccount* record = PrimaryAccount::Allocate();
 	Utility::Strcpy(record->PrimaryAccountID, (const char*)sqlite3_column_text(statement, 0));
@@ -2741,7 +2741,7 @@ void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<PrimaryAccount*>& re
 	record->InitStatus = InitStatusType(sqlite3_column_int(statement, 8));
 	records.push_back(record);
 }
-void Sqlite::SetStatementForAccountRecord(sqlite3_stmt* statement, Account* record)
+void SqliteWrapper::SetStatementForAccountRecord(sqlite3_stmt* statement, Account* record)
 {
 	sqlite3_bind_text(statement, 1, record->AccountID, sizeof(record->AccountID), nullptr);
 	sqlite3_bind_text(statement, 2, record->AccountName, sizeof(record->AccountName), nullptr);
@@ -2752,7 +2752,7 @@ void Sqlite::SetStatementForAccountRecord(sqlite3_stmt* statement, Account* reco
 	sqlite3_bind_int(statement, 7, record->RiskGroupID);
 	sqlite3_bind_int(statement, 8, record->CommissionGroupID);
 }
-void Sqlite::SetStatementForAccountRecordUpdate(sqlite3_stmt* statement, Account* record)
+void SqliteWrapper::SetStatementForAccountRecordUpdate(sqlite3_stmt* statement, Account* record)
 {
 	sqlite3_bind_text(statement, 1, record->AccountName, sizeof(record->AccountName), nullptr);
 	sqlite3_bind_int(statement, 2, int(record->AccountType));
@@ -2763,11 +2763,11 @@ void Sqlite::SetStatementForAccountRecordUpdate(sqlite3_stmt* statement, Account
 	sqlite3_bind_int(statement, 7, record->CommissionGroupID);
 	sqlite3_bind_text(statement, 8, record->AccountID, sizeof(record->AccountID), nullptr);
 }
-void Sqlite::SetStatementForAccountPrimaryKey(sqlite3_stmt* statement, const AccountIDType& AccountID)
+void SqliteWrapper::SetStatementForAccountPrimaryKey(sqlite3_stmt* statement, const AccountIDType& AccountID)
 {
 	sqlite3_bind_text(statement, 1, AccountID, sizeof(AccountID), nullptr);
 }
-void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Account*>& records)
+void SqliteWrapper::ParseRecord(sqlite3_stmt* statement, std::list<Account*>& records)
 {
 	Account* record = Account::Allocate();
 	Utility::Strcpy(record->AccountID, (const char*)sqlite3_column_text(statement, 0));
@@ -2780,7 +2780,7 @@ void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Account*>& records)
 	record->CommissionGroupID = sqlite3_column_int(statement, 7);
 	records.push_back(record);
 }
-void Sqlite::SetStatementForCapitalRecord(sqlite3_stmt* statement, Capital* record)
+void SqliteWrapper::SetStatementForCapitalRecord(sqlite3_stmt* statement, Capital* record)
 {
 	sqlite3_bind_text(statement, 1, record->TradingDay, sizeof(record->TradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, record->AccountID, sizeof(record->AccountID), nullptr);
@@ -2803,7 +2803,7 @@ void Sqlite::SetStatementForCapitalRecord(sqlite3_stmt* statement, Capital* reco
 	sqlite3_bind_double(statement, 19, record->Deposit);
 	sqlite3_bind_double(statement, 20, record->Withdraw);
 }
-void Sqlite::SetStatementForCapitalRecordUpdate(sqlite3_stmt* statement, Capital* record)
+void SqliteWrapper::SetStatementForCapitalRecordUpdate(sqlite3_stmt* statement, Capital* record)
 {
 	sqlite3_bind_int(statement, 1, int(record->AccountType));
 	sqlite3_bind_double(statement, 2, record->Balance);
@@ -2826,16 +2826,16 @@ void Sqlite::SetStatementForCapitalRecordUpdate(sqlite3_stmt* statement, Capital
 	sqlite3_bind_text(statement, 19, record->TradingDay, sizeof(record->TradingDay), nullptr);
 	sqlite3_bind_text(statement, 20, record->AccountID, sizeof(record->AccountID), nullptr);
 }
-void Sqlite::SetStatementForCapitalPrimaryKey(sqlite3_stmt* statement, const DateType& TradingDay, const AccountIDType& AccountID)
+void SqliteWrapper::SetStatementForCapitalPrimaryKey(sqlite3_stmt* statement, const DateType& TradingDay, const AccountIDType& AccountID)
 {
 	sqlite3_bind_text(statement, 1, TradingDay, sizeof(TradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, AccountID, sizeof(AccountID), nullptr);
 }
-void Sqlite::SetStatementForCapitalIndexTradingDay(sqlite3_stmt* statement, Capital* record)
+void SqliteWrapper::SetStatementForCapitalIndexTradingDay(sqlite3_stmt* statement, Capital* record)
 {
 	sqlite3_bind_text(statement, 1, record->TradingDay, sizeof(record->TradingDay), nullptr);
 }
-void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Capital*>& records)
+void SqliteWrapper::ParseRecord(sqlite3_stmt* statement, std::list<Capital*>& records)
 {
 	Capital* record = Capital::Allocate();
 	Utility::Strcpy(record->TradingDay, (const char*)sqlite3_column_text(statement, 0));
@@ -2860,7 +2860,7 @@ void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Capital*>& records)
 	record->Withdraw = sqlite3_column_double(statement, 19);
 	records.push_back(record);
 }
-void Sqlite::SetStatementForPositionRecord(sqlite3_stmt* statement, Position* record)
+void SqliteWrapper::SetStatementForPositionRecord(sqlite3_stmt* statement, Position* record)
 {
 	sqlite3_bind_text(statement, 1, record->TradingDay, sizeof(record->TradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, record->AccountID, sizeof(record->AccountID), nullptr);
@@ -2888,7 +2888,7 @@ void Sqlite::SetStatementForPositionRecord(sqlite3_stmt* statement, Position* re
 	sqlite3_bind_double(statement, 24, record->SettlementPrice);
 	sqlite3_bind_double(statement, 25, record->PreSettlementPrice);
 }
-void Sqlite::SetStatementForPositionRecordUpdate(sqlite3_stmt* statement, Position* record)
+void SqliteWrapper::SetStatementForPositionRecordUpdate(sqlite3_stmt* statement, Position* record)
 {
 	sqlite3_bind_int(statement, 1, int(record->AccountType));
 	sqlite3_bind_int(statement, 2, int(record->ProductClass));
@@ -2916,7 +2916,7 @@ void Sqlite::SetStatementForPositionRecordUpdate(sqlite3_stmt* statement, Positi
 	sqlite3_bind_text(statement, 24, record->InstrumentID, sizeof(record->InstrumentID), nullptr);
 	sqlite3_bind_int(statement, 25, int(record->PosiDirection));
 }
-void Sqlite::SetStatementForPositionPrimaryKey(sqlite3_stmt* statement, const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection)
+void SqliteWrapper::SetStatementForPositionPrimaryKey(sqlite3_stmt* statement, const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection)
 {
 	sqlite3_bind_text(statement, 1, TradingDay, sizeof(TradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, AccountID, sizeof(AccountID), nullptr);
@@ -2924,16 +2924,16 @@ void Sqlite::SetStatementForPositionPrimaryKey(sqlite3_stmt* statement, const Da
 	sqlite3_bind_text(statement, 4, InstrumentID, sizeof(InstrumentID), nullptr);
 	sqlite3_bind_int(statement, 5, int(PosiDirection));
 }
-void Sqlite::SetStatementForPositionIndexAccount(sqlite3_stmt* statement, Position* record)
+void SqliteWrapper::SetStatementForPositionIndexAccount(sqlite3_stmt* statement, Position* record)
 {
 	sqlite3_bind_text(statement, 1, record->TradingDay, sizeof(record->TradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, record->AccountID, sizeof(record->AccountID), nullptr);
 }
-void Sqlite::SetStatementForPositionIndexTradingDay(sqlite3_stmt* statement, Position* record)
+void SqliteWrapper::SetStatementForPositionIndexTradingDay(sqlite3_stmt* statement, Position* record)
 {
 	sqlite3_bind_text(statement, 1, record->TradingDay, sizeof(record->TradingDay), nullptr);
 }
-void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Position*>& records)
+void SqliteWrapper::ParseRecord(sqlite3_stmt* statement, std::list<Position*>& records)
 {
 	Position* record = Position::Allocate();
 	Utility::Strcpy(record->TradingDay, (const char*)sqlite3_column_text(statement, 0));
@@ -2963,7 +2963,7 @@ void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Position*>& records)
 	record->PreSettlementPrice = sqlite3_column_double(statement, 24);
 	records.push_back(record);
 }
-void Sqlite::SetStatementForPositionDetailRecord(sqlite3_stmt* statement, PositionDetail* record)
+void SqliteWrapper::SetStatementForPositionDetailRecord(sqlite3_stmt* statement, PositionDetail* record)
 {
 	sqlite3_bind_text(statement, 1, record->TradingDay, sizeof(record->TradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, record->AccountID, sizeof(record->AccountID), nullptr);
@@ -2991,7 +2991,7 @@ void Sqlite::SetStatementForPositionDetailRecord(sqlite3_stmt* statement, Positi
 	sqlite3_bind_int64(statement, 24, record->CloseVolume);
 	sqlite3_bind_double(statement, 25, record->CloseAmount);
 }
-void Sqlite::SetStatementForPositionDetailRecordUpdate(sqlite3_stmt* statement, PositionDetail* record)
+void SqliteWrapper::SetStatementForPositionDetailRecordUpdate(sqlite3_stmt* statement, PositionDetail* record)
 {
 	sqlite3_bind_int(statement, 1, int(record->AccountType));
 	sqlite3_bind_int(statement, 2, int(record->ProductClass));
@@ -3019,7 +3019,7 @@ void Sqlite::SetStatementForPositionDetailRecordUpdate(sqlite3_stmt* statement, 
 	sqlite3_bind_text(statement, 24, record->OpenDate, sizeof(record->OpenDate), nullptr);
 	sqlite3_bind_text(statement, 25, record->TradeID, sizeof(record->TradeID), nullptr);
 }
-void Sqlite::SetStatementForPositionDetailPrimaryKey(sqlite3_stmt* statement, const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIDType& TradeID)
+void SqliteWrapper::SetStatementForPositionDetailPrimaryKey(sqlite3_stmt* statement, const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIDType& TradeID)
 {
 	sqlite3_bind_text(statement, 1, TradingDay, sizeof(TradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, AccountID, sizeof(AccountID), nullptr);
@@ -3029,7 +3029,7 @@ void Sqlite::SetStatementForPositionDetailPrimaryKey(sqlite3_stmt* statement, co
 	sqlite3_bind_text(statement, 6, OpenDate, sizeof(OpenDate), nullptr);
 	sqlite3_bind_text(statement, 7, TradeID, sizeof(TradeID), nullptr);
 }
-void Sqlite::SetStatementForPositionDetailIndexTradeMatch(sqlite3_stmt* statement, PositionDetail* record)
+void SqliteWrapper::SetStatementForPositionDetailIndexTradeMatch(sqlite3_stmt* statement, PositionDetail* record)
 {
 	sqlite3_bind_text(statement, 1, record->TradingDay, sizeof(record->TradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, record->AccountID, sizeof(record->AccountID), nullptr);
@@ -3037,11 +3037,11 @@ void Sqlite::SetStatementForPositionDetailIndexTradeMatch(sqlite3_stmt* statemen
 	sqlite3_bind_text(statement, 4, record->InstrumentID, sizeof(record->InstrumentID), nullptr);
 	sqlite3_bind_int(statement, 5, int(record->PosiDirection));
 }
-void Sqlite::SetStatementForPositionDetailIndexTradingDay(sqlite3_stmt* statement, PositionDetail* record)
+void SqliteWrapper::SetStatementForPositionDetailIndexTradingDay(sqlite3_stmt* statement, PositionDetail* record)
 {
 	sqlite3_bind_text(statement, 1, record->TradingDay, sizeof(record->TradingDay), nullptr);
 }
-void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<PositionDetail*>& records)
+void SqliteWrapper::ParseRecord(sqlite3_stmt* statement, std::list<PositionDetail*>& records)
 {
 	PositionDetail* record = PositionDetail::Allocate();
 	Utility::Strcpy(record->TradingDay, (const char*)sqlite3_column_text(statement, 0));
@@ -3071,7 +3071,7 @@ void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<PositionDetail*>& re
 	record->CloseAmount = sqlite3_column_double(statement, 24);
 	records.push_back(record);
 }
-void Sqlite::SetStatementForOrderRecord(sqlite3_stmt* statement, Order* record)
+void SqliteWrapper::SetStatementForOrderRecord(sqlite3_stmt* statement, Order* record)
 {
 	sqlite3_bind_text(statement, 1, record->TradingDay, sizeof(record->TradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, record->AccountID, sizeof(record->AccountID), nullptr);
@@ -3107,7 +3107,7 @@ void Sqlite::SetStatementForOrderRecord(sqlite3_stmt* statement, Order* record)
 	sqlite3_bind_int(statement, 32, record->RebuildMark);
 	sqlite3_bind_int(statement, 33, record->IsForceClose);
 }
-void Sqlite::SetStatementForOrderRecordUpdate(sqlite3_stmt* statement, Order* record)
+void SqliteWrapper::SetStatementForOrderRecordUpdate(sqlite3_stmt* statement, Order* record)
 {
 	sqlite3_bind_int(statement, 1, int(record->AccountType));
 	sqlite3_bind_int(statement, 2, int(record->ProductClass));
@@ -3143,7 +3143,7 @@ void Sqlite::SetStatementForOrderRecordUpdate(sqlite3_stmt* statement, Order* re
 	sqlite3_bind_text(statement, 32, record->InstrumentID, sizeof(record->InstrumentID), nullptr);
 	sqlite3_bind_int(statement, 33, record->OrderID);
 }
-void Sqlite::SetStatementForOrderPrimaryKey(sqlite3_stmt* statement, const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const OrderIDType& OrderID)
+void SqliteWrapper::SetStatementForOrderPrimaryKey(sqlite3_stmt* statement, const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const OrderIDType& OrderID)
 {
 	sqlite3_bind_text(statement, 1, TradingDay, sizeof(TradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, AccountID, sizeof(AccountID), nullptr);
@@ -3151,7 +3151,7 @@ void Sqlite::SetStatementForOrderPrimaryKey(sqlite3_stmt* statement, const DateT
 	sqlite3_bind_text(statement, 4, InstrumentID, sizeof(InstrumentID), nullptr);
 	sqlite3_bind_int(statement, 5, OrderID);
 }
-void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Order*>& records)
+void SqliteWrapper::ParseRecord(sqlite3_stmt* statement, std::list<Order*>& records)
 {
 	Order* record = Order::Allocate();
 	Utility::Strcpy(record->TradingDay, (const char*)sqlite3_column_text(statement, 0));
@@ -3189,7 +3189,7 @@ void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Order*>& records)
 	record->IsForceClose = sqlite3_column_int(statement, 32);
 	records.push_back(record);
 }
-void Sqlite::SetStatementForTradeRecord(sqlite3_stmt* statement, Trade* record)
+void SqliteWrapper::SetStatementForTradeRecord(sqlite3_stmt* statement, Trade* record)
 {
 	sqlite3_bind_text(statement, 1, record->TradingDay, sizeof(record->TradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, record->AccountID, sizeof(record->AccountID), nullptr);
@@ -3210,7 +3210,7 @@ void Sqlite::SetStatementForTradeRecord(sqlite3_stmt* statement, Trade* record)
 	sqlite3_bind_text(statement, 17, record->TradeDate, sizeof(record->TradeDate), nullptr);
 	sqlite3_bind_text(statement, 18, record->TradeTime, sizeof(record->TradeTime), nullptr);
 }
-void Sqlite::SetStatementForTradeRecordUpdate(sqlite3_stmt* statement, Trade* record)
+void SqliteWrapper::SetStatementForTradeRecordUpdate(sqlite3_stmt* statement, Trade* record)
 {
 	sqlite3_bind_text(statement, 1, record->AccountID, sizeof(record->AccountID), nullptr);
 	sqlite3_bind_int(statement, 2, int(record->AccountType));
@@ -3231,14 +3231,14 @@ void Sqlite::SetStatementForTradeRecordUpdate(sqlite3_stmt* statement, Trade* re
 	sqlite3_bind_text(statement, 17, record->TradeID, sizeof(record->TradeID), nullptr);
 	sqlite3_bind_int(statement, 18, int(record->Direction));
 }
-void Sqlite::SetStatementForTradePrimaryKey(sqlite3_stmt* statement, const DateType& TradingDay, const ExchangeIDType& ExchangeID, const TradeIDType& TradeID, const DirectionType& Direction)
+void SqliteWrapper::SetStatementForTradePrimaryKey(sqlite3_stmt* statement, const DateType& TradingDay, const ExchangeIDType& ExchangeID, const TradeIDType& TradeID, const DirectionType& Direction)
 {
 	sqlite3_bind_text(statement, 1, TradingDay, sizeof(TradingDay), nullptr);
 	sqlite3_bind_text(statement, 2, ExchangeID, sizeof(ExchangeID), nullptr);
 	sqlite3_bind_text(statement, 3, TradeID, sizeof(TradeID), nullptr);
 	sqlite3_bind_int(statement, 4, int(Direction));
 }
-void Sqlite::ParseRecord(sqlite3_stmt* statement, std::list<Trade*>& records)
+void SqliteWrapper::ParseRecord(sqlite3_stmt* statement, std::list<Trade*>& records)
 {
 	Trade* record = Trade::Allocate();
 	Utility::Strcpy(record->TradingDay, (const char*)sqlite3_column_text(statement, 0));

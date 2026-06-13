@@ -1,4 +1,4 @@
-﻿#include "Mdb/Duckdb/DuckdbCommon.h"
+﻿#include "DuckdbCommon.h"
 #include <string.h>
 
 void CpyDuckdbString(char* data, duckdb_string_t& str)

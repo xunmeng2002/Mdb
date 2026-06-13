@@ -1,8 +1,8 @@
 #include "Mdb/Mdb/Mdb.h"
-#include "Mdb/Mysql/Mysql.h"
-#include "Mdb/Mariadb/Mariadb.h"
-#include "Mdb/Duckdb/DuckDB.h"
-#include "Mdb/Sqlite/Sqlite.h"
+#include "Mdb/MysqlWrapper/MysqlWrapper.h"
+#include "Mdb/MariadbWrapper/MariadbWrapper.h"
+#include "Mdb/DuckdbWrapper/DuckDBWrapper.h"
+#include "Mdb/SqliteWrapper/SqliteWrapper.h"
 #include "Mdb/Mdb/DB.h"
 #include "Mdb/Mdb/DBWriter.h"
 #include "Mdb/Mdb/InitMdbFromDB.h"
@@ -207,10 +207,10 @@ static void TestDB(DB* db)
 }
 static void Test()
 {
-	Mysql* mysql = new Mysql(mysqlHost);
-	Mariadb* mariadb = new Mariadb(mariadbHost, dbUser, dbPasswd);
-	Duckdb* duckdb = new Duckdb(duckDBName);
-	Sqlite* sqlite = new Sqlite(sqliteDBName);
+	MysqlWrapper* mysql = new MysqlWrapper(mysqlHost);
+	MariadbWrapper* mariadb = new MariadbWrapper(mariadbHost, dbUser, dbPasswd);
+	DuckdbWrapper* duckdb = new DuckdbWrapper(duckDBName);
+	SqliteWrapper* sqlite = new SqliteWrapper(sqliteDBName);
 
 	//TestDB(mysql);
 	//TestMdb(mariadb);

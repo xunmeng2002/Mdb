@@ -1,16 +1,16 @@
 ﻿#pragma once
-#include <Mdb/Mariadb/MariadbExport.h>
+#include <Mdb/MariadbWrapper/MariadbWrapperExport.h>
 #include <Mdb/Mdb/DB.h>
 #include <string>
 #include <memory>
 #include <list>
 
 
-class MARIADB_EXPORTS Mariadb : public DB
+class MARIADBWRAPPER_EXPORTS MariadbWrapper : public DB
 {
 public:
-	Mariadb(const std::string& host, const std::string& user, const std::string& passwd);
-	~Mariadb();
+	MariadbWrapper(const std::string& host, const std::string& user, const std::string& passwd);
+	~MariadbWrapper();
 	virtual bool Connect() override;
 	virtual void DisConnect() override;
 	virtual void InitDB() override;

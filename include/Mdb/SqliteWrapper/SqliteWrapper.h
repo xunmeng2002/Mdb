@@ -1,16 +1,16 @@
 ﻿#pragma once
-#include <Mdb/Sqlite/SqliteExport.h>
+#include <Mdb/SqliteWrapper/SqliteWrapperExport.h>
 #include <Mdb/Mdb/DB.h>
 #include <sqlite3.h>
 #include <string>
 #include <list>
 
 
-class SQLITE_EXPORTS Sqlite : public DB
+class SQLITEWRAPPER_EXPORTS SqliteWrapper : public DB
 {
 public:
-	Sqlite(const std::string& dbName);
-	~Sqlite();
+	SqliteWrapper(const std::string& dbName);
+	~SqliteWrapper();
 	virtual bool Connect() override;
 	virtual void DisConnect() override;
 	virtual void InitDB() override;

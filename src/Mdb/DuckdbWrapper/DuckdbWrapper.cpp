@@ -1,5 +1,5 @@
-﻿#include "Mdb/Duckdb/Duckdb.h"
-#include "Mdb/Duckdb/DuckdbCommon.h"
+﻿#include <Mdb/DuckdbWrapper/DuckdbWrapper.h>
+#include "DuckdbCommon.h"
 #include <PersonalLib/TemplateLib/TemplateLib.h>
 #include <PersonalLib/Core/Core.h>
 #include <string.h>
@@ -9,7 +9,7 @@ using namespace mdb;
 using namespace std;
 using namespace std::chrono;
 
-Duckdb::Duckdb(const std::string& dbName)
+DuckdbWrapper::DuckdbWrapper(const std::string& dbName)
 	:m_DBName(dbName), m_DB(nullptr), m_Connection(nullptr)
 {
 	m_SqlBuff = new char[BuffSize];
@@ -76,17 +76,17 @@ Duckdb::Duckdb(const std::string& dbName)
 	m_TradeTruncateStatement = nullptr;
 
 }
-Duckdb::~Duckdb()
+DuckdbWrapper::~DuckdbWrapper()
 {
 	delete[] m_SqlBuff;
 	DisConnect();
 }
-bool Duckdb::Connect()
+bool DuckdbWrapper::Connect()
 {
 	int result = duckdb_open(m_DBName.c_str(), &m_DB);
 	if (result != DuckDBSuccess)
 	{
-		WriteLog(LogLevel::Warning, "Open Duckdb Failed.");
+		WriteLog(LogLevel::Warning, "Open duckdb Failed.");
 		return false;
 	}
 	if (duckdb_connect(m_DB, &m_Connection) != DuckDBSuccess)
@@ -96,7 +96,7 @@ bool Duckdb::Connect()
 	}
 	return true;
 }
-void Duckdb::DisConnect()
+void DuckdbWrapper::DisConnect()
 {
 	if (m_Connection != nullptr)
 	{
@@ -359,7 +359,7 @@ void Duckdb::DisConnect()
 		m_TradeTruncateStatement = nullptr;
 	}
 }
-void Duckdb::InitDB()
+void DuckdbWrapper::InitDB()
 {
 	Exec("Delete From t_TradingDay;");
 	Exec("Insert Into t_TradingDay select * from Init.t_TradingDay;");
@@ -384,7 +384,7 @@ void Duckdb::InitDB()
 	Exec("Delete From t_Trade;");
 	Exec("Insert Into t_Trade select * from Init.t_Trade;");
 }
-void Duckdb::CreateTables()
+void DuckdbWrapper::CreateTables()
 {
 	CreateTradingDay();
 	CreateExchange();
@@ -398,7 +398,7 @@ void Duckdb::CreateTables()
 	CreateOrder();
 	CreateTrade();
 }
-void Duckdb::DropTables()
+void DuckdbWrapper::DropTables()
 {
 	DropTradingDay();
 	DropExchange();
@@ -412,7 +412,7 @@ void Duckdb::DropTables()
 	DropOrder();
 	DropTrade();
 }
-void Duckdb::TruncateTables()
+void DuckdbWrapper::TruncateTables()
 {
 	TruncateTradingDay();
 	TruncateExchange();
@@ -425,12 +425,12 @@ void Duckdb::TruncateTables()
 	TruncateOrder();
 	TruncateTrade();
 }
-void Duckdb::TruncateSessionTables()
+void DuckdbWrapper::TruncateSessionTables()
 {
 	auto start = steady_clock::now();
 	WriteLog(LogLevel::Info, "TruncateSessionTables Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-bool Duckdb::Exec(const char* sql) const
+bool DuckdbWrapper::Exec(const char* sql) const
 {
 	duckdb_prepared_statement stmt;
 	if (duckdb_prepare(m_Connection, sql, &stmt) != DuckDBSuccess) 
@@ -450,7 +450,7 @@ bool Duckdb::Exec(const char* sql) const
 	return ret == DuckDBSuccess;
 }
 
-void Duckdb::CreateTradingDay()
+void DuckdbWrapper::CreateTradingDay()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -464,7 +464,7 @@ void Duckdb::CreateTradingDay()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateTradingDay Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::DropTradingDay()
+void DuckdbWrapper::DropTradingDay()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -478,7 +478,7 @@ void Duckdb::DropTradingDay()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropTradingDay Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::InsertTradingDay(TradingDay* record)
+void DuckdbWrapper::InsertTradingDay(TradingDay* record)
 {
 	duckdb_appender appender;
 	if (duckdb_appender_create(m_Connection, nullptr, "t_TradingDay", &appender) != DuckDBSuccess)
@@ -490,7 +490,7 @@ void Duckdb::InsertTradingDay(TradingDay* record)
 	AppendForTradingDayRecord(appender, record);
 	duckdb_appender_destroy(&appender);
 }
-void Duckdb::BatchInsertTradingDay(std::list<TradingDay*>* records)
+void DuckdbWrapper::BatchInsertTradingDay(std::list<TradingDay*>* records)
 {
 	auto start = steady_clock::now();
 	duckdb_appender appender;
@@ -509,7 +509,7 @@ void Duckdb::BatchInsertTradingDay(std::list<TradingDay*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "BatchInsertTradingDay RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Duckdb::DeleteTradingDay(TradingDay* record)
+void DuckdbWrapper::DeleteTradingDay(TradingDay* record)
 {
 	auto start = steady_clock::now();
 	if (m_TradingDayDeleteStatement == nullptr)
@@ -532,7 +532,7 @@ void Duckdb::DeleteTradingDay(TradingDay* record)
 		WriteLog(LogLevel::Warning, "DeleteTradingDay Spend:%lldms", duration);
 	}
 }
-void Duckdb::UpdateTradingDay(TradingDay* record)
+void DuckdbWrapper::UpdateTradingDay(TradingDay* record)
 {
 	auto start = steady_clock::now();
 	if (m_TradingDayUpdateStatement == nullptr)
@@ -555,7 +555,7 @@ void Duckdb::UpdateTradingDay(TradingDay* record)
 		WriteLog(LogLevel::Warning, "UpdateTradingDay Spend:%lldms", duration);
 	}
 }
-void Duckdb::SelectTradingDay(std::list<TradingDay*>& records)
+void DuckdbWrapper::SelectTradingDay(std::list<TradingDay*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_TradingDaySelectStatement == nullptr)
@@ -581,7 +581,7 @@ void Duckdb::SelectTradingDay(std::list<TradingDay*>& records)
 		WriteLog(LogLevel::Warning, "SelectTradingDay Spend:%lldms", duration);
 	}
 }
-void Duckdb::TruncateTradingDay()
+void DuckdbWrapper::TruncateTradingDay()
 {
 	auto start = steady_clock::now();
 	if (m_TradingDayTruncateStatement == nullptr)
@@ -597,7 +597,7 @@ void Duckdb::TruncateTradingDay()
 	
 	WriteLog(LogLevel::Info, "TruncateTradingDay Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Duckdb::ParseRecord(duckdb_result& result, std::list<TradingDay*>& records)
+void DuckdbWrapper::ParseRecord(duckdb_result& result, std::list<TradingDay*>& records)
 {
 	while (true)
 	{
@@ -636,7 +636,7 @@ void Duckdb::ParseRecord(duckdb_result& result, std::list<TradingDay*>& records)
 		}
 	}
 }
-void Duckdb::CreateExchange()
+void DuckdbWrapper::CreateExchange()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -650,7 +650,7 @@ void Duckdb::CreateExchange()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateExchange Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::DropExchange()
+void DuckdbWrapper::DropExchange()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -664,7 +664,7 @@ void Duckdb::DropExchange()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropExchange Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::InsertExchange(Exchange* record)
+void DuckdbWrapper::InsertExchange(Exchange* record)
 {
 	duckdb_appender appender;
 	if (duckdb_appender_create(m_Connection, nullptr, "t_Exchange", &appender) != DuckDBSuccess)
@@ -676,7 +676,7 @@ void Duckdb::InsertExchange(Exchange* record)
 	AppendForExchangeRecord(appender, record);
 	duckdb_appender_destroy(&appender);
 }
-void Duckdb::BatchInsertExchange(std::list<Exchange*>* records)
+void DuckdbWrapper::BatchInsertExchange(std::list<Exchange*>* records)
 {
 	auto start = steady_clock::now();
 	duckdb_appender appender;
@@ -695,7 +695,7 @@ void Duckdb::BatchInsertExchange(std::list<Exchange*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "BatchInsertExchange RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Duckdb::DeleteExchange(Exchange* record)
+void DuckdbWrapper::DeleteExchange(Exchange* record)
 {
 	auto start = steady_clock::now();
 	if (m_ExchangeDeleteStatement == nullptr)
@@ -718,7 +718,7 @@ void Duckdb::DeleteExchange(Exchange* record)
 		WriteLog(LogLevel::Warning, "DeleteExchange Spend:%lldms", duration);
 	}
 }
-void Duckdb::UpdateExchange(Exchange* record)
+void DuckdbWrapper::UpdateExchange(Exchange* record)
 {
 	auto start = steady_clock::now();
 	if (m_ExchangeUpdateStatement == nullptr)
@@ -741,7 +741,7 @@ void Duckdb::UpdateExchange(Exchange* record)
 		WriteLog(LogLevel::Warning, "UpdateExchange Spend:%lldms", duration);
 	}
 }
-void Duckdb::SelectExchange(std::list<Exchange*>& records)
+void DuckdbWrapper::SelectExchange(std::list<Exchange*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_ExchangeSelectStatement == nullptr)
@@ -767,7 +767,7 @@ void Duckdb::SelectExchange(std::list<Exchange*>& records)
 		WriteLog(LogLevel::Warning, "SelectExchange Spend:%lldms", duration);
 	}
 }
-void Duckdb::TruncateExchange()
+void DuckdbWrapper::TruncateExchange()
 {
 	auto start = steady_clock::now();
 	if (m_ExchangeTruncateStatement == nullptr)
@@ -783,7 +783,7 @@ void Duckdb::TruncateExchange()
 	
 	WriteLog(LogLevel::Info, "TruncateExchange Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Duckdb::ParseRecord(duckdb_result& result, std::list<Exchange*>& records)
+void DuckdbWrapper::ParseRecord(duckdb_result& result, std::list<Exchange*>& records)
 {
 	while (true)
 	{
@@ -818,7 +818,7 @@ void Duckdb::ParseRecord(duckdb_result& result, std::list<Exchange*>& records)
 		}
 	}
 }
-void Duckdb::CreateProduct()
+void DuckdbWrapper::CreateProduct()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -832,7 +832,7 @@ void Duckdb::CreateProduct()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateProduct Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::DropProduct()
+void DuckdbWrapper::DropProduct()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -846,7 +846,7 @@ void Duckdb::DropProduct()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropProduct Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::InsertProduct(Product* record)
+void DuckdbWrapper::InsertProduct(Product* record)
 {
 	duckdb_appender appender;
 	if (duckdb_appender_create(m_Connection, nullptr, "t_Product", &appender) != DuckDBSuccess)
@@ -858,7 +858,7 @@ void Duckdb::InsertProduct(Product* record)
 	AppendForProductRecord(appender, record);
 	duckdb_appender_destroy(&appender);
 }
-void Duckdb::BatchInsertProduct(std::list<Product*>* records)
+void DuckdbWrapper::BatchInsertProduct(std::list<Product*>* records)
 {
 	auto start = steady_clock::now();
 	duckdb_appender appender;
@@ -877,7 +877,7 @@ void Duckdb::BatchInsertProduct(std::list<Product*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "BatchInsertProduct RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Duckdb::DeleteProduct(Product* record)
+void DuckdbWrapper::DeleteProduct(Product* record)
 {
 	auto start = steady_clock::now();
 	if (m_ProductDeleteStatement == nullptr)
@@ -900,7 +900,7 @@ void Duckdb::DeleteProduct(Product* record)
 		WriteLog(LogLevel::Warning, "DeleteProduct Spend:%lldms", duration);
 	}
 }
-void Duckdb::UpdateProduct(Product* record)
+void DuckdbWrapper::UpdateProduct(Product* record)
 {
 	auto start = steady_clock::now();
 	if (m_ProductUpdateStatement == nullptr)
@@ -923,7 +923,7 @@ void Duckdb::UpdateProduct(Product* record)
 		WriteLog(LogLevel::Warning, "UpdateProduct Spend:%lldms", duration);
 	}
 }
-void Duckdb::SelectProduct(std::list<Product*>& records)
+void DuckdbWrapper::SelectProduct(std::list<Product*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_ProductSelectStatement == nullptr)
@@ -949,7 +949,7 @@ void Duckdb::SelectProduct(std::list<Product*>& records)
 		WriteLog(LogLevel::Warning, "SelectProduct Spend:%lldms", duration);
 	}
 }
-void Duckdb::TruncateProduct()
+void DuckdbWrapper::TruncateProduct()
 {
 	auto start = steady_clock::now();
 	if (m_ProductTruncateStatement == nullptr)
@@ -965,7 +965,7 @@ void Duckdb::TruncateProduct()
 	
 	WriteLog(LogLevel::Info, "TruncateProduct Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Duckdb::ParseRecord(duckdb_result& result, std::list<Product*>& records)
+void DuckdbWrapper::ParseRecord(duckdb_result& result, std::list<Product*>& records)
 {
 	while (true)
 	{
@@ -1042,7 +1042,7 @@ void Duckdb::ParseRecord(duckdb_result& result, std::list<Product*>& records)
 		}
 	}
 }
-void Duckdb::CreateInstrument()
+void DuckdbWrapper::CreateInstrument()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -1056,7 +1056,7 @@ void Duckdb::CreateInstrument()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateInstrument Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::DropInstrument()
+void DuckdbWrapper::DropInstrument()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -1070,7 +1070,7 @@ void Duckdb::DropInstrument()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropInstrument Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::InsertInstrument(Instrument* record)
+void DuckdbWrapper::InsertInstrument(Instrument* record)
 {
 	duckdb_appender appender;
 	if (duckdb_appender_create(m_Connection, nullptr, "t_Instrument", &appender) != DuckDBSuccess)
@@ -1082,7 +1082,7 @@ void Duckdb::InsertInstrument(Instrument* record)
 	AppendForInstrumentRecord(appender, record);
 	duckdb_appender_destroy(&appender);
 }
-void Duckdb::BatchInsertInstrument(std::list<Instrument*>* records)
+void DuckdbWrapper::BatchInsertInstrument(std::list<Instrument*>* records)
 {
 	auto start = steady_clock::now();
 	duckdb_appender appender;
@@ -1101,7 +1101,7 @@ void Duckdb::BatchInsertInstrument(std::list<Instrument*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "BatchInsertInstrument RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Duckdb::DeleteInstrument(Instrument* record)
+void DuckdbWrapper::DeleteInstrument(Instrument* record)
 {
 	auto start = steady_clock::now();
 	if (m_InstrumentDeleteStatement == nullptr)
@@ -1124,7 +1124,7 @@ void Duckdb::DeleteInstrument(Instrument* record)
 		WriteLog(LogLevel::Warning, "DeleteInstrument Spend:%lldms", duration);
 	}
 }
-void Duckdb::UpdateInstrument(Instrument* record)
+void DuckdbWrapper::UpdateInstrument(Instrument* record)
 {
 	auto start = steady_clock::now();
 	if (m_InstrumentUpdateStatement == nullptr)
@@ -1147,7 +1147,7 @@ void Duckdb::UpdateInstrument(Instrument* record)
 		WriteLog(LogLevel::Warning, "UpdateInstrument Spend:%lldms", duration);
 	}
 }
-void Duckdb::SelectInstrument(std::list<Instrument*>& records)
+void DuckdbWrapper::SelectInstrument(std::list<Instrument*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_InstrumentSelectStatement == nullptr)
@@ -1173,7 +1173,7 @@ void Duckdb::SelectInstrument(std::list<Instrument*>& records)
 		WriteLog(LogLevel::Warning, "SelectInstrument Spend:%lldms", duration);
 	}
 }
-void Duckdb::TruncateInstrument()
+void DuckdbWrapper::TruncateInstrument()
 {
 	auto start = steady_clock::now();
 	if (m_InstrumentTruncateStatement == nullptr)
@@ -1189,7 +1189,7 @@ void Duckdb::TruncateInstrument()
 	
 	WriteLog(LogLevel::Info, "TruncateInstrument Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Duckdb::ParseRecord(duckdb_result& result, std::list<Instrument*>& records)
+void DuckdbWrapper::ParseRecord(duckdb_result& result, std::list<Instrument*>& records)
 {
 	while (true)
 	{
@@ -1288,7 +1288,7 @@ void Duckdb::ParseRecord(duckdb_result& result, std::list<Instrument*>& records)
 		}
 	}
 }
-void Duckdb::CreatePrimaryAccount()
+void DuckdbWrapper::CreatePrimaryAccount()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -1302,7 +1302,7 @@ void Duckdb::CreatePrimaryAccount()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreatePrimaryAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::DropPrimaryAccount()
+void DuckdbWrapper::DropPrimaryAccount()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -1316,7 +1316,7 @@ void Duckdb::DropPrimaryAccount()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropPrimaryAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::InsertPrimaryAccount(PrimaryAccount* record)
+void DuckdbWrapper::InsertPrimaryAccount(PrimaryAccount* record)
 {
 	duckdb_appender appender;
 	if (duckdb_appender_create(m_Connection, nullptr, "t_PrimaryAccount", &appender) != DuckDBSuccess)
@@ -1328,7 +1328,7 @@ void Duckdb::InsertPrimaryAccount(PrimaryAccount* record)
 	AppendForPrimaryAccountRecord(appender, record);
 	duckdb_appender_destroy(&appender);
 }
-void Duckdb::BatchInsertPrimaryAccount(std::list<PrimaryAccount*>* records)
+void DuckdbWrapper::BatchInsertPrimaryAccount(std::list<PrimaryAccount*>* records)
 {
 	auto start = steady_clock::now();
 	duckdb_appender appender;
@@ -1347,7 +1347,7 @@ void Duckdb::BatchInsertPrimaryAccount(std::list<PrimaryAccount*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "BatchInsertPrimaryAccount RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Duckdb::DeletePrimaryAccount(PrimaryAccount* record)
+void DuckdbWrapper::DeletePrimaryAccount(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountDeleteStatement == nullptr)
@@ -1370,7 +1370,7 @@ void Duckdb::DeletePrimaryAccount(PrimaryAccount* record)
 		WriteLog(LogLevel::Warning, "DeletePrimaryAccount Spend:%lldms", duration);
 	}
 }
-void Duckdb::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
+void DuckdbWrapper::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountDeleteByOfferIDIndexStatement == nullptr)
@@ -1393,7 +1393,7 @@ void Duckdb::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
 		WriteLog(LogLevel::Warning, "DeletePrimaryAccountByOfferIDIndex Spend:%lldms", duration);
 	}
 }
-void Duckdb::UpdatePrimaryAccount(PrimaryAccount* record)
+void DuckdbWrapper::UpdatePrimaryAccount(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountUpdateStatement == nullptr)
@@ -1416,7 +1416,7 @@ void Duckdb::UpdatePrimaryAccount(PrimaryAccount* record)
 		WriteLog(LogLevel::Warning, "UpdatePrimaryAccount Spend:%lldms", duration);
 	}
 }
-void Duckdb::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
+void DuckdbWrapper::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountSelectStatement == nullptr)
@@ -1442,7 +1442,7 @@ void Duckdb::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 		WriteLog(LogLevel::Warning, "SelectPrimaryAccount Spend:%lldms", duration);
 	}
 }
-void Duckdb::TruncatePrimaryAccount()
+void DuckdbWrapper::TruncatePrimaryAccount()
 {
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountTruncateStatement == nullptr)
@@ -1458,7 +1458,7 @@ void Duckdb::TruncatePrimaryAccount()
 	
 	WriteLog(LogLevel::Info, "TruncatePrimaryAccount Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Duckdb::ParseRecord(duckdb_result& result, std::list<PrimaryAccount*>& records)
+void DuckdbWrapper::ParseRecord(duckdb_result& result, std::list<PrimaryAccount*>& records)
 {
 	while (true)
 	{
@@ -1524,7 +1524,7 @@ void Duckdb::ParseRecord(duckdb_result& result, std::list<PrimaryAccount*>& reco
 		}
 	}
 }
-void Duckdb::CreateAccount()
+void DuckdbWrapper::CreateAccount()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -1538,7 +1538,7 @@ void Duckdb::CreateAccount()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::DropAccount()
+void DuckdbWrapper::DropAccount()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -1552,7 +1552,7 @@ void Duckdb::DropAccount()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::InsertAccount(Account* record)
+void DuckdbWrapper::InsertAccount(Account* record)
 {
 	duckdb_appender appender;
 	if (duckdb_appender_create(m_Connection, nullptr, "t_Account", &appender) != DuckDBSuccess)
@@ -1564,7 +1564,7 @@ void Duckdb::InsertAccount(Account* record)
 	AppendForAccountRecord(appender, record);
 	duckdb_appender_destroy(&appender);
 }
-void Duckdb::BatchInsertAccount(std::list<Account*>* records)
+void DuckdbWrapper::BatchInsertAccount(std::list<Account*>* records)
 {
 	auto start = steady_clock::now();
 	duckdb_appender appender;
@@ -1583,7 +1583,7 @@ void Duckdb::BatchInsertAccount(std::list<Account*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "BatchInsertAccount RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Duckdb::DeleteAccount(Account* record)
+void DuckdbWrapper::DeleteAccount(Account* record)
 {
 	auto start = steady_clock::now();
 	if (m_AccountDeleteStatement == nullptr)
@@ -1606,7 +1606,7 @@ void Duckdb::DeleteAccount(Account* record)
 		WriteLog(LogLevel::Warning, "DeleteAccount Spend:%lldms", duration);
 	}
 }
-void Duckdb::UpdateAccount(Account* record)
+void DuckdbWrapper::UpdateAccount(Account* record)
 {
 	auto start = steady_clock::now();
 	if (m_AccountUpdateStatement == nullptr)
@@ -1629,7 +1629,7 @@ void Duckdb::UpdateAccount(Account* record)
 		WriteLog(LogLevel::Warning, "UpdateAccount Spend:%lldms", duration);
 	}
 }
-void Duckdb::SelectAccount(std::list<Account*>& records)
+void DuckdbWrapper::SelectAccount(std::list<Account*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_AccountSelectStatement == nullptr)
@@ -1655,7 +1655,7 @@ void Duckdb::SelectAccount(std::list<Account*>& records)
 		WriteLog(LogLevel::Warning, "SelectAccount Spend:%lldms", duration);
 	}
 }
-void Duckdb::TruncateAccount()
+void DuckdbWrapper::TruncateAccount()
 {
 	auto start = steady_clock::now();
 	if (m_AccountTruncateStatement == nullptr)
@@ -1671,7 +1671,7 @@ void Duckdb::TruncateAccount()
 	
 	WriteLog(LogLevel::Info, "TruncateAccount Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Duckdb::ParseRecord(duckdb_result& result, std::list<Account*>& records)
+void DuckdbWrapper::ParseRecord(duckdb_result& result, std::list<Account*>& records)
 {
 	while (true)
 	{
@@ -1733,7 +1733,7 @@ void Duckdb::ParseRecord(duckdb_result& result, std::list<Account*>& records)
 		}
 	}
 }
-void Duckdb::CreateCapital()
+void DuckdbWrapper::CreateCapital()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -1747,7 +1747,7 @@ void Duckdb::CreateCapital()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateCapital Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::DropCapital()
+void DuckdbWrapper::DropCapital()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -1761,7 +1761,7 @@ void Duckdb::DropCapital()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropCapital Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::InsertCapital(Capital* record)
+void DuckdbWrapper::InsertCapital(Capital* record)
 {
 	duckdb_appender appender;
 	if (duckdb_appender_create(m_Connection, nullptr, "t_Capital", &appender) != DuckDBSuccess)
@@ -1773,7 +1773,7 @@ void Duckdb::InsertCapital(Capital* record)
 	AppendForCapitalRecord(appender, record);
 	duckdb_appender_destroy(&appender);
 }
-void Duckdb::BatchInsertCapital(std::list<Capital*>* records)
+void DuckdbWrapper::BatchInsertCapital(std::list<Capital*>* records)
 {
 	auto start = steady_clock::now();
 	duckdb_appender appender;
@@ -1792,7 +1792,7 @@ void Duckdb::BatchInsertCapital(std::list<Capital*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "BatchInsertCapital RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Duckdb::DeleteCapital(Capital* record)
+void DuckdbWrapper::DeleteCapital(Capital* record)
 {
 	auto start = steady_clock::now();
 	if (m_CapitalDeleteStatement == nullptr)
@@ -1815,7 +1815,7 @@ void Duckdb::DeleteCapital(Capital* record)
 		WriteLog(LogLevel::Warning, "DeleteCapital Spend:%lldms", duration);
 	}
 }
-void Duckdb::DeleteCapitalByTradingDayIndex(Capital* record)
+void DuckdbWrapper::DeleteCapitalByTradingDayIndex(Capital* record)
 {
 	auto start = steady_clock::now();
 	if (m_CapitalDeleteByTradingDayIndexStatement == nullptr)
@@ -1838,7 +1838,7 @@ void Duckdb::DeleteCapitalByTradingDayIndex(Capital* record)
 		WriteLog(LogLevel::Warning, "DeleteCapitalByTradingDayIndex Spend:%lldms", duration);
 	}
 }
-void Duckdb::UpdateCapital(Capital* record)
+void DuckdbWrapper::UpdateCapital(Capital* record)
 {
 	auto start = steady_clock::now();
 	if (m_CapitalUpdateStatement == nullptr)
@@ -1861,7 +1861,7 @@ void Duckdb::UpdateCapital(Capital* record)
 		WriteLog(LogLevel::Warning, "UpdateCapital Spend:%lldms", duration);
 	}
 }
-void Duckdb::SelectCapital(std::list<Capital*>& records)
+void DuckdbWrapper::SelectCapital(std::list<Capital*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_CapitalSelectStatement == nullptr)
@@ -1887,7 +1887,7 @@ void Duckdb::SelectCapital(std::list<Capital*>& records)
 		WriteLog(LogLevel::Warning, "SelectCapital Spend:%lldms", duration);
 	}
 }
-void Duckdb::TruncateCapital()
+void DuckdbWrapper::TruncateCapital()
 {
 	auto start = steady_clock::now();
 	if (m_CapitalTruncateStatement == nullptr)
@@ -1903,7 +1903,7 @@ void Duckdb::TruncateCapital()
 	
 	WriteLog(LogLevel::Info, "TruncateCapital Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Duckdb::ParseRecord(duckdb_result& result, std::list<Capital*>& records)
+void DuckdbWrapper::ParseRecord(duckdb_result& result, std::list<Capital*>& records)
 {
 	while (true)
 	{
@@ -2010,7 +2010,7 @@ void Duckdb::ParseRecord(duckdb_result& result, std::list<Capital*>& records)
 		}
 	}
 }
-void Duckdb::CreatePosition()
+void DuckdbWrapper::CreatePosition()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -2024,7 +2024,7 @@ void Duckdb::CreatePosition()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreatePosition Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::DropPosition()
+void DuckdbWrapper::DropPosition()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -2038,7 +2038,7 @@ void Duckdb::DropPosition()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropPosition Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::InsertPosition(Position* record)
+void DuckdbWrapper::InsertPosition(Position* record)
 {
 	duckdb_appender appender;
 	if (duckdb_appender_create(m_Connection, nullptr, "t_Position", &appender) != DuckDBSuccess)
@@ -2050,7 +2050,7 @@ void Duckdb::InsertPosition(Position* record)
 	AppendForPositionRecord(appender, record);
 	duckdb_appender_destroy(&appender);
 }
-void Duckdb::BatchInsertPosition(std::list<Position*>* records)
+void DuckdbWrapper::BatchInsertPosition(std::list<Position*>* records)
 {
 	auto start = steady_clock::now();
 	duckdb_appender appender;
@@ -2069,7 +2069,7 @@ void Duckdb::BatchInsertPosition(std::list<Position*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "BatchInsertPosition RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Duckdb::DeletePosition(Position* record)
+void DuckdbWrapper::DeletePosition(Position* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDeleteStatement == nullptr)
@@ -2092,7 +2092,7 @@ void Duckdb::DeletePosition(Position* record)
 		WriteLog(LogLevel::Warning, "DeletePosition Spend:%lldms", duration);
 	}
 }
-void Duckdb::DeletePositionByAccountIndex(Position* record)
+void DuckdbWrapper::DeletePositionByAccountIndex(Position* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDeleteByAccountIndexStatement == nullptr)
@@ -2115,7 +2115,7 @@ void Duckdb::DeletePositionByAccountIndex(Position* record)
 		WriteLog(LogLevel::Warning, "DeletePositionByAccountIndex Spend:%lldms", duration);
 	}
 }
-void Duckdb::DeletePositionByTradingDayIndex(Position* record)
+void DuckdbWrapper::DeletePositionByTradingDayIndex(Position* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDeleteByTradingDayIndexStatement == nullptr)
@@ -2138,7 +2138,7 @@ void Duckdb::DeletePositionByTradingDayIndex(Position* record)
 		WriteLog(LogLevel::Warning, "DeletePositionByTradingDayIndex Spend:%lldms", duration);
 	}
 }
-void Duckdb::UpdatePosition(Position* record)
+void DuckdbWrapper::UpdatePosition(Position* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionUpdateStatement == nullptr)
@@ -2161,7 +2161,7 @@ void Duckdb::UpdatePosition(Position* record)
 		WriteLog(LogLevel::Warning, "UpdatePosition Spend:%lldms", duration);
 	}
 }
-void Duckdb::SelectPosition(std::list<Position*>& records)
+void DuckdbWrapper::SelectPosition(std::list<Position*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_PositionSelectStatement == nullptr)
@@ -2187,7 +2187,7 @@ void Duckdb::SelectPosition(std::list<Position*>& records)
 		WriteLog(LogLevel::Warning, "SelectPosition Spend:%lldms", duration);
 	}
 }
-void Duckdb::TruncatePosition()
+void DuckdbWrapper::TruncatePosition()
 {
 	auto start = steady_clock::now();
 	if (m_PositionTruncateStatement == nullptr)
@@ -2203,7 +2203,7 @@ void Duckdb::TruncatePosition()
 	
 	WriteLog(LogLevel::Info, "TruncatePosition Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Duckdb::ParseRecord(duckdb_result& result, std::list<Position*>& records)
+void DuckdbWrapper::ParseRecord(duckdb_result& result, std::list<Position*>& records)
 {
 	while (true)
 	{
@@ -2336,7 +2336,7 @@ void Duckdb::ParseRecord(duckdb_result& result, std::list<Position*>& records)
 		}
 	}
 }
-void Duckdb::CreatePositionDetail()
+void DuckdbWrapper::CreatePositionDetail()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -2350,7 +2350,7 @@ void Duckdb::CreatePositionDetail()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreatePositionDetail Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::DropPositionDetail()
+void DuckdbWrapper::DropPositionDetail()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -2364,7 +2364,7 @@ void Duckdb::DropPositionDetail()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropPositionDetail Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::InsertPositionDetail(PositionDetail* record)
+void DuckdbWrapper::InsertPositionDetail(PositionDetail* record)
 {
 	duckdb_appender appender;
 	if (duckdb_appender_create(m_Connection, nullptr, "t_PositionDetail", &appender) != DuckDBSuccess)
@@ -2376,7 +2376,7 @@ void Duckdb::InsertPositionDetail(PositionDetail* record)
 	AppendForPositionDetailRecord(appender, record);
 	duckdb_appender_destroy(&appender);
 }
-void Duckdb::BatchInsertPositionDetail(std::list<PositionDetail*>* records)
+void DuckdbWrapper::BatchInsertPositionDetail(std::list<PositionDetail*>* records)
 {
 	auto start = steady_clock::now();
 	duckdb_appender appender;
@@ -2395,7 +2395,7 @@ void Duckdb::BatchInsertPositionDetail(std::list<PositionDetail*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "BatchInsertPositionDetail RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Duckdb::DeletePositionDetail(PositionDetail* record)
+void DuckdbWrapper::DeletePositionDetail(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailDeleteStatement == nullptr)
@@ -2418,7 +2418,7 @@ void Duckdb::DeletePositionDetail(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "DeletePositionDetail Spend:%lldms", duration);
 	}
 }
-void Duckdb::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
+void DuckdbWrapper::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailDeleteByTradeMatchIndexStatement == nullptr)
@@ -2441,7 +2441,7 @@ void Duckdb::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "DeletePositionDetailByTradeMatchIndex Spend:%lldms", duration);
 	}
 }
-void Duckdb::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
+void DuckdbWrapper::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailDeleteByTradingDayIndexStatement == nullptr)
@@ -2464,7 +2464,7 @@ void Duckdb::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "DeletePositionDetailByTradingDayIndex Spend:%lldms", duration);
 	}
 }
-void Duckdb::UpdatePositionDetail(PositionDetail* record)
+void DuckdbWrapper::UpdatePositionDetail(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailUpdateStatement == nullptr)
@@ -2487,7 +2487,7 @@ void Duckdb::UpdatePositionDetail(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "UpdatePositionDetail Spend:%lldms", duration);
 	}
 }
-void Duckdb::SelectPositionDetail(std::list<PositionDetail*>& records)
+void DuckdbWrapper::SelectPositionDetail(std::list<PositionDetail*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailSelectStatement == nullptr)
@@ -2513,7 +2513,7 @@ void Duckdb::SelectPositionDetail(std::list<PositionDetail*>& records)
 		WriteLog(LogLevel::Warning, "SelectPositionDetail Spend:%lldms", duration);
 	}
 }
-void Duckdb::TruncatePositionDetail()
+void DuckdbWrapper::TruncatePositionDetail()
 {
 	auto start = steady_clock::now();
 	if (m_PositionDetailTruncateStatement == nullptr)
@@ -2529,7 +2529,7 @@ void Duckdb::TruncatePositionDetail()
 	
 	WriteLog(LogLevel::Info, "TruncatePositionDetail Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Duckdb::ParseRecord(duckdb_result& result, std::list<PositionDetail*>& records)
+void DuckdbWrapper::ParseRecord(duckdb_result& result, std::list<PositionDetail*>& records)
 {
 	while (true)
 	{
@@ -2668,7 +2668,7 @@ void Duckdb::ParseRecord(duckdb_result& result, std::list<PositionDetail*>& reco
 		}
 	}
 }
-void Duckdb::CreateOrder()
+void DuckdbWrapper::CreateOrder()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -2682,7 +2682,7 @@ void Duckdb::CreateOrder()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateOrder Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::DropOrder()
+void DuckdbWrapper::DropOrder()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -2696,7 +2696,7 @@ void Duckdb::DropOrder()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropOrder Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::InsertOrder(Order* record)
+void DuckdbWrapper::InsertOrder(Order* record)
 {
 	duckdb_appender appender;
 	if (duckdb_appender_create(m_Connection, nullptr, "t_Order", &appender) != DuckDBSuccess)
@@ -2708,7 +2708,7 @@ void Duckdb::InsertOrder(Order* record)
 	AppendForOrderRecord(appender, record);
 	duckdb_appender_destroy(&appender);
 }
-void Duckdb::BatchInsertOrder(std::list<Order*>* records)
+void DuckdbWrapper::BatchInsertOrder(std::list<Order*>* records)
 {
 	auto start = steady_clock::now();
 	duckdb_appender appender;
@@ -2727,7 +2727,7 @@ void Duckdb::BatchInsertOrder(std::list<Order*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "BatchInsertOrder RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Duckdb::DeleteOrder(Order* record)
+void DuckdbWrapper::DeleteOrder(Order* record)
 {
 	auto start = steady_clock::now();
 	if (m_OrderDeleteStatement == nullptr)
@@ -2750,7 +2750,7 @@ void Duckdb::DeleteOrder(Order* record)
 		WriteLog(LogLevel::Warning, "DeleteOrder Spend:%lldms", duration);
 	}
 }
-void Duckdb::UpdateOrder(Order* record)
+void DuckdbWrapper::UpdateOrder(Order* record)
 {
 	auto start = steady_clock::now();
 	if (m_OrderUpdateStatement == nullptr)
@@ -2773,7 +2773,7 @@ void Duckdb::UpdateOrder(Order* record)
 		WriteLog(LogLevel::Warning, "UpdateOrder Spend:%lldms", duration);
 	}
 }
-void Duckdb::SelectOrder(std::list<Order*>& records)
+void DuckdbWrapper::SelectOrder(std::list<Order*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_OrderSelectStatement == nullptr)
@@ -2799,7 +2799,7 @@ void Duckdb::SelectOrder(std::list<Order*>& records)
 		WriteLog(LogLevel::Warning, "SelectOrder Spend:%lldms", duration);
 	}
 }
-void Duckdb::TruncateOrder()
+void DuckdbWrapper::TruncateOrder()
 {
 	auto start = steady_clock::now();
 	if (m_OrderTruncateStatement == nullptr)
@@ -2815,7 +2815,7 @@ void Duckdb::TruncateOrder()
 	
 	WriteLog(LogLevel::Info, "TruncateOrder Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Duckdb::ParseRecord(duckdb_result& result, std::list<Order*>& records)
+void DuckdbWrapper::ParseRecord(duckdb_result& result, std::list<Order*>& records)
 {
 	while (true)
 	{
@@ -2995,7 +2995,7 @@ void Duckdb::ParseRecord(duckdb_result& result, std::list<Order*>& records)
 		}
 	}
 }
-void Duckdb::CreateTrade()
+void DuckdbWrapper::CreateTrade()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -3009,7 +3009,7 @@ void Duckdb::CreateTrade()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateTrade Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::DropTrade()
+void DuckdbWrapper::DropTrade()
 {
 	auto start = steady_clock::now();
 	duckdb_result result;
@@ -3023,7 +3023,7 @@ void Duckdb::DropTrade()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropTrade Spend:%lldms, sql:%s", duration, sql);
 }
-void Duckdb::InsertTrade(Trade* record)
+void DuckdbWrapper::InsertTrade(Trade* record)
 {
 	duckdb_appender appender;
 	if (duckdb_appender_create(m_Connection, nullptr, "t_Trade", &appender) != DuckDBSuccess)
@@ -3035,7 +3035,7 @@ void Duckdb::InsertTrade(Trade* record)
 	AppendForTradeRecord(appender, record);
 	duckdb_appender_destroy(&appender);
 }
-void Duckdb::BatchInsertTrade(std::list<Trade*>* records)
+void DuckdbWrapper::BatchInsertTrade(std::list<Trade*>* records)
 {
 	auto start = steady_clock::now();
 	duckdb_appender appender;
@@ -3054,7 +3054,7 @@ void Duckdb::BatchInsertTrade(std::list<Trade*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "BatchInsertTrade RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Duckdb::DeleteTrade(Trade* record)
+void DuckdbWrapper::DeleteTrade(Trade* record)
 {
 	auto start = steady_clock::now();
 	if (m_TradeDeleteStatement == nullptr)
@@ -3077,7 +3077,7 @@ void Duckdb::DeleteTrade(Trade* record)
 		WriteLog(LogLevel::Warning, "DeleteTrade Spend:%lldms", duration);
 	}
 }
-void Duckdb::UpdateTrade(Trade* record)
+void DuckdbWrapper::UpdateTrade(Trade* record)
 {
 	auto start = steady_clock::now();
 	if (m_TradeUpdateStatement == nullptr)
@@ -3100,7 +3100,7 @@ void Duckdb::UpdateTrade(Trade* record)
 		WriteLog(LogLevel::Warning, "UpdateTrade Spend:%lldms", duration);
 	}
 }
-void Duckdb::SelectTrade(std::list<Trade*>& records)
+void DuckdbWrapper::SelectTrade(std::list<Trade*>& records)
 {
 	auto start = steady_clock::now();
 	if (m_TradeSelectStatement == nullptr)
@@ -3126,7 +3126,7 @@ void Duckdb::SelectTrade(std::list<Trade*>& records)
 		WriteLog(LogLevel::Warning, "SelectTrade Spend:%lldms", duration);
 	}
 }
-void Duckdb::TruncateTrade()
+void DuckdbWrapper::TruncateTrade()
 {
 	auto start = steady_clock::now();
 	if (m_TradeTruncateStatement == nullptr)
@@ -3142,7 +3142,7 @@ void Duckdb::TruncateTrade()
 	
 	WriteLog(LogLevel::Info, "TruncateTrade Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Duckdb::ParseRecord(duckdb_result& result, std::list<Trade*>& records)
+void DuckdbWrapper::ParseRecord(duckdb_result& result, std::list<Trade*>& records)
 {
 	while (true)
 	{
@@ -3261,7 +3261,7 @@ void Duckdb::ParseRecord(duckdb_result& result, std::list<Trade*>& records)
 }
 
 
-bool Duckdb::AppendForTradingDayRecord(duckdb_appender appender, TradingDay* record)
+bool DuckdbWrapper::AppendForTradingDayRecord(duckdb_appender appender, TradingDay* record)
 {
 	duckdb_append_int32(appender, record->PK);
 	duckdb_append_varchar(appender, record->CurrTradingDay);
@@ -3273,23 +3273,23 @@ bool Duckdb::AppendForTradingDayRecord(duckdb_appender appender, TradingDay* rec
 	}
 	return true;
 }
-void Duckdb::SetStatementForTradingDayRecord(duckdb_prepared_statement statement, TradingDay* record)
+void DuckdbWrapper::SetStatementForTradingDayRecord(duckdb_prepared_statement statement, TradingDay* record)
 {
 	duckdb_bind_int32(statement, 1, record->PK);
 	duckdb_bind_varchar(statement, 2, record->CurrTradingDay);
 	duckdb_bind_varchar(statement, 3, record->PreTradingDay);
 }
-void Duckdb::SetStatementForTradingDayRecordUpdate(duckdb_prepared_statement statement, TradingDay* record)
+void DuckdbWrapper::SetStatementForTradingDayRecordUpdate(duckdb_prepared_statement statement, TradingDay* record)
 {
 	duckdb_bind_varchar(statement, 1, record->CurrTradingDay);
 	duckdb_bind_varchar(statement, 2, record->PreTradingDay);
 	duckdb_bind_int32(statement, 3, record->PK);
 }
-void Duckdb::SetStatementForTradingDayPrimaryKey(duckdb_prepared_statement statement, TradingDay* record)
+void DuckdbWrapper::SetStatementForTradingDayPrimaryKey(duckdb_prepared_statement statement, TradingDay* record)
 {
 	duckdb_bind_int32(statement, 1, record->PK);
 }
-bool Duckdb::AppendForExchangeRecord(duckdb_appender appender, Exchange* record)
+bool DuckdbWrapper::AppendForExchangeRecord(duckdb_appender appender, Exchange* record)
 {
 	duckdb_append_varchar(appender, record->ExchangeID);
 	duckdb_append_varchar(appender, record->ExchangeName);
@@ -3300,21 +3300,21 @@ bool Duckdb::AppendForExchangeRecord(duckdb_appender appender, Exchange* record)
 	}
 	return true;
 }
-void Duckdb::SetStatementForExchangeRecord(duckdb_prepared_statement statement, Exchange* record)
+void DuckdbWrapper::SetStatementForExchangeRecord(duckdb_prepared_statement statement, Exchange* record)
 {
 	duckdb_bind_varchar(statement, 1, record->ExchangeID);
 	duckdb_bind_varchar(statement, 2, record->ExchangeName);
 }
-void Duckdb::SetStatementForExchangeRecordUpdate(duckdb_prepared_statement statement, Exchange* record)
+void DuckdbWrapper::SetStatementForExchangeRecordUpdate(duckdb_prepared_statement statement, Exchange* record)
 {
 	duckdb_bind_varchar(statement, 1, record->ExchangeName);
 	duckdb_bind_varchar(statement, 2, record->ExchangeID);
 }
-void Duckdb::SetStatementForExchangePrimaryKey(duckdb_prepared_statement statement, Exchange* record)
+void DuckdbWrapper::SetStatementForExchangePrimaryKey(duckdb_prepared_statement statement, Exchange* record)
 {
 	duckdb_bind_varchar(statement, 1, record->ExchangeID);
 }
-bool Duckdb::AppendForProductRecord(duckdb_appender appender, Product* record)
+bool DuckdbWrapper::AppendForProductRecord(duckdb_appender appender, Product* record)
 {
 	duckdb_append_varchar(appender, record->ExchangeID);
 	duckdb_append_varchar(appender, record->ProductID);
@@ -3334,7 +3334,7 @@ bool Duckdb::AppendForProductRecord(duckdb_appender appender, Product* record)
 	}
 	return true;
 }
-void Duckdb::SetStatementForProductRecord(duckdb_prepared_statement statement, Product* record)
+void DuckdbWrapper::SetStatementForProductRecord(duckdb_prepared_statement statement, Product* record)
 {
 	duckdb_bind_varchar(statement, 1, record->ExchangeID);
 	duckdb_bind_varchar(statement, 2, record->ProductID);
@@ -3348,7 +3348,7 @@ void Duckdb::SetStatementForProductRecord(duckdb_prepared_statement statement, P
 	duckdb_bind_int64(statement, 10, record->MinLimitOrderVolume);
 	duckdb_bind_varchar(statement, 11, record->SessionName);
 }
-void Duckdb::SetStatementForProductRecordUpdate(duckdb_prepared_statement statement, Product* record)
+void DuckdbWrapper::SetStatementForProductRecordUpdate(duckdb_prepared_statement statement, Product* record)
 {
 	duckdb_bind_varchar(statement, 1, record->ProductName);
 	duckdb_bind_int32(statement, 2, int(record->ProductClass));
@@ -3362,12 +3362,12 @@ void Duckdb::SetStatementForProductRecordUpdate(duckdb_prepared_statement statem
 	duckdb_bind_varchar(statement, 10, record->ExchangeID);
 	duckdb_bind_varchar(statement, 11, record->ProductID);
 }
-void Duckdb::SetStatementForProductPrimaryKey(duckdb_prepared_statement statement, Product* record)
+void DuckdbWrapper::SetStatementForProductPrimaryKey(duckdb_prepared_statement statement, Product* record)
 {
 	duckdb_bind_varchar(statement, 1, record->ExchangeID);
 	duckdb_bind_varchar(statement, 2, record->ProductID);
 }
-bool Duckdb::AppendForInstrumentRecord(duckdb_appender appender, Instrument* record)
+bool DuckdbWrapper::AppendForInstrumentRecord(duckdb_appender appender, Instrument* record)
 {
 	duckdb_append_varchar(appender, record->ExchangeID);
 	duckdb_append_varchar(appender, record->InstrumentID);
@@ -3391,7 +3391,7 @@ bool Duckdb::AppendForInstrumentRecord(duckdb_appender appender, Instrument* rec
 	}
 	return true;
 }
-void Duckdb::SetStatementForInstrumentRecord(duckdb_prepared_statement statement, Instrument* record)
+void DuckdbWrapper::SetStatementForInstrumentRecord(duckdb_prepared_statement statement, Instrument* record)
 {
 	duckdb_bind_varchar(statement, 1, record->ExchangeID);
 	duckdb_bind_varchar(statement, 2, record->InstrumentID);
@@ -3409,7 +3409,7 @@ void Duckdb::SetStatementForInstrumentRecord(duckdb_prepared_statement statement
 	duckdb_bind_int64(statement, 14, record->MinLimitOrderVolume);
 	duckdb_bind_varchar(statement, 15, record->SessionName);
 }
-void Duckdb::SetStatementForInstrumentRecordUpdate(duckdb_prepared_statement statement, Instrument* record)
+void DuckdbWrapper::SetStatementForInstrumentRecordUpdate(duckdb_prepared_statement statement, Instrument* record)
 {
 	duckdb_bind_varchar(statement, 1, record->ExchangeInstID);
 	duckdb_bind_varchar(statement, 2, record->InstrumentName);
@@ -3427,12 +3427,12 @@ void Duckdb::SetStatementForInstrumentRecordUpdate(duckdb_prepared_statement sta
 	duckdb_bind_varchar(statement, 14, record->ExchangeID);
 	duckdb_bind_varchar(statement, 15, record->InstrumentID);
 }
-void Duckdb::SetStatementForInstrumentPrimaryKey(duckdb_prepared_statement statement, Instrument* record)
+void DuckdbWrapper::SetStatementForInstrumentPrimaryKey(duckdb_prepared_statement statement, Instrument* record)
 {
 	duckdb_bind_varchar(statement, 1, record->ExchangeID);
 	duckdb_bind_varchar(statement, 2, record->InstrumentID);
 }
-bool Duckdb::AppendForPrimaryAccountRecord(duckdb_appender appender, PrimaryAccount* record)
+bool DuckdbWrapper::AppendForPrimaryAccountRecord(duckdb_appender appender, PrimaryAccount* record)
 {
 	duckdb_append_varchar(appender, record->PrimaryAccountID);
 	duckdb_append_varchar(appender, record->PrimaryAccountName);
@@ -3450,7 +3450,7 @@ bool Duckdb::AppendForPrimaryAccountRecord(duckdb_appender appender, PrimaryAcco
 	}
 	return true;
 }
-void Duckdb::SetStatementForPrimaryAccountRecord(duckdb_prepared_statement statement, PrimaryAccount* record)
+void DuckdbWrapper::SetStatementForPrimaryAccountRecord(duckdb_prepared_statement statement, PrimaryAccount* record)
 {
 	duckdb_bind_varchar(statement, 1, record->PrimaryAccountID);
 	duckdb_bind_varchar(statement, 2, record->PrimaryAccountName);
@@ -3462,7 +3462,7 @@ void Duckdb::SetStatementForPrimaryAccountRecord(duckdb_prepared_statement state
 	duckdb_bind_int32(statement, 8, int(record->LoginStatus));
 	duckdb_bind_int32(statement, 9, int(record->InitStatus));
 }
-void Duckdb::SetStatementForPrimaryAccountRecordUpdate(duckdb_prepared_statement statement, PrimaryAccount* record)
+void DuckdbWrapper::SetStatementForPrimaryAccountRecordUpdate(duckdb_prepared_statement statement, PrimaryAccount* record)
 {
 	duckdb_bind_varchar(statement, 1, record->PrimaryAccountName);
 	duckdb_bind_int32(statement, 2, int(record->AccountClass));
@@ -3474,15 +3474,15 @@ void Duckdb::SetStatementForPrimaryAccountRecordUpdate(duckdb_prepared_statement
 	duckdb_bind_int32(statement, 8, int(record->InitStatus));
 	duckdb_bind_varchar(statement, 9, record->PrimaryAccountID);
 }
-void Duckdb::SetStatementForPrimaryAccountPrimaryKey(duckdb_prepared_statement statement, PrimaryAccount* record)
+void DuckdbWrapper::SetStatementForPrimaryAccountPrimaryKey(duckdb_prepared_statement statement, PrimaryAccount* record)
 {
 	duckdb_bind_varchar(statement, 1, record->PrimaryAccountID);
 }
-void Duckdb::SetStatementForPrimaryAccountIndexOfferID(duckdb_prepared_statement statement, PrimaryAccount* record)
+void DuckdbWrapper::SetStatementForPrimaryAccountIndexOfferID(duckdb_prepared_statement statement, PrimaryAccount* record)
 {
 	duckdb_bind_int32(statement, 1, record->OfferID);
 }
-bool Duckdb::AppendForAccountRecord(duckdb_appender appender, Account* record)
+bool DuckdbWrapper::AppendForAccountRecord(duckdb_appender appender, Account* record)
 {
 	duckdb_append_varchar(appender, record->AccountID);
 	duckdb_append_varchar(appender, record->AccountName);
@@ -3499,7 +3499,7 @@ bool Duckdb::AppendForAccountRecord(duckdb_appender appender, Account* record)
 	}
 	return true;
 }
-void Duckdb::SetStatementForAccountRecord(duckdb_prepared_statement statement, Account* record)
+void DuckdbWrapper::SetStatementForAccountRecord(duckdb_prepared_statement statement, Account* record)
 {
 	duckdb_bind_varchar(statement, 1, record->AccountID);
 	duckdb_bind_varchar(statement, 2, record->AccountName);
@@ -3510,7 +3510,7 @@ void Duckdb::SetStatementForAccountRecord(duckdb_prepared_statement statement, A
 	duckdb_bind_int32(statement, 7, record->RiskGroupID);
 	duckdb_bind_int32(statement, 8, record->CommissionGroupID);
 }
-void Duckdb::SetStatementForAccountRecordUpdate(duckdb_prepared_statement statement, Account* record)
+void DuckdbWrapper::SetStatementForAccountRecordUpdate(duckdb_prepared_statement statement, Account* record)
 {
 	duckdb_bind_varchar(statement, 1, record->AccountName);
 	duckdb_bind_int32(statement, 2, int(record->AccountType));
@@ -3521,11 +3521,11 @@ void Duckdb::SetStatementForAccountRecordUpdate(duckdb_prepared_statement statem
 	duckdb_bind_int32(statement, 7, record->CommissionGroupID);
 	duckdb_bind_varchar(statement, 8, record->AccountID);
 }
-void Duckdb::SetStatementForAccountPrimaryKey(duckdb_prepared_statement statement, Account* record)
+void DuckdbWrapper::SetStatementForAccountPrimaryKey(duckdb_prepared_statement statement, Account* record)
 {
 	duckdb_bind_varchar(statement, 1, record->AccountID);
 }
-bool Duckdb::AppendForCapitalRecord(duckdb_appender appender, Capital* record)
+bool DuckdbWrapper::AppendForCapitalRecord(duckdb_appender appender, Capital* record)
 {
 	duckdb_append_varchar(appender, record->TradingDay);
 	duckdb_append_varchar(appender, record->AccountID);
@@ -3554,7 +3554,7 @@ bool Duckdb::AppendForCapitalRecord(duckdb_appender appender, Capital* record)
 	}
 	return true;
 }
-void Duckdb::SetStatementForCapitalRecord(duckdb_prepared_statement statement, Capital* record)
+void DuckdbWrapper::SetStatementForCapitalRecord(duckdb_prepared_statement statement, Capital* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 	duckdb_bind_varchar(statement, 2, record->AccountID);
@@ -3577,7 +3577,7 @@ void Duckdb::SetStatementForCapitalRecord(duckdb_prepared_statement statement, C
 	duckdb_bind_double(statement, 19, record->Deposit);
 	duckdb_bind_double(statement, 20, record->Withdraw);
 }
-void Duckdb::SetStatementForCapitalRecordUpdate(duckdb_prepared_statement statement, Capital* record)
+void DuckdbWrapper::SetStatementForCapitalRecordUpdate(duckdb_prepared_statement statement, Capital* record)
 {
 	duckdb_bind_int32(statement, 1, int(record->AccountType));
 	duckdb_bind_double(statement, 2, record->Balance);
@@ -3600,16 +3600,16 @@ void Duckdb::SetStatementForCapitalRecordUpdate(duckdb_prepared_statement statem
 	duckdb_bind_varchar(statement, 19, record->TradingDay);
 	duckdb_bind_varchar(statement, 20, record->AccountID);
 }
-void Duckdb::SetStatementForCapitalPrimaryKey(duckdb_prepared_statement statement, Capital* record)
+void DuckdbWrapper::SetStatementForCapitalPrimaryKey(duckdb_prepared_statement statement, Capital* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 	duckdb_bind_varchar(statement, 2, record->AccountID);
 }
-void Duckdb::SetStatementForCapitalIndexTradingDay(duckdb_prepared_statement statement, Capital* record)
+void DuckdbWrapper::SetStatementForCapitalIndexTradingDay(duckdb_prepared_statement statement, Capital* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 }
-bool Duckdb::AppendForPositionRecord(duckdb_appender appender, Position* record)
+bool DuckdbWrapper::AppendForPositionRecord(duckdb_appender appender, Position* record)
 {
 	duckdb_append_varchar(appender, record->TradingDay);
 	duckdb_append_varchar(appender, record->AccountID);
@@ -3643,7 +3643,7 @@ bool Duckdb::AppendForPositionRecord(duckdb_appender appender, Position* record)
 	}
 	return true;
 }
-void Duckdb::SetStatementForPositionRecord(duckdb_prepared_statement statement, Position* record)
+void DuckdbWrapper::SetStatementForPositionRecord(duckdb_prepared_statement statement, Position* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 	duckdb_bind_varchar(statement, 2, record->AccountID);
@@ -3671,7 +3671,7 @@ void Duckdb::SetStatementForPositionRecord(duckdb_prepared_statement statement, 
 	duckdb_bind_double(statement, 24, record->SettlementPrice);
 	duckdb_bind_double(statement, 25, record->PreSettlementPrice);
 }
-void Duckdb::SetStatementForPositionRecordUpdate(duckdb_prepared_statement statement, Position* record)
+void DuckdbWrapper::SetStatementForPositionRecordUpdate(duckdb_prepared_statement statement, Position* record)
 {
 	duckdb_bind_int32(statement, 1, int(record->AccountType));
 	duckdb_bind_int32(statement, 2, int(record->ProductClass));
@@ -3699,7 +3699,7 @@ void Duckdb::SetStatementForPositionRecordUpdate(duckdb_prepared_statement state
 	duckdb_bind_varchar(statement, 24, record->InstrumentID);
 	duckdb_bind_int32(statement, 25, int(record->PosiDirection));
 }
-void Duckdb::SetStatementForPositionPrimaryKey(duckdb_prepared_statement statement, Position* record)
+void DuckdbWrapper::SetStatementForPositionPrimaryKey(duckdb_prepared_statement statement, Position* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 	duckdb_bind_varchar(statement, 2, record->AccountID);
@@ -3707,16 +3707,16 @@ void Duckdb::SetStatementForPositionPrimaryKey(duckdb_prepared_statement stateme
 	duckdb_bind_varchar(statement, 4, record->InstrumentID);
 	duckdb_bind_int32(statement, 5, int(record->PosiDirection));
 }
-void Duckdb::SetStatementForPositionIndexAccount(duckdb_prepared_statement statement, Position* record)
+void DuckdbWrapper::SetStatementForPositionIndexAccount(duckdb_prepared_statement statement, Position* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 	duckdb_bind_varchar(statement, 2, record->AccountID);
 }
-void Duckdb::SetStatementForPositionIndexTradingDay(duckdb_prepared_statement statement, Position* record)
+void DuckdbWrapper::SetStatementForPositionIndexTradingDay(duckdb_prepared_statement statement, Position* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 }
-bool Duckdb::AppendForPositionDetailRecord(duckdb_appender appender, PositionDetail* record)
+bool DuckdbWrapper::AppendForPositionDetailRecord(duckdb_appender appender, PositionDetail* record)
 {
 	duckdb_append_varchar(appender, record->TradingDay);
 	duckdb_append_varchar(appender, record->AccountID);
@@ -3750,7 +3750,7 @@ bool Duckdb::AppendForPositionDetailRecord(duckdb_appender appender, PositionDet
 	}
 	return true;
 }
-void Duckdb::SetStatementForPositionDetailRecord(duckdb_prepared_statement statement, PositionDetail* record)
+void DuckdbWrapper::SetStatementForPositionDetailRecord(duckdb_prepared_statement statement, PositionDetail* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 	duckdb_bind_varchar(statement, 2, record->AccountID);
@@ -3778,7 +3778,7 @@ void Duckdb::SetStatementForPositionDetailRecord(duckdb_prepared_statement state
 	duckdb_bind_int64(statement, 24, record->CloseVolume);
 	duckdb_bind_double(statement, 25, record->CloseAmount);
 }
-void Duckdb::SetStatementForPositionDetailRecordUpdate(duckdb_prepared_statement statement, PositionDetail* record)
+void DuckdbWrapper::SetStatementForPositionDetailRecordUpdate(duckdb_prepared_statement statement, PositionDetail* record)
 {
 	duckdb_bind_int32(statement, 1, int(record->AccountType));
 	duckdb_bind_int32(statement, 2, int(record->ProductClass));
@@ -3806,7 +3806,7 @@ void Duckdb::SetStatementForPositionDetailRecordUpdate(duckdb_prepared_statement
 	duckdb_bind_varchar(statement, 24, record->OpenDate);
 	duckdb_bind_varchar(statement, 25, record->TradeID);
 }
-void Duckdb::SetStatementForPositionDetailPrimaryKey(duckdb_prepared_statement statement, PositionDetail* record)
+void DuckdbWrapper::SetStatementForPositionDetailPrimaryKey(duckdb_prepared_statement statement, PositionDetail* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 	duckdb_bind_varchar(statement, 2, record->AccountID);
@@ -3816,7 +3816,7 @@ void Duckdb::SetStatementForPositionDetailPrimaryKey(duckdb_prepared_statement s
 	duckdb_bind_varchar(statement, 6, record->OpenDate);
 	duckdb_bind_varchar(statement, 7, record->TradeID);
 }
-void Duckdb::SetStatementForPositionDetailIndexTradeMatch(duckdb_prepared_statement statement, PositionDetail* record)
+void DuckdbWrapper::SetStatementForPositionDetailIndexTradeMatch(duckdb_prepared_statement statement, PositionDetail* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 	duckdb_bind_varchar(statement, 2, record->AccountID);
@@ -3824,11 +3824,11 @@ void Duckdb::SetStatementForPositionDetailIndexTradeMatch(duckdb_prepared_statem
 	duckdb_bind_varchar(statement, 4, record->InstrumentID);
 	duckdb_bind_int32(statement, 5, int(record->PosiDirection));
 }
-void Duckdb::SetStatementForPositionDetailIndexTradingDay(duckdb_prepared_statement statement, PositionDetail* record)
+void DuckdbWrapper::SetStatementForPositionDetailIndexTradingDay(duckdb_prepared_statement statement, PositionDetail* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 }
-bool Duckdb::AppendForOrderRecord(duckdb_appender appender, Order* record)
+bool DuckdbWrapper::AppendForOrderRecord(duckdb_appender appender, Order* record)
 {
 	duckdb_append_varchar(appender, record->TradingDay);
 	duckdb_append_varchar(appender, record->AccountID);
@@ -3870,7 +3870,7 @@ bool Duckdb::AppendForOrderRecord(duckdb_appender appender, Order* record)
 	}
 	return true;
 }
-void Duckdb::SetStatementForOrderRecord(duckdb_prepared_statement statement, Order* record)
+void DuckdbWrapper::SetStatementForOrderRecord(duckdb_prepared_statement statement, Order* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 	duckdb_bind_varchar(statement, 2, record->AccountID);
@@ -3906,7 +3906,7 @@ void Duckdb::SetStatementForOrderRecord(duckdb_prepared_statement statement, Ord
 	duckdb_bind_int32(statement, 32, record->RebuildMark);
 	duckdb_bind_int32(statement, 33, record->IsForceClose);
 }
-void Duckdb::SetStatementForOrderRecordUpdate(duckdb_prepared_statement statement, Order* record)
+void DuckdbWrapper::SetStatementForOrderRecordUpdate(duckdb_prepared_statement statement, Order* record)
 {
 	duckdb_bind_int32(statement, 1, int(record->AccountType));
 	duckdb_bind_int32(statement, 2, int(record->ProductClass));
@@ -3942,7 +3942,7 @@ void Duckdb::SetStatementForOrderRecordUpdate(duckdb_prepared_statement statemen
 	duckdb_bind_varchar(statement, 32, record->InstrumentID);
 	duckdb_bind_int32(statement, 33, record->OrderID);
 }
-void Duckdb::SetStatementForOrderPrimaryKey(duckdb_prepared_statement statement, Order* record)
+void DuckdbWrapper::SetStatementForOrderPrimaryKey(duckdb_prepared_statement statement, Order* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 	duckdb_bind_varchar(statement, 2, record->AccountID);
@@ -3950,7 +3950,7 @@ void Duckdb::SetStatementForOrderPrimaryKey(duckdb_prepared_statement statement,
 	duckdb_bind_varchar(statement, 4, record->InstrumentID);
 	duckdb_bind_int32(statement, 5, record->OrderID);
 }
-bool Duckdb::AppendForTradeRecord(duckdb_appender appender, Trade* record)
+bool DuckdbWrapper::AppendForTradeRecord(duckdb_appender appender, Trade* record)
 {
 	duckdb_append_varchar(appender, record->TradingDay);
 	duckdb_append_varchar(appender, record->AccountID);
@@ -3977,7 +3977,7 @@ bool Duckdb::AppendForTradeRecord(duckdb_appender appender, Trade* record)
 	}
 	return true;
 }
-void Duckdb::SetStatementForTradeRecord(duckdb_prepared_statement statement, Trade* record)
+void DuckdbWrapper::SetStatementForTradeRecord(duckdb_prepared_statement statement, Trade* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 	duckdb_bind_varchar(statement, 2, record->AccountID);
@@ -3998,7 +3998,7 @@ void Duckdb::SetStatementForTradeRecord(duckdb_prepared_statement statement, Tra
 	duckdb_bind_varchar(statement, 17, record->TradeDate);
 	duckdb_bind_varchar(statement, 18, record->TradeTime);
 }
-void Duckdb::SetStatementForTradeRecordUpdate(duckdb_prepared_statement statement, Trade* record)
+void DuckdbWrapper::SetStatementForTradeRecordUpdate(duckdb_prepared_statement statement, Trade* record)
 {
 	duckdb_bind_varchar(statement, 1, record->AccountID);
 	duckdb_bind_int32(statement, 2, int(record->AccountType));
@@ -4019,7 +4019,7 @@ void Duckdb::SetStatementForTradeRecordUpdate(duckdb_prepared_statement statemen
 	duckdb_bind_varchar(statement, 17, record->TradeID);
 	duckdb_bind_int32(statement, 18, int(record->Direction));
 }
-void Duckdb::SetStatementForTradePrimaryKey(duckdb_prepared_statement statement, Trade* record)
+void DuckdbWrapper::SetStatementForTradePrimaryKey(duckdb_prepared_statement statement, Trade* record)
 {
 	duckdb_bind_varchar(statement, 1, record->TradingDay);
 	duckdb_bind_varchar(statement, 2, record->ExchangeID);

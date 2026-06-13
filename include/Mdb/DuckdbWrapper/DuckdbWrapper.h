@@ -1,28 +1,16 @@
 ﻿#pragma once
-#include <Mdb/Duckdb/DuckdbExport.h>
+#include <Mdb/DuckdbWrapper/DuckdbWrapperExport.h>
 #include <Mdb/Mdb/DB.h>
-#ifdef DUCKDB_API
-#pragma message("DUCKDB_API is defined: " DUCKDB_API)
-#else
-#pragma message("DUCKDB_API is NOT defined")
-#endif
-
-#ifdef DUCKDB_BUILD_LIBRARY
-#pragma message("DUCKDB_BUILD_LIBRARY is defined")
-#else
-#pragma message("DUCKDB_BUILD_LIBRARY is NOT defined")
-#endif
-
 #include <duckdb.hpp>
 #include <string>
 #include <list>
 
 
-class DUCKDB_EXPORTS Duckdb : public DB
+class DUCKDBWRAPPER_EXPORTS DuckdbWrapper : public DB
 {
 public:
-	Duckdb(const std::string& dbName);
-	~Duckdb();
+	DuckdbWrapper(const std::string& dbName);
+	~DuckdbWrapper();
 	virtual bool Connect() override;
 	virtual void DisConnect() override;
 	virtual void InitDB() override;

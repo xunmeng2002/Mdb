@@ -1,16 +1,16 @@
 ﻿#pragma once
-#include <Mdb/Mysql/MysqlExport.h>
+#include <Mdb/MysqlWrapper/MysqlWrapperExport.h>
 #include <Mdb/Mdb/DB.h>
 #include <string>
 #include <list>
 #include <memory>
 
 
-class MYSQL_EXPORTS Mysql : public DB
+class MYSQLWRAPPER_EXPORTS MysqlWrapper : public DB
 {
 public:
-	Mysql(const std::string& host);
-	~Mysql();
+	MysqlWrapper(const std::string& host);
+	~MysqlWrapper();
 	virtual bool Connect() override;
 	virtual void DisConnect() override;
 	virtual void InitDB() override;

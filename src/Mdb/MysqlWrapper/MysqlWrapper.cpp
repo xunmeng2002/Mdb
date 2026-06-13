@@ -1,5 +1,5 @@
 ﻿#pragma warning(disable: 4311)
-#include "Mdb/Mysql/Mysql.h"
+#include <Mdb/MysqlWrapper/MysqlWrapper.h>
 #include <PersonalLib/Core/Core.h>
 #include <mysqlx/xdevapi.h>
 #include <string.h>
@@ -234,7 +234,7 @@ static void ParseRecord(const mysqlx::Row& row, std::list<mdb::Trade*>& records)
 	records.push_back(record);
 }
 
-struct Mysql::Impl
+struct MysqlWrapper::Impl
 {
 	Impl(mysqlx::Session&& session, mysqlx::Schema&& defaultSchema)
 		:m_Session(std::move(session)), m_DefaultSchema(std::move(defaultSchema))
@@ -246,15 +246,15 @@ struct Mysql::Impl
 	mysqlx::Schema m_DefaultSchema;
 };
 
-Mysql::Mysql(const std::string& host)
+MysqlWrapper::MysqlWrapper(const std::string& host)
 	:m_Impl(nullptr), m_Host(host)
 {
 }
-Mysql::~Mysql()
+MysqlWrapper::~MysqlWrapper()
 {
 	DisConnect();
 }
-bool Mysql::Connect()
+bool MysqlWrapper::Connect()
 {
 	try
 	{
@@ -270,7 +270,7 @@ bool Mysql::Connect()
 	}
 	return true;
 }
-void Mysql::DisConnect()
+void MysqlWrapper::DisConnect()
 {
 	if (m_Impl)
 	{
@@ -278,7 +278,7 @@ void Mysql::DisConnect()
 		m_Impl.reset();
 	}
 }
-void Mysql::InitDB()
+void MysqlWrapper::InitDB()
 {
 	m_Impl->m_Session.sql("Truncate Table t_TradingDay;").execute();
 	m_Impl->m_Session.sql("Insert Into t_TradingDay select * from Init.t_TradingDay;").execute();
@@ -303,7 +303,7 @@ void Mysql::InitDB()
 	m_Impl->m_Session.sql("Truncate Table t_Trade;").execute();
 	m_Impl->m_Session.sql("Insert Into t_Trade select * from Init.t_Trade;").execute();
 }
-void Mysql::CreateTables()
+void MysqlWrapper::CreateTables()
 {
 	CreateTradingDay();
 	CreateExchange();
@@ -317,7 +317,7 @@ void Mysql::CreateTables()
 	CreateOrder();
 	CreateTrade();
 }
-void Mysql::DropTables()
+void MysqlWrapper::DropTables()
 {
 	DropTradingDay();
 	DropExchange();
@@ -331,7 +331,7 @@ void Mysql::DropTables()
 	DropOrder();
 	DropTrade();
 }
-void Mysql::TruncateTables()
+void MysqlWrapper::TruncateTables()
 {
 	TruncateTradingDay();
 	TruncateExchange();
@@ -344,18 +344,18 @@ void Mysql::TruncateTables()
 	TruncateOrder();
 	TruncateTrade();
 }
-void Mysql::TruncateSessionTables()
+void MysqlWrapper::TruncateSessionTables()
 {
 	auto start = steady_clock::now();
 	WriteLog(LogLevel::Info, "TruncateSessionTables Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
 
-void Mysql::CustomExecuteSql(const char* sql)
+void MysqlWrapper::CustomExecuteSql(const char* sql)
 {
 	m_Impl->m_Session.sql(sql).execute();
 }
 
-void Mysql::CreateTradingDay()
+void MysqlWrapper::CreateTradingDay()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS t_TradingDay(`PK` int, `CurrTradingDay` char(16), `PreTradingDay` char(16), PRIMARY KEY(PK)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -363,7 +363,7 @@ void Mysql::CreateTradingDay()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateTradingDay Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::DropTradingDay()
+void MysqlWrapper::DropTradingDay()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS t_TradingDay;";
@@ -371,7 +371,7 @@ void Mysql::DropTradingDay()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropTradingDay Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::InsertTradingDay(TradingDay* record)
+void MysqlWrapper::InsertTradingDay(TradingDay* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_TradingDay");
@@ -385,7 +385,7 @@ void Mysql::InsertTradingDay(TradingDay* record)
 		WriteLog(LogLevel::Warning, "InsertTradingDay Spend:%lldms", duration);
 	}
 }
-void Mysql::BatchInsertTradingDay(std::list<TradingDay*>* records)
+void MysqlWrapper::BatchInsertTradingDay(std::list<TradingDay*>* records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_TradingDay");
@@ -399,7 +399,7 @@ void Mysql::BatchInsertTradingDay(std::list<TradingDay*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertTradingDay RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Mysql::DeleteTradingDay(TradingDay* record)
+void MysqlWrapper::DeleteTradingDay(TradingDay* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_TradingDay");
@@ -413,7 +413,7 @@ void Mysql::DeleteTradingDay(TradingDay* record)
 		WriteLog(LogLevel::Warning, "DeleteTradingDay Spend:%lldms", duration);
 	}
 }
-void Mysql::UpdateTradingDay(TradingDay* record)
+void MysqlWrapper::UpdateTradingDay(TradingDay* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_TradingDay");
@@ -430,7 +430,7 @@ void Mysql::UpdateTradingDay(TradingDay* record)
 		WriteLog(LogLevel::Warning, "UpdateTradingDay Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectTradingDay(std::list<TradingDay*>& records)
+void MysqlWrapper::SelectTradingDay(std::list<TradingDay*>& records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_TradingDay");
@@ -446,7 +446,7 @@ void Mysql::SelectTradingDay(std::list<TradingDay*>& records)
 		WriteLog(LogLevel::Warning, "SelectTradingDay Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectTradingDayWithSql(const char* sql, std::list<TradingDay*>& records)
+void MysqlWrapper::SelectTradingDayWithSql(const char* sql, std::list<TradingDay*>& records)
 {
 	auto start = steady_clock::now();
 	auto result = m_Impl->m_Session.sql(sql).execute();
@@ -460,13 +460,13 @@ void Mysql::SelectTradingDayWithSql(const char* sql, std::list<TradingDay*>& rec
 		WriteLog(LogLevel::Warning, "SelectTradingDay Spend:%lldms", duration);
 	}
 }
-void Mysql::TruncateTradingDay()
+void MysqlWrapper::TruncateTradingDay()
 {
 	auto start = steady_clock::now();
 	m_Impl->m_Session.sql("TRUNCATE TABLE t_TradingDay").execute();
 	WriteLog(LogLevel::Info, "TruncateTradingDay Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Mysql::CreateExchange()
+void MysqlWrapper::CreateExchange()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS t_Exchange(`ExchangeID` char(8), `ExchangeName` char(64), PRIMARY KEY(ExchangeID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -474,7 +474,7 @@ void Mysql::CreateExchange()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateExchange Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::DropExchange()
+void MysqlWrapper::DropExchange()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS t_Exchange;";
@@ -482,7 +482,7 @@ void Mysql::DropExchange()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropExchange Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::InsertExchange(Exchange* record)
+void MysqlWrapper::InsertExchange(Exchange* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Exchange");
@@ -496,7 +496,7 @@ void Mysql::InsertExchange(Exchange* record)
 		WriteLog(LogLevel::Warning, "InsertExchange Spend:%lldms", duration);
 	}
 }
-void Mysql::BatchInsertExchange(std::list<Exchange*>* records)
+void MysqlWrapper::BatchInsertExchange(std::list<Exchange*>* records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Exchange");
@@ -510,7 +510,7 @@ void Mysql::BatchInsertExchange(std::list<Exchange*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertExchange RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Mysql::DeleteExchange(Exchange* record)
+void MysqlWrapper::DeleteExchange(Exchange* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Exchange");
@@ -524,7 +524,7 @@ void Mysql::DeleteExchange(Exchange* record)
 		WriteLog(LogLevel::Warning, "DeleteExchange Spend:%lldms", duration);
 	}
 }
-void Mysql::UpdateExchange(Exchange* record)
+void MysqlWrapper::UpdateExchange(Exchange* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Exchange");
@@ -540,7 +540,7 @@ void Mysql::UpdateExchange(Exchange* record)
 		WriteLog(LogLevel::Warning, "UpdateExchange Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectExchange(std::list<Exchange*>& records)
+void MysqlWrapper::SelectExchange(std::list<Exchange*>& records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Exchange");
@@ -556,7 +556,7 @@ void Mysql::SelectExchange(std::list<Exchange*>& records)
 		WriteLog(LogLevel::Warning, "SelectExchange Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectExchangeWithSql(const char* sql, std::list<Exchange*>& records)
+void MysqlWrapper::SelectExchangeWithSql(const char* sql, std::list<Exchange*>& records)
 {
 	auto start = steady_clock::now();
 	auto result = m_Impl->m_Session.sql(sql).execute();
@@ -570,13 +570,13 @@ void Mysql::SelectExchangeWithSql(const char* sql, std::list<Exchange*>& records
 		WriteLog(LogLevel::Warning, "SelectExchange Spend:%lldms", duration);
 	}
 }
-void Mysql::TruncateExchange()
+void MysqlWrapper::TruncateExchange()
 {
 	auto start = steady_clock::now();
 	m_Impl->m_Session.sql("TRUNCATE TABLE t_Exchange").execute();
 	WriteLog(LogLevel::Info, "TruncateExchange Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Mysql::CreateProduct()
+void MysqlWrapper::CreateProduct()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS t_Product(`ExchangeID` char(8), `ProductID` char(32), `ProductName` char(32), `ProductClass` int, `VolumeMultiple` int, `PriceTick` decimal(24,8), `MaxMarketOrderVolume` bigint, `MinMarketOrderVolume` bigint, `MaxLimitOrderVolume` bigint, `MinLimitOrderVolume` bigint, `SessionName` char(32), PRIMARY KEY(ExchangeID, ProductID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -584,7 +584,7 @@ void Mysql::CreateProduct()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateProduct Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::DropProduct()
+void MysqlWrapper::DropProduct()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS t_Product;";
@@ -592,7 +592,7 @@ void Mysql::DropProduct()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropProduct Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::InsertProduct(Product* record)
+void MysqlWrapper::InsertProduct(Product* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Product");
@@ -606,7 +606,7 @@ void Mysql::InsertProduct(Product* record)
 		WriteLog(LogLevel::Warning, "InsertProduct Spend:%lldms", duration);
 	}
 }
-void Mysql::BatchInsertProduct(std::list<Product*>* records)
+void MysqlWrapper::BatchInsertProduct(std::list<Product*>* records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Product");
@@ -620,7 +620,7 @@ void Mysql::BatchInsertProduct(std::list<Product*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertProduct RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Mysql::DeleteProduct(Product* record)
+void MysqlWrapper::DeleteProduct(Product* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Product");
@@ -635,7 +635,7 @@ void Mysql::DeleteProduct(Product* record)
 		WriteLog(LogLevel::Warning, "DeleteProduct Spend:%lldms", duration);
 	}
 }
-void Mysql::UpdateProduct(Product* record)
+void MysqlWrapper::UpdateProduct(Product* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Product");
@@ -661,7 +661,7 @@ void Mysql::UpdateProduct(Product* record)
 		WriteLog(LogLevel::Warning, "UpdateProduct Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectProduct(std::list<Product*>& records)
+void MysqlWrapper::SelectProduct(std::list<Product*>& records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Product");
@@ -677,7 +677,7 @@ void Mysql::SelectProduct(std::list<Product*>& records)
 		WriteLog(LogLevel::Warning, "SelectProduct Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectProductWithSql(const char* sql, std::list<Product*>& records)
+void MysqlWrapper::SelectProductWithSql(const char* sql, std::list<Product*>& records)
 {
 	auto start = steady_clock::now();
 	auto result = m_Impl->m_Session.sql(sql).execute();
@@ -691,13 +691,13 @@ void Mysql::SelectProductWithSql(const char* sql, std::list<Product*>& records)
 		WriteLog(LogLevel::Warning, "SelectProduct Spend:%lldms", duration);
 	}
 }
-void Mysql::TruncateProduct()
+void MysqlWrapper::TruncateProduct()
 {
 	auto start = steady_clock::now();
 	m_Impl->m_Session.sql("TRUNCATE TABLE t_Product").execute();
 	WriteLog(LogLevel::Info, "TruncateProduct Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Mysql::CreateInstrument()
+void MysqlWrapper::CreateInstrument()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS t_Instrument(`ExchangeID` char(8), `InstrumentID` char(32), `ExchangeInstID` char(32), `InstrumentName` char(64), `ProductID` char(32), `ProductClass` int, `InstrumentClass` int, `Rank` int, `VolumeMultiple` int, `PriceTick` decimal(24,8), `MaxMarketOrderVolume` bigint, `MinMarketOrderVolume` bigint, `MaxLimitOrderVolume` bigint, `MinLimitOrderVolume` bigint, `SessionName` char(32), PRIMARY KEY(ExchangeID, InstrumentID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -705,7 +705,7 @@ void Mysql::CreateInstrument()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateInstrument Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::DropInstrument()
+void MysqlWrapper::DropInstrument()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS t_Instrument;";
@@ -713,7 +713,7 @@ void Mysql::DropInstrument()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropInstrument Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::InsertInstrument(Instrument* record)
+void MysqlWrapper::InsertInstrument(Instrument* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Instrument");
@@ -727,7 +727,7 @@ void Mysql::InsertInstrument(Instrument* record)
 		WriteLog(LogLevel::Warning, "InsertInstrument Spend:%lldms", duration);
 	}
 }
-void Mysql::BatchInsertInstrument(std::list<Instrument*>* records)
+void MysqlWrapper::BatchInsertInstrument(std::list<Instrument*>* records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Instrument");
@@ -741,7 +741,7 @@ void Mysql::BatchInsertInstrument(std::list<Instrument*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertInstrument RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Mysql::DeleteInstrument(Instrument* record)
+void MysqlWrapper::DeleteInstrument(Instrument* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Instrument");
@@ -756,7 +756,7 @@ void Mysql::DeleteInstrument(Instrument* record)
 		WriteLog(LogLevel::Warning, "DeleteInstrument Spend:%lldms", duration);
 	}
 }
-void Mysql::UpdateInstrument(Instrument* record)
+void MysqlWrapper::UpdateInstrument(Instrument* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Instrument");
@@ -786,7 +786,7 @@ void Mysql::UpdateInstrument(Instrument* record)
 		WriteLog(LogLevel::Warning, "UpdateInstrument Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectInstrument(std::list<Instrument*>& records)
+void MysqlWrapper::SelectInstrument(std::list<Instrument*>& records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Instrument");
@@ -802,7 +802,7 @@ void Mysql::SelectInstrument(std::list<Instrument*>& records)
 		WriteLog(LogLevel::Warning, "SelectInstrument Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectInstrumentWithSql(const char* sql, std::list<Instrument*>& records)
+void MysqlWrapper::SelectInstrumentWithSql(const char* sql, std::list<Instrument*>& records)
 {
 	auto start = steady_clock::now();
 	auto result = m_Impl->m_Session.sql(sql).execute();
@@ -816,13 +816,13 @@ void Mysql::SelectInstrumentWithSql(const char* sql, std::list<Instrument*>& rec
 		WriteLog(LogLevel::Warning, "SelectInstrument Spend:%lldms", duration);
 	}
 }
-void Mysql::TruncateInstrument()
+void MysqlWrapper::TruncateInstrument()
 {
 	auto start = steady_clock::now();
 	m_Impl->m_Session.sql("TRUNCATE TABLE t_Instrument").execute();
 	WriteLog(LogLevel::Info, "TruncateInstrument Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Mysql::CreatePrimaryAccount()
+void MysqlWrapper::CreatePrimaryAccount()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS t_PrimaryAccount(`PrimaryAccountID` char(32), `PrimaryAccountName` char(64), `AccountClass` int, `BrokerPassword` char(64), `OfferID` int, `IsAllowLogin` bool, `IsSimulateAccount` bool, `LoginStatus` int, `InitStatus` int, INDEX PrimaryAccountOfferID(OfferID), PRIMARY KEY(PrimaryAccountID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -830,7 +830,7 @@ void Mysql::CreatePrimaryAccount()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreatePrimaryAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::DropPrimaryAccount()
+void MysqlWrapper::DropPrimaryAccount()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS t_PrimaryAccount;";
@@ -838,7 +838,7 @@ void Mysql::DropPrimaryAccount()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropPrimaryAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::InsertPrimaryAccount(PrimaryAccount* record)
+void MysqlWrapper::InsertPrimaryAccount(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PrimaryAccount");
@@ -852,7 +852,7 @@ void Mysql::InsertPrimaryAccount(PrimaryAccount* record)
 		WriteLog(LogLevel::Warning, "InsertPrimaryAccount Spend:%lldms", duration);
 	}
 }
-void Mysql::BatchInsertPrimaryAccount(std::list<PrimaryAccount*>* records)
+void MysqlWrapper::BatchInsertPrimaryAccount(std::list<PrimaryAccount*>* records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PrimaryAccount");
@@ -866,7 +866,7 @@ void Mysql::BatchInsertPrimaryAccount(std::list<PrimaryAccount*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertPrimaryAccount RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Mysql::DeletePrimaryAccount(PrimaryAccount* record)
+void MysqlWrapper::DeletePrimaryAccount(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PrimaryAccount");
@@ -880,7 +880,7 @@ void Mysql::DeletePrimaryAccount(PrimaryAccount* record)
 		WriteLog(LogLevel::Warning, "DeletePrimaryAccount Spend:%lldms", duration);
 	}
 }
-void Mysql::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
+void MysqlWrapper::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PrimaryAccount");
@@ -894,7 +894,7 @@ void Mysql::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
 		WriteLog(LogLevel::Warning, "DeletePrimaryAccountByOfferIDIndex Spend:%lldms", duration);
 	}
 }
-void Mysql::UpdatePrimaryAccount(PrimaryAccount* record)
+void MysqlWrapper::UpdatePrimaryAccount(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PrimaryAccount");
@@ -917,7 +917,7 @@ void Mysql::UpdatePrimaryAccount(PrimaryAccount* record)
 		WriteLog(LogLevel::Warning, "UpdatePrimaryAccount Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
+void MysqlWrapper::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PrimaryAccount");
@@ -933,7 +933,7 @@ void Mysql::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 		WriteLog(LogLevel::Warning, "SelectPrimaryAccount Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectPrimaryAccountWithSql(const char* sql, std::list<PrimaryAccount*>& records)
+void MysqlWrapper::SelectPrimaryAccountWithSql(const char* sql, std::list<PrimaryAccount*>& records)
 {
 	auto start = steady_clock::now();
 	auto result = m_Impl->m_Session.sql(sql).execute();
@@ -947,13 +947,13 @@ void Mysql::SelectPrimaryAccountWithSql(const char* sql, std::list<PrimaryAccoun
 		WriteLog(LogLevel::Warning, "SelectPrimaryAccount Spend:%lldms", duration);
 	}
 }
-void Mysql::TruncatePrimaryAccount()
+void MysqlWrapper::TruncatePrimaryAccount()
 {
 	auto start = steady_clock::now();
 	m_Impl->m_Session.sql("TRUNCATE TABLE t_PrimaryAccount").execute();
 	WriteLog(LogLevel::Info, "TruncatePrimaryAccount Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Mysql::CreateAccount()
+void MysqlWrapper::CreateAccount()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS t_Account(`AccountID` char(32), `AccountName` char(64), `AccountType` int, `AccountStatus` int, `Password` char(64), `TradeGroupID` int, `RiskGroupID` int, `CommissionGroupID` int, PRIMARY KEY(AccountID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -961,7 +961,7 @@ void Mysql::CreateAccount()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::DropAccount()
+void MysqlWrapper::DropAccount()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS t_Account;";
@@ -969,7 +969,7 @@ void Mysql::DropAccount()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropAccount Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::InsertAccount(Account* record)
+void MysqlWrapper::InsertAccount(Account* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Account");
@@ -983,7 +983,7 @@ void Mysql::InsertAccount(Account* record)
 		WriteLog(LogLevel::Warning, "InsertAccount Spend:%lldms", duration);
 	}
 }
-void Mysql::BatchInsertAccount(std::list<Account*>* records)
+void MysqlWrapper::BatchInsertAccount(std::list<Account*>* records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Account");
@@ -997,7 +997,7 @@ void Mysql::BatchInsertAccount(std::list<Account*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertAccount RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Mysql::DeleteAccount(Account* record)
+void MysqlWrapper::DeleteAccount(Account* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Account");
@@ -1011,7 +1011,7 @@ void Mysql::DeleteAccount(Account* record)
 		WriteLog(LogLevel::Warning, "DeleteAccount Spend:%lldms", duration);
 	}
 }
-void Mysql::UpdateAccount(Account* record)
+void MysqlWrapper::UpdateAccount(Account* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Account");
@@ -1033,7 +1033,7 @@ void Mysql::UpdateAccount(Account* record)
 		WriteLog(LogLevel::Warning, "UpdateAccount Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectAccount(std::list<Account*>& records)
+void MysqlWrapper::SelectAccount(std::list<Account*>& records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Account");
@@ -1049,7 +1049,7 @@ void Mysql::SelectAccount(std::list<Account*>& records)
 		WriteLog(LogLevel::Warning, "SelectAccount Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectAccountWithSql(const char* sql, std::list<Account*>& records)
+void MysqlWrapper::SelectAccountWithSql(const char* sql, std::list<Account*>& records)
 {
 	auto start = steady_clock::now();
 	auto result = m_Impl->m_Session.sql(sql).execute();
@@ -1063,13 +1063,13 @@ void Mysql::SelectAccountWithSql(const char* sql, std::list<Account*>& records)
 		WriteLog(LogLevel::Warning, "SelectAccount Spend:%lldms", duration);
 	}
 }
-void Mysql::TruncateAccount()
+void MysqlWrapper::TruncateAccount()
 {
 	auto start = steady_clock::now();
 	m_Impl->m_Session.sql("TRUNCATE TABLE t_Account").execute();
 	WriteLog(LogLevel::Info, "TruncateAccount Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Mysql::CreateCapital()
+void MysqlWrapper::CreateCapital()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS t_Capital(`TradingDay` char(16), `AccountID` char(32), `AccountType` int, `Balance` decimal(24,8), `PreBalance` decimal(24,8), `Available` decimal(24,8), `MarketValue` decimal(24,8), `CashIn` decimal(24,8), `CashOut` decimal(24,8), `Margin` decimal(24,8), `Commission` decimal(24,8), `FrozenCash` decimal(24,8), `FrozenMargin` decimal(24,8), `FrozenCommission` decimal(24,8), `CloseProfitByDate` decimal(24,8), `CloseProfitByTrade` decimal(24,8), `PositionProfitByDate` decimal(24,8), `PositionProfitByTrade` decimal(24,8), `Deposit` decimal(24,8), `Withdraw` decimal(24,8), INDEX CapitalTradingDay(TradingDay), PRIMARY KEY(TradingDay, AccountID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -1077,7 +1077,7 @@ void Mysql::CreateCapital()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateCapital Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::DropCapital()
+void MysqlWrapper::DropCapital()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS t_Capital;";
@@ -1085,7 +1085,7 @@ void Mysql::DropCapital()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropCapital Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::InsertCapital(Capital* record)
+void MysqlWrapper::InsertCapital(Capital* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Capital");
@@ -1099,7 +1099,7 @@ void Mysql::InsertCapital(Capital* record)
 		WriteLog(LogLevel::Warning, "InsertCapital Spend:%lldms", duration);
 	}
 }
-void Mysql::BatchInsertCapital(std::list<Capital*>* records)
+void MysqlWrapper::BatchInsertCapital(std::list<Capital*>* records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Capital");
@@ -1113,7 +1113,7 @@ void Mysql::BatchInsertCapital(std::list<Capital*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertCapital RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Mysql::DeleteCapital(Capital* record)
+void MysqlWrapper::DeleteCapital(Capital* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Capital");
@@ -1128,7 +1128,7 @@ void Mysql::DeleteCapital(Capital* record)
 		WriteLog(LogLevel::Warning, "DeleteCapital Spend:%lldms", duration);
 	}
 }
-void Mysql::DeleteCapitalByTradingDayIndex(Capital* record)
+void MysqlWrapper::DeleteCapitalByTradingDayIndex(Capital* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Capital");
@@ -1142,7 +1142,7 @@ void Mysql::DeleteCapitalByTradingDayIndex(Capital* record)
 		WriteLog(LogLevel::Warning, "DeleteCapitalByTradingDayIndex Spend:%lldms", duration);
 	}
 }
-void Mysql::UpdateCapital(Capital* record)
+void MysqlWrapper::UpdateCapital(Capital* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Capital");
@@ -1177,7 +1177,7 @@ void Mysql::UpdateCapital(Capital* record)
 		WriteLog(LogLevel::Warning, "UpdateCapital Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectCapital(std::list<Capital*>& records)
+void MysqlWrapper::SelectCapital(std::list<Capital*>& records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Capital");
@@ -1193,7 +1193,7 @@ void Mysql::SelectCapital(std::list<Capital*>& records)
 		WriteLog(LogLevel::Warning, "SelectCapital Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectCapitalWithSql(const char* sql, std::list<Capital*>& records)
+void MysqlWrapper::SelectCapitalWithSql(const char* sql, std::list<Capital*>& records)
 {
 	auto start = steady_clock::now();
 	auto result = m_Impl->m_Session.sql(sql).execute();
@@ -1207,13 +1207,13 @@ void Mysql::SelectCapitalWithSql(const char* sql, std::list<Capital*>& records)
 		WriteLog(LogLevel::Warning, "SelectCapital Spend:%lldms", duration);
 	}
 }
-void Mysql::TruncateCapital()
+void MysqlWrapper::TruncateCapital()
 {
 	auto start = steady_clock::now();
 	m_Impl->m_Session.sql("TRUNCATE TABLE t_Capital").execute();
 	WriteLog(LogLevel::Info, "TruncateCapital Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Mysql::CreatePosition()
+void MysqlWrapper::CreatePosition()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS t_Position(`TradingDay` char(16), `AccountID` char(32), `AccountType` int, `ExchangeID` char(8), `InstrumentID` char(32), `ProductClass` int, `PosiDirection` int, `TotalPosition` bigint, `PositionFrozen` bigint, `TodayPosition` bigint, `MarketValue` decimal(24,8), `CashIn` decimal(24,8), `CashOut` decimal(24,8), `Margin` decimal(24,8), `Commission` decimal(24,8), `FrozenCash` decimal(24,8), `FrozenMargin` decimal(24,8), `FrozenCommission` decimal(24,8), `VolumeMultiple` int, `CloseProfitByDate` decimal(24,8), `CloseProfitByTrade` decimal(24,8), `PositionProfitByDate` decimal(24,8), `PositionProfitByTrade` decimal(24,8), `SettlementPrice` decimal(24,8), `PreSettlementPrice` decimal(24,8), INDEX PositionAccount(TradingDay, AccountID), INDEX PositionTradingDay(TradingDay), PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -1221,7 +1221,7 @@ void Mysql::CreatePosition()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreatePosition Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::DropPosition()
+void MysqlWrapper::DropPosition()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS t_Position;";
@@ -1229,7 +1229,7 @@ void Mysql::DropPosition()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropPosition Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::InsertPosition(Position* record)
+void MysqlWrapper::InsertPosition(Position* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
@@ -1243,7 +1243,7 @@ void Mysql::InsertPosition(Position* record)
 		WriteLog(LogLevel::Warning, "InsertPosition Spend:%lldms", duration);
 	}
 }
-void Mysql::BatchInsertPosition(std::list<Position*>* records)
+void MysqlWrapper::BatchInsertPosition(std::list<Position*>* records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
@@ -1257,7 +1257,7 @@ void Mysql::BatchInsertPosition(std::list<Position*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertPosition RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Mysql::DeletePosition(Position* record)
+void MysqlWrapper::DeletePosition(Position* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
@@ -1275,7 +1275,7 @@ void Mysql::DeletePosition(Position* record)
 		WriteLog(LogLevel::Warning, "DeletePosition Spend:%lldms", duration);
 	}
 }
-void Mysql::DeletePositionByAccountIndex(Position* record)
+void MysqlWrapper::DeletePositionByAccountIndex(Position* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
@@ -1290,7 +1290,7 @@ void Mysql::DeletePositionByAccountIndex(Position* record)
 		WriteLog(LogLevel::Warning, "DeletePositionByAccountIndex Spend:%lldms", duration);
 	}
 }
-void Mysql::DeletePositionByTradingDayIndex(Position* record)
+void MysqlWrapper::DeletePositionByTradingDayIndex(Position* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
@@ -1304,7 +1304,7 @@ void Mysql::DeletePositionByTradingDayIndex(Position* record)
 		WriteLog(LogLevel::Warning, "DeletePositionByTradingDayIndex Spend:%lldms", duration);
 	}
 }
-void Mysql::UpdatePosition(Position* record)
+void MysqlWrapper::UpdatePosition(Position* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
@@ -1347,7 +1347,7 @@ void Mysql::UpdatePosition(Position* record)
 		WriteLog(LogLevel::Warning, "UpdatePosition Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectPosition(std::list<Position*>& records)
+void MysqlWrapper::SelectPosition(std::list<Position*>& records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
@@ -1363,7 +1363,7 @@ void Mysql::SelectPosition(std::list<Position*>& records)
 		WriteLog(LogLevel::Warning, "SelectPosition Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectPositionWithSql(const char* sql, std::list<Position*>& records)
+void MysqlWrapper::SelectPositionWithSql(const char* sql, std::list<Position*>& records)
 {
 	auto start = steady_clock::now();
 	auto result = m_Impl->m_Session.sql(sql).execute();
@@ -1377,13 +1377,13 @@ void Mysql::SelectPositionWithSql(const char* sql, std::list<Position*>& records
 		WriteLog(LogLevel::Warning, "SelectPosition Spend:%lldms", duration);
 	}
 }
-void Mysql::TruncatePosition()
+void MysqlWrapper::TruncatePosition()
 {
 	auto start = steady_clock::now();
 	m_Impl->m_Session.sql("TRUNCATE TABLE t_Position").execute();
 	WriteLog(LogLevel::Info, "TruncatePosition Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Mysql::CreatePositionDetail()
+void MysqlWrapper::CreatePositionDetail()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS t_PositionDetail(`TradingDay` char(16), `AccountID` char(32), `AccountType` int, `ExchangeID` char(8), `InstrumentID` char(32), `ProductClass` int, `PosiDirection` int, `OpenDate` char(16), `TradeID` char(64), `Volume` bigint, `OpenPrice` decimal(24,8), `MarketValue` decimal(24,8), `CashIn` decimal(24,8), `CashOut` decimal(24,8), `Margin` decimal(24,8), `Commission` decimal(24,8), `VolumeMultiple` int, `CloseProfitByDate` decimal(24,8), `CloseProfitByTrade` decimal(24,8), `PositionProfitByDate` decimal(24,8), `PositionProfitByTrade` decimal(24,8), `SettlementPrice` decimal(24,8), `PreSettlementPrice` decimal(24,8), `CloseVolume` bigint, `CloseAmount` decimal(24,8), INDEX PositionDetailTradeMatch(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection), INDEX PositionDetailTradingDay(TradingDay), PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection, OpenDate, TradeID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -1391,7 +1391,7 @@ void Mysql::CreatePositionDetail()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreatePositionDetail Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::DropPositionDetail()
+void MysqlWrapper::DropPositionDetail()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS t_PositionDetail;";
@@ -1399,7 +1399,7 @@ void Mysql::DropPositionDetail()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropPositionDetail Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::InsertPositionDetail(PositionDetail* record)
+void MysqlWrapper::InsertPositionDetail(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
@@ -1413,7 +1413,7 @@ void Mysql::InsertPositionDetail(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "InsertPositionDetail Spend:%lldms", duration);
 	}
 }
-void Mysql::BatchInsertPositionDetail(std::list<PositionDetail*>* records)
+void MysqlWrapper::BatchInsertPositionDetail(std::list<PositionDetail*>* records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
@@ -1427,7 +1427,7 @@ void Mysql::BatchInsertPositionDetail(std::list<PositionDetail*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertPositionDetail RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Mysql::DeletePositionDetail(PositionDetail* record)
+void MysqlWrapper::DeletePositionDetail(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
@@ -1447,7 +1447,7 @@ void Mysql::DeletePositionDetail(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "DeletePositionDetail Spend:%lldms", duration);
 	}
 }
-void Mysql::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
+void MysqlWrapper::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
@@ -1465,7 +1465,7 @@ void Mysql::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "DeletePositionDetailByTradeMatchIndex Spend:%lldms", duration);
 	}
 }
-void Mysql::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
+void MysqlWrapper::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
@@ -1479,7 +1479,7 @@ void Mysql::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "DeletePositionDetailByTradingDayIndex Spend:%lldms", duration);
 	}
 }
-void Mysql::UpdatePositionDetail(PositionDetail* record)
+void MysqlWrapper::UpdatePositionDetail(PositionDetail* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
@@ -1524,7 +1524,7 @@ void Mysql::UpdatePositionDetail(PositionDetail* record)
 		WriteLog(LogLevel::Warning, "UpdatePositionDetail Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectPositionDetail(std::list<PositionDetail*>& records)
+void MysqlWrapper::SelectPositionDetail(std::list<PositionDetail*>& records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
@@ -1540,7 +1540,7 @@ void Mysql::SelectPositionDetail(std::list<PositionDetail*>& records)
 		WriteLog(LogLevel::Warning, "SelectPositionDetail Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectPositionDetailWithSql(const char* sql, std::list<PositionDetail*>& records)
+void MysqlWrapper::SelectPositionDetailWithSql(const char* sql, std::list<PositionDetail*>& records)
 {
 	auto start = steady_clock::now();
 	auto result = m_Impl->m_Session.sql(sql).execute();
@@ -1554,13 +1554,13 @@ void Mysql::SelectPositionDetailWithSql(const char* sql, std::list<PositionDetai
 		WriteLog(LogLevel::Warning, "SelectPositionDetail Spend:%lldms", duration);
 	}
 }
-void Mysql::TruncatePositionDetail()
+void MysqlWrapper::TruncatePositionDetail()
 {
 	auto start = steady_clock::now();
 	m_Impl->m_Session.sql("TRUNCATE TABLE t_PositionDetail").execute();
 	WriteLog(LogLevel::Info, "TruncatePositionDetail Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Mysql::CreateOrder()
+void MysqlWrapper::CreateOrder()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS t_Order(`TradingDay` char(16), `AccountID` char(32), `AccountType` int, `ExchangeID` char(8), `InstrumentID` char(32), `ProductClass` int, `OrderID` int, `OrderSysID` char(64), `Direction` int, `OffsetFlag` int, `OrderPriceType` int, `Price` decimal(24,8), `Volume` bigint, `VolumeTotal` bigint, `VolumeTraded` bigint, `VolumeMultiple` int, `OrderStatus` int, `OrderDate` char(16), `OrderTime` char(16), `CancelDate` char(16), `CancelTime` char(16), `SessionID` bigint, `ClientOrderID` int, `RequestID` int, `OfferID` int, `TradeGroupID` int, `RiskGroupID` int, `CommissionGroupID` int, `FrozenCash` decimal(24,8), `FrozenMargin` decimal(24,8), `FrozenCommission` decimal(24,8), `RebuildMark` bool, `IsForceClose` bool, UNIQUE ClientOrderID(TradingDay, AccountID, ExchangeID, InstrumentID, SessionID, ClientOrderID), PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, OrderID)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -1568,7 +1568,7 @@ void Mysql::CreateOrder()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateOrder Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::DropOrder()
+void MysqlWrapper::DropOrder()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS t_Order;";
@@ -1576,7 +1576,7 @@ void Mysql::DropOrder()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropOrder Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::InsertOrder(Order* record)
+void MysqlWrapper::InsertOrder(Order* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Order");
@@ -1590,7 +1590,7 @@ void Mysql::InsertOrder(Order* record)
 		WriteLog(LogLevel::Warning, "InsertOrder Spend:%lldms", duration);
 	}
 }
-void Mysql::BatchInsertOrder(std::list<Order*>* records)
+void MysqlWrapper::BatchInsertOrder(std::list<Order*>* records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Order");
@@ -1604,7 +1604,7 @@ void Mysql::BatchInsertOrder(std::list<Order*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertOrder RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Mysql::DeleteOrder(Order* record)
+void MysqlWrapper::DeleteOrder(Order* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Order");
@@ -1622,7 +1622,7 @@ void Mysql::DeleteOrder(Order* record)
 		WriteLog(LogLevel::Warning, "DeleteOrder Spend:%lldms", duration);
 	}
 }
-void Mysql::UpdateOrder(Order* record)
+void MysqlWrapper::UpdateOrder(Order* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Order");
@@ -1673,7 +1673,7 @@ void Mysql::UpdateOrder(Order* record)
 		WriteLog(LogLevel::Warning, "UpdateOrder Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectOrder(std::list<Order*>& records)
+void MysqlWrapper::SelectOrder(std::list<Order*>& records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Order");
@@ -1689,7 +1689,7 @@ void Mysql::SelectOrder(std::list<Order*>& records)
 		WriteLog(LogLevel::Warning, "SelectOrder Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectOrderWithSql(const char* sql, std::list<Order*>& records)
+void MysqlWrapper::SelectOrderWithSql(const char* sql, std::list<Order*>& records)
 {
 	auto start = steady_clock::now();
 	auto result = m_Impl->m_Session.sql(sql).execute();
@@ -1703,13 +1703,13 @@ void Mysql::SelectOrderWithSql(const char* sql, std::list<Order*>& records)
 		WriteLog(LogLevel::Warning, "SelectOrder Spend:%lldms", duration);
 	}
 }
-void Mysql::TruncateOrder()
+void MysqlWrapper::TruncateOrder()
 {
 	auto start = steady_clock::now();
 	m_Impl->m_Session.sql("TRUNCATE TABLE t_Order").execute();
 	WriteLog(LogLevel::Info, "TruncateOrder Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-void Mysql::CreateTrade()
+void MysqlWrapper::CreateTrade()
 {
 	auto start = steady_clock::now();
 	const char* sql = "CREATE TABLE IF NOT EXISTS t_Trade(`TradingDay` char(16), `AccountID` char(32), `AccountType` int, `ExchangeID` char(8), `InstrumentID` char(32), `ProductClass` int, `OrderID` int, `OrderSysID` char(64), `TradeID` char(64), `Direction` int, `OffsetFlag` int, `Price` decimal(24,8), `Volume` bigint, `VolumeMultiple` int, `TradeAmount` decimal(24,8), `Commission` decimal(24,8), `TradeDate` char(16), `TradeTime` char(16), PRIMARY KEY(TradingDay, ExchangeID, TradeID, Direction)) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin';";
@@ -1717,7 +1717,7 @@ void Mysql::CreateTrade()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "CreateTrade Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::DropTrade()
+void MysqlWrapper::DropTrade()
 {
 	auto start = steady_clock::now();
 	const char* sql = "DROP TABLE IF EXISTS t_Trade;";
@@ -1725,7 +1725,7 @@ void Mysql::DropTrade()
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Info, "DropTrade Spend:%lldms, sql:%s", duration, sql);
 }
-void Mysql::InsertTrade(Trade* record)
+void MysqlWrapper::InsertTrade(Trade* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Trade");
@@ -1739,7 +1739,7 @@ void Mysql::InsertTrade(Trade* record)
 		WriteLog(LogLevel::Warning, "InsertTrade Spend:%lldms", duration);
 	}
 }
-void Mysql::BatchInsertTrade(std::list<Trade*>* records)
+void MysqlWrapper::BatchInsertTrade(std::list<Trade*>* records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Trade");
@@ -1753,7 +1753,7 @@ void Mysql::BatchInsertTrade(std::list<Trade*>* records)
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	WriteLog(LogLevel::Warning, "BatchInsertTrade RecordSize:%lld, Spend:%lldms", records->size(), duration);
 }
-void Mysql::DeleteTrade(Trade* record)
+void MysqlWrapper::DeleteTrade(Trade* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Trade");
@@ -1770,7 +1770,7 @@ void Mysql::DeleteTrade(Trade* record)
 		WriteLog(LogLevel::Warning, "DeleteTrade Spend:%lldms", duration);
 	}
 }
-void Mysql::UpdateTrade(Trade* record)
+void MysqlWrapper::UpdateTrade(Trade* record)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Trade");
@@ -1805,7 +1805,7 @@ void Mysql::UpdateTrade(Trade* record)
 		WriteLog(LogLevel::Warning, "UpdateTrade Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectTrade(std::list<Trade*>& records)
+void MysqlWrapper::SelectTrade(std::list<Trade*>& records)
 {
 	auto start = steady_clock::now();
 	auto table = m_Impl->m_DefaultSchema.getTable("t_Trade");
@@ -1821,7 +1821,7 @@ void Mysql::SelectTrade(std::list<Trade*>& records)
 		WriteLog(LogLevel::Warning, "SelectTrade Spend:%lldms", duration);
 	}
 }
-void Mysql::SelectTradeWithSql(const char* sql, std::list<Trade*>& records)
+void MysqlWrapper::SelectTradeWithSql(const char* sql, std::list<Trade*>& records)
 {
 	auto start = steady_clock::now();
 	auto result = m_Impl->m_Session.sql(sql).execute();
@@ -1835,7 +1835,7 @@ void Mysql::SelectTradeWithSql(const char* sql, std::list<Trade*>& records)
 		WriteLog(LogLevel::Warning, "SelectTrade Spend:%lldms", duration);
 	}
 }
-void Mysql::TruncateTrade()
+void MysqlWrapper::TruncateTrade()
 {
 	auto start = steady_clock::now();
 	m_Impl->m_Session.sql("TRUNCATE TABLE t_Trade").execute();
