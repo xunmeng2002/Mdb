@@ -1,6 +1,7 @@
 ﻿#pragma once
-#include "Mdb/Mdb/MdbStructs.h"
-#include "Mdb/Mdb/MdbIndexComp.h"
+#include <Mdb/Mdb/MdbExport.h>
+#include <Mdb/Mdb/MdbStructs.h>
+#include <Mdb/Mdb/MdbIndexComp.h>
 #include <set>
 
 using std::multiset;
@@ -8,7 +9,7 @@ using std::multiset;
 namespace mdb
 {
 	class PrimaryAccountTable;
-	class PrimaryAccountIndexOfferID
+	class MDB_EXPORTS PrimaryAccountIndexOfferID
 	{
 		using iterator = std::multiset<PrimaryAccount*, PrimaryAccountLessForOfferIDIndex>::iterator;
 		friend class PrimaryAccountTable;
@@ -33,7 +34,7 @@ namespace mdb
 	};
 	
 	class CapitalTable;
-	class CapitalIndexTradingDay
+	class MDB_EXPORTS CapitalIndexTradingDay
 	{
 		using iterator = std::multiset<Capital*, CapitalLessForTradingDayIndex>::iterator;
 		friend class CapitalTable;
@@ -58,7 +59,7 @@ namespace mdb
 	};
 	
 	class PositionTable;
-	class PositionIndexAccount
+	class MDB_EXPORTS PositionIndexAccount
 	{
 		using iterator = std::multiset<Position*, PositionLessForAccountIndex>::iterator;
 		friend class PositionTable;
@@ -82,7 +83,7 @@ namespace mdb
 		multiset<Position*, PositionLessForAccountIndex> m_Index;
 	};
 	
-	class PositionIndexTradingDay
+	class MDB_EXPORTS PositionIndexTradingDay
 	{
 		using iterator = std::multiset<Position*, PositionLessForTradingDayIndex>::iterator;
 		friend class PositionTable;
@@ -107,7 +108,7 @@ namespace mdb
 	};
 	
 	class PositionDetailTable;
-	class PositionDetailIndexTradeMatch
+	class MDB_EXPORTS PositionDetailIndexTradeMatch
 	{
 		using iterator = std::multiset<PositionDetail*, PositionDetailLessForTradeMatchIndex>::iterator;
 		friend class PositionDetailTable;
@@ -131,7 +132,7 @@ namespace mdb
 		multiset<PositionDetail*, PositionDetailLessForTradeMatchIndex> m_Index;
 	};
 	
-	class PositionDetailIndexTradingDay
+	class MDB_EXPORTS PositionDetailIndexTradingDay
 	{
 		using iterator = std::multiset<PositionDetail*, PositionDetailLessForTradingDayIndex>::iterator;
 		friend class PositionDetailTable;

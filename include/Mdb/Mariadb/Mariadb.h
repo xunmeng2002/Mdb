@@ -1,11 +1,12 @@
 ﻿#pragma once
-#include "Mdb/Mdb/DB.h"
+#include <Mdb/Mariadb/MariadbExport.h>
+#include <Mdb/Mdb/DB.h>
 #include <string>
 #include <memory>
 #include <list>
 
 
-class Mariadb : public DB
+class MARIADB_EXPORTS Mariadb : public DB
 {
 public:
 	Mariadb(const std::string& host, const std::string& user, const std::string& passwd);

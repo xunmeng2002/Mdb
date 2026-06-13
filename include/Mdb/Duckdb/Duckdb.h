@@ -1,11 +1,24 @@
 ﻿#pragma once
-#include "Mdb/Mdb/DB.h"
+#include <Mdb/Duckdb/DuckdbExport.h>
+#include <Mdb/Mdb/DB.h>
+#ifdef DUCKDB_API
+#pragma message("DUCKDB_API is defined: " DUCKDB_API)
+#else
+#pragma message("DUCKDB_API is NOT defined")
+#endif
+
+#ifdef DUCKDB_BUILD_LIBRARY
+#pragma message("DUCKDB_BUILD_LIBRARY is defined")
+#else
+#pragma message("DUCKDB_BUILD_LIBRARY is NOT defined")
+#endif
+
 #include <duckdb.hpp>
 #include <string>
 #include <list>
 
 
-class Duckdb : public DB
+class DUCKDB_EXPORTS Duckdb : public DB
 {
 public:
 	Duckdb(const std::string& dbName);

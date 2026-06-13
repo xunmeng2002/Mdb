@@ -1,10 +1,11 @@
 ﻿#pragma once
-#include "Mdb/Mdb/Mdb.h"
-#include "Mdb/Mdb/DB.h"
+#include <Mdb/Mdb/MdbExport.h>
+#include <Mdb/Mdb/Mdb.h>
+#include <Mdb/Mdb/DB.h>
 
 namespace mdb
 {
-	class InitMdbFromDB
+	class MDB_EXPORTS InitMdbFromDB
 	{
 	public:
 		static void LoadTablesWithTradingDay(Mdb* mdb, DB* db, const DateType& tradingDay);

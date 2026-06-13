@@ -1,12 +1,13 @@
 ﻿#pragma once
-#include "Mdb/Mdb/MdbTables.h"
-#include "Mdb/Mdb/MdbSubscriber.h"
+#include <Mdb/Mdb/MdbExport.h>
+#include <Mdb/Mdb/MdbTables.h>
+#include <Mdb/Mdb/MdbSubscriber.h>
 #include <PersonalLib/Core/DB/DBSubscriber.h>
 
 
 namespace mdb
 {
-	class Mdb : public DBSubscriber
+	class MDB_EXPORTS Mdb : public DBSubscriber
 	{
 	public:
 		Mdb();

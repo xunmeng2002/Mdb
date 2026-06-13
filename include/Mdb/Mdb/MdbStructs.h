@@ -1,9 +1,10 @@
 ﻿#pragma once
+#include <Mdb/Mdb/MdbExport.h>
 #include <PersonalLib/Types.h>
 
 namespace mdb
 {
-	class TradingDay
+	class MDB_EXPORTS TradingDay
 	{
 	public:
 		static constexpr unsigned int TableID = 0x0001;
@@ -20,7 +21,7 @@ namespace mdb
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
 	};
-	class Exchange
+	class MDB_EXPORTS Exchange
 	{
 	public:
 		static constexpr unsigned int TableID = 0x0002;
@@ -35,7 +36,7 @@ namespace mdb
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
 	};
-	class Product
+	class MDB_EXPORTS Product
 	{
 	public:
 		static constexpr unsigned int TableID = 0x0003;
@@ -68,7 +69,7 @@ namespace mdb
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
 	};
-	class Instrument
+	class MDB_EXPORTS Instrument
 	{
 	public:
 		static constexpr unsigned int TableID = 0x0004;
@@ -109,7 +110,7 @@ namespace mdb
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
 	};
-	class PrimaryAccount
+	class MDB_EXPORTS PrimaryAccount
 	{
 	public:
 		static constexpr unsigned int TableID = 0x0005;
@@ -138,7 +139,7 @@ namespace mdb
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
 	};
-	class Account
+	class MDB_EXPORTS Account
 	{
 	public:
 		static constexpr unsigned int TableID = 0x0006;
@@ -165,7 +166,7 @@ namespace mdb
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
 	};
-	class Capital
+	class MDB_EXPORTS Capital
 	{
 	public:
 		static constexpr unsigned int TableID = 0x0007;
@@ -216,7 +217,7 @@ namespace mdb
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
 	};
-	class Position
+	class MDB_EXPORTS Position
 	{
 	public:
 		static constexpr unsigned int TableID = 0x0008;
@@ -277,7 +278,7 @@ namespace mdb
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
 	};
-	class PositionDetail
+	class MDB_EXPORTS PositionDetail
 	{
 	public:
 		static constexpr unsigned int TableID = 0x0009;
@@ -338,7 +339,7 @@ namespace mdb
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
 	};
-	class Order
+	class MDB_EXPORTS Order
 	{
 	public:
 		static constexpr unsigned int TableID = 0x000A;
@@ -415,7 +416,7 @@ namespace mdb
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
 	};
-	class Trade
+	class MDB_EXPORTS Trade
 	{
 	public:
 		static constexpr unsigned int TableID = 0x000B;

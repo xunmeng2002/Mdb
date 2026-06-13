@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 set(VcpkgPth "D:/Github/vcpkg")
-#set(VcpkgPth "C:/Libs/vcpkg")
-set(VCPKG_TARGET_TRIPLET "x64-windows-static")
 set(CMAKE_TOOLCHAIN_FILE "${VcpkgPth}/scripts/buildsystems/vcpkg.cmake")
-#list(APPEND CMAKE_PREFIX_PATH "${VcpkgPth}/installed/x64-windows")
-
 SET(PROJECT_NAME "Mdb")
 project(${PROJECT_NAME} VERSION 1.0.0 LANGUAGES CXX)
 include(GNUInstallDirs)

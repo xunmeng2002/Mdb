@@ -1,10 +1,11 @@
 ﻿#pragma once
-#include "Mdb/Mdb/MdbStructs.h"
+#include <Mdb/Mdb/MdbExport.h>
+#include <Mdb/Mdb/MdbStructs.h>
 #include <string>
 #include <list>
 
 
-class DB
+class MDB_EXPORTS DB
 {
 public:
 	virtual bool Connect() = 0;

@@ -1,7 +1,8 @@
 ﻿#pragma once
-#include "Mdb/Mdb/MdbSubscriber.h"
-#include "Mdb/Mdb/MdbStructs.h"
-#include "Mdb/Mdb/DB.h"
+#include <Mdb/Mdb/MdbExport.h>
+#include <Mdb/Mdb/MdbSubscriber.h>
+#include <Mdb/Mdb/MdbStructs.h>
+#include <Mdb/Mdb/DB.h>
 #include <PersonalLib/TemplateLib/TemplateLib.h>
 #include <PersonalLib/Core/Core.h>
 #include <list>
@@ -10,7 +11,7 @@
 #include <condition_variable>
 
 
-class DBWriter : public ThreadBase, public MdbSubscriber
+class MDB_EXPORTS DBWriter : public ThreadBase, public MdbSubscriber
 {
 public:
 	DBWriter(DB* db);

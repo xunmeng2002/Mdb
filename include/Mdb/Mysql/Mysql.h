@@ -1,11 +1,12 @@
 ﻿#pragma once
-#include "Mdb/Mdb/DB.h"
+#include <Mdb/Mysql/MysqlExport.h>
+#include <Mdb/Mdb/DB.h>
 #include <string>
 #include <list>
 #include <memory>
 
 
-class Mysql : public DB
+class MYSQL_EXPORTS Mysql : public DB
 {
 public:
 	Mysql(const std::string& host);

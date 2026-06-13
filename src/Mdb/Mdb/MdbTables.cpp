@@ -1,5 +1,5 @@
-﻿#include "Mdb/Mdb/MdbTables.h"
-#include "Mdb/Mdb/Mdb.h"
+﻿#include <Mdb/Mdb/MdbTables.h>
+#include <Mdb/Mdb/Mdb.h>
 #include <PersonalLib/Core/Logger/Logger.h>
 #include <string>
 #include <string.h>

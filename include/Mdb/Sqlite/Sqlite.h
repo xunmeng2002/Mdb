@@ -1,11 +1,12 @@
 ﻿#pragma once
-#include "Mdb/Mdb/DB.h"
+#include <Mdb/Sqlite/SqliteExport.h>
+#include <Mdb/Mdb/DB.h>
 #include <sqlite3.h>
 #include <string>
 #include <list>
 
 
-class Sqlite : public DB
+class SQLITE_EXPORTS Sqlite : public DB
 {
 public:
 	Sqlite(const std::string& dbName);
