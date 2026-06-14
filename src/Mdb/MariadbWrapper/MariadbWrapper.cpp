@@ -546,8 +546,7 @@ void MariadbWrapper::TruncateSessionTables()
 	auto start = steady_clock::now();
 	WriteLog(LogLevel::Info, "TruncateSessionTables Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-
-void MariadbWrapper::CustomExecuteSql(const char* sql)
+void MariadbWrapper::Exec(const char* sql)
 {
 	if (m_Impl->m_Statement == nullptr)
 	{

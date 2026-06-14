@@ -18,8 +18,7 @@ public:
 	virtual void DropTables() override;
 	virtual void TruncateTables() override;
 	virtual void TruncateSessionTables() override;
-	
-	void CustomExecuteSql(const char* sql);
+	virtual void Exec(const char* sql) override;
 	
 	virtual void CreateTradingDay() override;
 	virtual void DropTradingDay() override;

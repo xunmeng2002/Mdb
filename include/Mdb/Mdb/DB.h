@@ -15,6 +15,7 @@ public:
 	virtual void DropTables() = 0;
 	virtual void TruncateTables() = 0;
 	virtual void TruncateSessionTables() = 0;
+	virtual void Exec(const char* sql) = 0;
 	
 	virtual void CreateTradingDay() = 0;
 	virtual void DropTradingDay() = 0;

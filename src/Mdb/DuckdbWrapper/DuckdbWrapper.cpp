@@ -2178,14 +2178,14 @@ void DisConnect()
 		m_TradeTruncateStatement = nullptr;
 	}
 }
-bool Exec(const char* sql) const
+void Exec(const char* sql)
 {
 	duckdb_prepared_statement stmt;
 	if (duckdb_prepare(m_Connection, sql, &stmt) != DuckDBSuccess) 
 	{
 		WriteLog(LogLevel::Warning, "duckdb_prepare Failed While Exec Sql:%s, ErrorMsg:%s", sql, duckdb_prepare_error(stmt));
 		duckdb_destroy_prepare(&stmt);
-		return false;
+		return;
 	}
 	duckdb_result result;
 	auto ret = duckdb_execute_prepared(stmt, &result);
@@ -2195,7 +2195,6 @@ bool Exec(const char* sql) const
 	}
 	duckdb_destroy_result(&result);
 	duckdb_destroy_prepare(&stmt);
-	return ret == DuckDBSuccess;
 }
 
 void CreateTradingDay()
@@ -4100,9 +4099,9 @@ void DuckdbWrapper::TruncateSessionTables()
 	auto start = steady_clock::now();
 	WriteLog(LogLevel::Info, "TruncateSessionTables Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-bool DuckdbWrapper::Exec(const char* sql) const
+void DuckdbWrapper::Exec(const char* sql)
 {
-	return m_Impl->Exec(sql);
+	m_Impl->Exec(sql);
 }
 
 void DuckdbWrapper::CreateTradingDay()

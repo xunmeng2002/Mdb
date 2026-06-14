@@ -346,8 +346,7 @@ void MysqlWrapper::TruncateSessionTables()
 	auto start = steady_clock::now();
 	WriteLog(LogLevel::Info, "TruncateSessionTables Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-
-void MysqlWrapper::CustomExecuteSql(const char* sql)
+void MysqlWrapper::Exec(const char* sql)
 {
 	m_Impl->m_Session.sql(sql).execute();
 }

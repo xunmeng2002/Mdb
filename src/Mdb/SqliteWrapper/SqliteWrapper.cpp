@@ -1132,7 +1132,7 @@ void DisConnect()
 		m_TradeTruncateStatement = nullptr;
 	}
 }
-bool Exec(const char* sql)
+void Exec(const char* sql)
 {
 	char* t_ErrorMsg;
 	auto ret = sqlite3_exec(m_DB, sql, nullptr, nullptr, &t_ErrorMsg);
@@ -1140,9 +1140,7 @@ bool Exec(const char* sql)
 	{
 		WriteLog(LogLevel::Warning, "Sqlitedb::Exec Failed. Sql:%s, Error: %s\n", sql, t_ErrorMsg);
 		sqlite3_free(t_ErrorMsg);
-		return false;
 	}
-	return true;
 }
 
 
@@ -3339,9 +3337,9 @@ void SqliteWrapper::TruncateSessionTables()
 	auto start = steady_clock::now();
 	WriteLog(LogLevel::Info, "TruncateSessionTables Spend:%lldms", TimeUtility::GetDuration<chrono::milliseconds>(start));
 }
-bool SqliteWrapper::Exec(const char* sql)
+void SqliteWrapper::Exec(const char* sql)
 {
-	return m_Impl->Exec(sql);
+	m_Impl->Exec(sql);
 }
 
 void SqliteWrapper::CreateTradingDay()

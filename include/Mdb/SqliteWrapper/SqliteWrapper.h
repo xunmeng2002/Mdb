@@ -18,8 +18,8 @@ public:
 	virtual void DropTables() override;
 	virtual void TruncateTables() override;
 	virtual void TruncateSessionTables() override;
+	virtual void Exec(const char* sql) override;
 	
-	bool Exec(const char* sql);
 	virtual void CreateTradingDay() override;
 	virtual void DropTradingDay() override;
 	virtual void InsertTradingDay(mdb::TradingDay* record) override;
