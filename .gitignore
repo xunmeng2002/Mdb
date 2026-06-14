@@ -39,3 +39,4 @@ pumptemp.py
 *.duckdb*
 *.sqlitedb*
 /bin
+/lib

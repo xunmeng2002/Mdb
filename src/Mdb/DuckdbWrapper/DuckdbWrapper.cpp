@@ -4016,11 +4016,9 @@ private:
 DuckdbWrapper::DuckdbWrapper(const std::string& dbName)
 	:m_DBName(dbName), m_Impl(std::unique_ptr<Impl>(new Impl(dbName)))
 {
-	m_SqlBuff = new char[BuffSize];
 }
 DuckdbWrapper::~DuckdbWrapper()
 {
-	delete[] m_SqlBuff;
 	DisConnect();
 }
 bool DuckdbWrapper::Connect()
