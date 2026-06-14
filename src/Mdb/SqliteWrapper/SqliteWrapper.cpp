@@ -104,6 +104,7 @@ bool SqliteWrapper::Connect()
 		WriteLog(LogLevel::Warning, "Open Sqlite Failed.");
 		return false;
 	}
+	WriteLog(LogLevel::Info, "Open Sqlite Success.");
 	return true;
 }
 void SqliteWrapper::DisConnect()

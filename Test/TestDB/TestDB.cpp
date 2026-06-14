@@ -16,7 +16,7 @@ using namespace mdb;
 const char* dbUser = "ams";
 const char* dbPasswd = "ams";
 const char* mariadbHost = "tcp://172.24.5.87:3306/Quant";
-const char* mysqlHost = "mysqlx://ams:ams@172.24.5.87:3306/Quant";
+const char* mysqlHost = "mysqlx://ams:ams%401234@localhost:33060/Quant";
 const char* sqliteDBName = "./Test.sqlite";
 const char* duckDBName = "./Test.duckdb";
 
@@ -217,8 +217,8 @@ static void Test()
 	//TestDB(duckdb);
 	//TestDB(sqlite);
 
-	//WriteLog(LogLevel::Info, "TestMdb with Mysql");
-	//TestMdb(mysql);
+	WriteLog(LogLevel::Info, "TestMdb with Mysql");
+	TestMdb(mysql);
 	//WriteLog(LogLevel::Info, "TestMdb with MariaDB");
 	//TestMdb(mariadb);
 	WriteLog(LogLevel::Info, "TestMdb with Duckdb");

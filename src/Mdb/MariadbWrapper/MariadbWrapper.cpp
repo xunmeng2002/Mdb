@@ -468,6 +468,7 @@ bool MariadbWrapper::Connect()
 		WriteLog(LogLevel::Warning, "Connect Mariadb Failed.");
 		return false;
 	}
+	WriteLog(LogLevel::Warning, "Connect Mariadb Success.");
 	return true;
 }
 void MariadbWrapper::DisConnect()

@@ -94,6 +94,7 @@ bool DuckdbWrapper::Connect()
 		WriteLog(LogLevel::Error, "duckdb_connect Error.");
 		return false;
 	}
+	WriteLog(LogLevel::Error, "duckdb_connect Success.");
 	return true;
 }
 void DuckdbWrapper::DisConnect()

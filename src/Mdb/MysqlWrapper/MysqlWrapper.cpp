@@ -236,14 +236,13 @@ static void ParseRecord(const mysqlx::Row& row, std::list<mdb::Trade*>& records)
 
 struct MysqlWrapper::Impl
 {
-	Impl(mysqlx::Session&& session, mysqlx::Schema&& defaultSchema)
-		:m_Session(std::move(session)), m_DefaultSchema(std::move(defaultSchema))
+	Impl(mysqlx::Session&& session)
+		:m_Session(std::move(session))
 	{
 	}
 	~Impl() = default;
 
 	mysqlx::Session m_Session;
-	mysqlx::Schema m_DefaultSchema;
 };
 
 MysqlWrapper::MysqlWrapper(const std::string& host)
@@ -258,9 +257,7 @@ bool MysqlWrapper::Connect()
 {
 	try
 	{
-		auto session = mysqlx::Session(m_Host);
-        auto schema = session.getDefaultSchema();
-		m_Impl = std::unique_ptr<Impl>(new Impl(std::move(session), std::move(schema)));
+		m_Impl = std::unique_ptr<Impl>(new Impl(mysqlx::Session(m_Host)));
         WriteLog(LogLevel::Info, "Mysql X DevAPI Connect Success");
 	}
 	catch (std::exception e)
@@ -374,7 +371,7 @@ void MysqlWrapper::DropTradingDay()
 void MysqlWrapper::InsertTradingDay(TradingDay* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_TradingDay");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_TradingDay");
 	
     table.insert("PK", "CurrTradingDay", "PreTradingDay")
 		.values(record->PK, record->CurrTradingDay, record->PreTradingDay)
@@ -388,7 +385,7 @@ void MysqlWrapper::InsertTradingDay(TradingDay* record)
 void MysqlWrapper::BatchInsertTradingDay(std::list<TradingDay*>* records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_TradingDay");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_TradingDay");
 	
     auto insert = table.insert("PK", "CurrTradingDay", "PreTradingDay");
 	for (auto record : *records)
@@ -402,7 +399,7 @@ void MysqlWrapper::BatchInsertTradingDay(std::list<TradingDay*>* records)
 void MysqlWrapper::DeleteTradingDay(TradingDay* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_TradingDay");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_TradingDay");
     table.remove()
 		.where("PK = :PK")
 		.bind("PK", record->PK)
@@ -416,7 +413,7 @@ void MysqlWrapper::DeleteTradingDay(TradingDay* record)
 void MysqlWrapper::UpdateTradingDay(TradingDay* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_TradingDay");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_TradingDay");
     table.update()
 		.set("PK", record->PK)
 		.set("CurrTradingDay", record->CurrTradingDay)
@@ -433,7 +430,7 @@ void MysqlWrapper::UpdateTradingDay(TradingDay* record)
 void MysqlWrapper::SelectTradingDay(std::list<TradingDay*>& records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_TradingDay");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_TradingDay");
     auto result = table.select("*")
 		.execute();
 	while (auto row = result.fetchOne())
@@ -485,7 +482,7 @@ void MysqlWrapper::DropExchange()
 void MysqlWrapper::InsertExchange(Exchange* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Exchange");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Exchange");
 	
     table.insert("ExchangeID", "ExchangeName")
 		.values(record->ExchangeID, record->ExchangeName)
@@ -499,7 +496,7 @@ void MysqlWrapper::InsertExchange(Exchange* record)
 void MysqlWrapper::BatchInsertExchange(std::list<Exchange*>* records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Exchange");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Exchange");
 	
     auto insert = table.insert("ExchangeID", "ExchangeName");
 	for (auto record : *records)
@@ -513,7 +510,7 @@ void MysqlWrapper::BatchInsertExchange(std::list<Exchange*>* records)
 void MysqlWrapper::DeleteExchange(Exchange* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Exchange");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Exchange");
     table.remove()
 		.where("ExchangeID = :ExchangeID")
 		.bind("ExchangeID", record->ExchangeID)
@@ -527,7 +524,7 @@ void MysqlWrapper::DeleteExchange(Exchange* record)
 void MysqlWrapper::UpdateExchange(Exchange* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Exchange");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Exchange");
     table.update()
 		.set("ExchangeID", record->ExchangeID)
 		.set("ExchangeName", record->ExchangeName)
@@ -543,7 +540,7 @@ void MysqlWrapper::UpdateExchange(Exchange* record)
 void MysqlWrapper::SelectExchange(std::list<Exchange*>& records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Exchange");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Exchange");
     auto result = table.select("*")
 		.execute();
 	while (auto row = result.fetchOne())
@@ -595,7 +592,7 @@ void MysqlWrapper::DropProduct()
 void MysqlWrapper::InsertProduct(Product* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Product");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Product");
 	
     table.insert("ExchangeID", "ProductID", "ProductName", "ProductClass", "VolumeMultiple", "PriceTick", "MaxMarketOrderVolume", "MinMarketOrderVolume", "MaxLimitOrderVolume", "MinLimitOrderVolume", "SessionName")
 		.values(record->ExchangeID, record->ProductID, record->ProductName, (int)record->ProductClass, record->VolumeMultiple, record->PriceTick, record->MaxMarketOrderVolume, record->MinMarketOrderVolume, record->MaxLimitOrderVolume, record->MinLimitOrderVolume, record->SessionName)
@@ -609,7 +606,7 @@ void MysqlWrapper::InsertProduct(Product* record)
 void MysqlWrapper::BatchInsertProduct(std::list<Product*>* records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Product");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Product");
 	
     auto insert = table.insert("ExchangeID", "ProductID", "ProductName", "ProductClass", "VolumeMultiple", "PriceTick", "MaxMarketOrderVolume", "MinMarketOrderVolume", "MaxLimitOrderVolume", "MinLimitOrderVolume", "SessionName");
 	for (auto record : *records)
@@ -623,7 +620,7 @@ void MysqlWrapper::BatchInsertProduct(std::list<Product*>* records)
 void MysqlWrapper::DeleteProduct(Product* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Product");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Product");
     table.remove()
 		.where("ExchangeID = :ExchangeID and ProductID = :ProductID")
 		.bind("ExchangeID", record->ExchangeID)
@@ -638,7 +635,7 @@ void MysqlWrapper::DeleteProduct(Product* record)
 void MysqlWrapper::UpdateProduct(Product* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Product");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Product");
     table.update()
 		.set("ExchangeID", record->ExchangeID)
 		.set("ProductID", record->ProductID)
@@ -664,7 +661,7 @@ void MysqlWrapper::UpdateProduct(Product* record)
 void MysqlWrapper::SelectProduct(std::list<Product*>& records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Product");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Product");
     auto result = table.select("*")
 		.execute();
 	while (auto row = result.fetchOne())
@@ -716,7 +713,7 @@ void MysqlWrapper::DropInstrument()
 void MysqlWrapper::InsertInstrument(Instrument* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Instrument");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Instrument");
 	
     table.insert("ExchangeID", "InstrumentID", "ExchangeInstID", "InstrumentName", "ProductID", "ProductClass", "InstrumentClass", "Rank", "VolumeMultiple", "PriceTick", "MaxMarketOrderVolume", "MinMarketOrderVolume", "MaxLimitOrderVolume", "MinLimitOrderVolume", "SessionName")
 		.values(record->ExchangeID, record->InstrumentID, record->ExchangeInstID, record->InstrumentName, record->ProductID, (int)record->ProductClass, (int)record->InstrumentClass, record->Rank, record->VolumeMultiple, record->PriceTick, record->MaxMarketOrderVolume, record->MinMarketOrderVolume, record->MaxLimitOrderVolume, record->MinLimitOrderVolume, record->SessionName)
@@ -730,7 +727,7 @@ void MysqlWrapper::InsertInstrument(Instrument* record)
 void MysqlWrapper::BatchInsertInstrument(std::list<Instrument*>* records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Instrument");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Instrument");
 	
     auto insert = table.insert("ExchangeID", "InstrumentID", "ExchangeInstID", "InstrumentName", "ProductID", "ProductClass", "InstrumentClass", "Rank", "VolumeMultiple", "PriceTick", "MaxMarketOrderVolume", "MinMarketOrderVolume", "MaxLimitOrderVolume", "MinLimitOrderVolume", "SessionName");
 	for (auto record : *records)
@@ -744,7 +741,7 @@ void MysqlWrapper::BatchInsertInstrument(std::list<Instrument*>* records)
 void MysqlWrapper::DeleteInstrument(Instrument* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Instrument");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Instrument");
     table.remove()
 		.where("ExchangeID = :ExchangeID and InstrumentID = :InstrumentID")
 		.bind("ExchangeID", record->ExchangeID)
@@ -759,7 +756,7 @@ void MysqlWrapper::DeleteInstrument(Instrument* record)
 void MysqlWrapper::UpdateInstrument(Instrument* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Instrument");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Instrument");
     table.update()
 		.set("ExchangeID", record->ExchangeID)
 		.set("InstrumentID", record->InstrumentID)
@@ -789,7 +786,7 @@ void MysqlWrapper::UpdateInstrument(Instrument* record)
 void MysqlWrapper::SelectInstrument(std::list<Instrument*>& records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Instrument");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Instrument");
     auto result = table.select("*")
 		.execute();
 	while (auto row = result.fetchOne())
@@ -841,7 +838,7 @@ void MysqlWrapper::DropPrimaryAccount()
 void MysqlWrapper::InsertPrimaryAccount(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PrimaryAccount");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PrimaryAccount");
 	
     table.insert("PrimaryAccountID", "PrimaryAccountName", "AccountClass", "BrokerPassword", "OfferID", "IsAllowLogin", "IsSimulateAccount", "LoginStatus", "InitStatus")
 		.values(record->PrimaryAccountID, record->PrimaryAccountName, (int)record->AccountClass, record->BrokerPassword, record->OfferID, record->IsAllowLogin, record->IsSimulateAccount, (int)record->LoginStatus, (int)record->InitStatus)
@@ -855,7 +852,7 @@ void MysqlWrapper::InsertPrimaryAccount(PrimaryAccount* record)
 void MysqlWrapper::BatchInsertPrimaryAccount(std::list<PrimaryAccount*>* records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PrimaryAccount");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PrimaryAccount");
 	
     auto insert = table.insert("PrimaryAccountID", "PrimaryAccountName", "AccountClass", "BrokerPassword", "OfferID", "IsAllowLogin", "IsSimulateAccount", "LoginStatus", "InitStatus");
 	for (auto record : *records)
@@ -869,7 +866,7 @@ void MysqlWrapper::BatchInsertPrimaryAccount(std::list<PrimaryAccount*>* records
 void MysqlWrapper::DeletePrimaryAccount(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PrimaryAccount");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PrimaryAccount");
     table.remove()
 		.where("PrimaryAccountID = :PrimaryAccountID")
 		.bind("PrimaryAccountID", record->PrimaryAccountID)
@@ -883,7 +880,7 @@ void MysqlWrapper::DeletePrimaryAccount(PrimaryAccount* record)
 void MysqlWrapper::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PrimaryAccount");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PrimaryAccount");
     table.remove()
 		.where("OfferID = :OfferID")
 		.bind("OfferID", record->OfferID)
@@ -897,7 +894,7 @@ void MysqlWrapper::DeletePrimaryAccountByOfferIDIndex(PrimaryAccount* record)
 void MysqlWrapper::UpdatePrimaryAccount(PrimaryAccount* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PrimaryAccount");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PrimaryAccount");
     table.update()
 		.set("PrimaryAccountID", record->PrimaryAccountID)
 		.set("PrimaryAccountName", record->PrimaryAccountName)
@@ -920,7 +917,7 @@ void MysqlWrapper::UpdatePrimaryAccount(PrimaryAccount* record)
 void MysqlWrapper::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PrimaryAccount");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PrimaryAccount");
     auto result = table.select("*")
 		.execute();
 	while (auto row = result.fetchOne())
@@ -972,7 +969,7 @@ void MysqlWrapper::DropAccount()
 void MysqlWrapper::InsertAccount(Account* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Account");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Account");
 	
     table.insert("AccountID", "AccountName", "AccountType", "AccountStatus", "Password", "TradeGroupID", "RiskGroupID", "CommissionGroupID")
 		.values(record->AccountID, record->AccountName, (int)record->AccountType, (int)record->AccountStatus, record->Password, record->TradeGroupID, record->RiskGroupID, record->CommissionGroupID)
@@ -986,7 +983,7 @@ void MysqlWrapper::InsertAccount(Account* record)
 void MysqlWrapper::BatchInsertAccount(std::list<Account*>* records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Account");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Account");
 	
     auto insert = table.insert("AccountID", "AccountName", "AccountType", "AccountStatus", "Password", "TradeGroupID", "RiskGroupID", "CommissionGroupID");
 	for (auto record : *records)
@@ -1000,7 +997,7 @@ void MysqlWrapper::BatchInsertAccount(std::list<Account*>* records)
 void MysqlWrapper::DeleteAccount(Account* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Account");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Account");
     table.remove()
 		.where("AccountID = :AccountID")
 		.bind("AccountID", record->AccountID)
@@ -1014,7 +1011,7 @@ void MysqlWrapper::DeleteAccount(Account* record)
 void MysqlWrapper::UpdateAccount(Account* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Account");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Account");
     table.update()
 		.set("AccountID", record->AccountID)
 		.set("AccountName", record->AccountName)
@@ -1036,7 +1033,7 @@ void MysqlWrapper::UpdateAccount(Account* record)
 void MysqlWrapper::SelectAccount(std::list<Account*>& records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Account");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Account");
     auto result = table.select("*")
 		.execute();
 	while (auto row = result.fetchOne())
@@ -1088,7 +1085,7 @@ void MysqlWrapper::DropCapital()
 void MysqlWrapper::InsertCapital(Capital* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Capital");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Capital");
 	
     table.insert("TradingDay", "AccountID", "AccountType", "Balance", "PreBalance", "Available", "MarketValue", "CashIn", "CashOut", "Margin", "Commission", "FrozenCash", "FrozenMargin", "FrozenCommission", "CloseProfitByDate", "CloseProfitByTrade", "PositionProfitByDate", "PositionProfitByTrade", "Deposit", "Withdraw")
 		.values(record->TradingDay, record->AccountID, (int)record->AccountType, record->Balance, record->PreBalance, record->Available, record->MarketValue, record->CashIn, record->CashOut, record->Margin, record->Commission, record->FrozenCash, record->FrozenMargin, record->FrozenCommission, record->CloseProfitByDate, record->CloseProfitByTrade, record->PositionProfitByDate, record->PositionProfitByTrade, record->Deposit, record->Withdraw)
@@ -1102,7 +1099,7 @@ void MysqlWrapper::InsertCapital(Capital* record)
 void MysqlWrapper::BatchInsertCapital(std::list<Capital*>* records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Capital");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Capital");
 	
     auto insert = table.insert("TradingDay", "AccountID", "AccountType", "Balance", "PreBalance", "Available", "MarketValue", "CashIn", "CashOut", "Margin", "Commission", "FrozenCash", "FrozenMargin", "FrozenCommission", "CloseProfitByDate", "CloseProfitByTrade", "PositionProfitByDate", "PositionProfitByTrade", "Deposit", "Withdraw");
 	for (auto record : *records)
@@ -1116,7 +1113,7 @@ void MysqlWrapper::BatchInsertCapital(std::list<Capital*>* records)
 void MysqlWrapper::DeleteCapital(Capital* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Capital");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Capital");
     table.remove()
 		.where("TradingDay = :TradingDay and AccountID = :AccountID")
 		.bind("TradingDay", record->TradingDay)
@@ -1131,7 +1128,7 @@ void MysqlWrapper::DeleteCapital(Capital* record)
 void MysqlWrapper::DeleteCapitalByTradingDayIndex(Capital* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Capital");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Capital");
     table.remove()
 		.where("TradingDay = :TradingDay")
 		.bind("TradingDay", record->TradingDay)
@@ -1145,7 +1142,7 @@ void MysqlWrapper::DeleteCapitalByTradingDayIndex(Capital* record)
 void MysqlWrapper::UpdateCapital(Capital* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Capital");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Capital");
     table.update()
 		.set("TradingDay", record->TradingDay)
 		.set("AccountID", record->AccountID)
@@ -1180,7 +1177,7 @@ void MysqlWrapper::UpdateCapital(Capital* record)
 void MysqlWrapper::SelectCapital(std::list<Capital*>& records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Capital");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Capital");
     auto result = table.select("*")
 		.execute();
 	while (auto row = result.fetchOne())
@@ -1232,7 +1229,7 @@ void MysqlWrapper::DropPosition()
 void MysqlWrapper::InsertPosition(Position* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Position");
 	
     table.insert("TradingDay", "AccountID", "AccountType", "ExchangeID", "InstrumentID", "ProductClass", "PosiDirection", "TotalPosition", "PositionFrozen", "TodayPosition", "MarketValue", "CashIn", "CashOut", "Margin", "Commission", "FrozenCash", "FrozenMargin", "FrozenCommission", "VolumeMultiple", "CloseProfitByDate", "CloseProfitByTrade", "PositionProfitByDate", "PositionProfitByTrade", "SettlementPrice", "PreSettlementPrice")
 		.values(record->TradingDay, record->AccountID, (int)record->AccountType, record->ExchangeID, record->InstrumentID, (int)record->ProductClass, (int)record->PosiDirection, record->TotalPosition, record->PositionFrozen, record->TodayPosition, record->MarketValue, record->CashIn, record->CashOut, record->Margin, record->Commission, record->FrozenCash, record->FrozenMargin, record->FrozenCommission, record->VolumeMultiple, record->CloseProfitByDate, record->CloseProfitByTrade, record->PositionProfitByDate, record->PositionProfitByTrade, record->SettlementPrice, record->PreSettlementPrice)
@@ -1246,7 +1243,7 @@ void MysqlWrapper::InsertPosition(Position* record)
 void MysqlWrapper::BatchInsertPosition(std::list<Position*>* records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Position");
 	
     auto insert = table.insert("TradingDay", "AccountID", "AccountType", "ExchangeID", "InstrumentID", "ProductClass", "PosiDirection", "TotalPosition", "PositionFrozen", "TodayPosition", "MarketValue", "CashIn", "CashOut", "Margin", "Commission", "FrozenCash", "FrozenMargin", "FrozenCommission", "VolumeMultiple", "CloseProfitByDate", "CloseProfitByTrade", "PositionProfitByDate", "PositionProfitByTrade", "SettlementPrice", "PreSettlementPrice");
 	for (auto record : *records)
@@ -1260,7 +1257,7 @@ void MysqlWrapper::BatchInsertPosition(std::list<Position*>* records)
 void MysqlWrapper::DeletePosition(Position* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Position");
     table.remove()
 		.where("TradingDay = :TradingDay and AccountID = :AccountID and ExchangeID = :ExchangeID and InstrumentID = :InstrumentID and PosiDirection = :PosiDirection")
 		.bind("TradingDay", record->TradingDay)
@@ -1278,7 +1275,7 @@ void MysqlWrapper::DeletePosition(Position* record)
 void MysqlWrapper::DeletePositionByAccountIndex(Position* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Position");
     table.remove()
 		.where("TradingDay = :TradingDay and AccountID = :AccountID")
 		.bind("TradingDay", record->TradingDay)
@@ -1293,7 +1290,7 @@ void MysqlWrapper::DeletePositionByAccountIndex(Position* record)
 void MysqlWrapper::DeletePositionByTradingDayIndex(Position* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Position");
     table.remove()
 		.where("TradingDay = :TradingDay")
 		.bind("TradingDay", record->TradingDay)
@@ -1307,7 +1304,7 @@ void MysqlWrapper::DeletePositionByTradingDayIndex(Position* record)
 void MysqlWrapper::UpdatePosition(Position* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Position");
     table.update()
 		.set("TradingDay", record->TradingDay)
 		.set("AccountID", record->AccountID)
@@ -1350,7 +1347,7 @@ void MysqlWrapper::UpdatePosition(Position* record)
 void MysqlWrapper::SelectPosition(std::list<Position*>& records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Position");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Position");
     auto result = table.select("*")
 		.execute();
 	while (auto row = result.fetchOne())
@@ -1402,7 +1399,7 @@ void MysqlWrapper::DropPositionDetail()
 void MysqlWrapper::InsertPositionDetail(PositionDetail* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PositionDetail");
 	
     table.insert("TradingDay", "AccountID", "AccountType", "ExchangeID", "InstrumentID", "ProductClass", "PosiDirection", "OpenDate", "TradeID", "Volume", "OpenPrice", "MarketValue", "CashIn", "CashOut", "Margin", "Commission", "VolumeMultiple", "CloseProfitByDate", "CloseProfitByTrade", "PositionProfitByDate", "PositionProfitByTrade", "SettlementPrice", "PreSettlementPrice", "CloseVolume", "CloseAmount")
 		.values(record->TradingDay, record->AccountID, (int)record->AccountType, record->ExchangeID, record->InstrumentID, (int)record->ProductClass, (int)record->PosiDirection, record->OpenDate, record->TradeID, record->Volume, record->OpenPrice, record->MarketValue, record->CashIn, record->CashOut, record->Margin, record->Commission, record->VolumeMultiple, record->CloseProfitByDate, record->CloseProfitByTrade, record->PositionProfitByDate, record->PositionProfitByTrade, record->SettlementPrice, record->PreSettlementPrice, record->CloseVolume, record->CloseAmount)
@@ -1416,7 +1413,7 @@ void MysqlWrapper::InsertPositionDetail(PositionDetail* record)
 void MysqlWrapper::BatchInsertPositionDetail(std::list<PositionDetail*>* records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PositionDetail");
 	
     auto insert = table.insert("TradingDay", "AccountID", "AccountType", "ExchangeID", "InstrumentID", "ProductClass", "PosiDirection", "OpenDate", "TradeID", "Volume", "OpenPrice", "MarketValue", "CashIn", "CashOut", "Margin", "Commission", "VolumeMultiple", "CloseProfitByDate", "CloseProfitByTrade", "PositionProfitByDate", "PositionProfitByTrade", "SettlementPrice", "PreSettlementPrice", "CloseVolume", "CloseAmount");
 	for (auto record : *records)
@@ -1430,7 +1427,7 @@ void MysqlWrapper::BatchInsertPositionDetail(std::list<PositionDetail*>* records
 void MysqlWrapper::DeletePositionDetail(PositionDetail* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PositionDetail");
     table.remove()
 		.where("TradingDay = :TradingDay and AccountID = :AccountID and ExchangeID = :ExchangeID and InstrumentID = :InstrumentID and PosiDirection = :PosiDirection and OpenDate = :OpenDate and TradeID = :TradeID")
 		.bind("TradingDay", record->TradingDay)
@@ -1450,7 +1447,7 @@ void MysqlWrapper::DeletePositionDetail(PositionDetail* record)
 void MysqlWrapper::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PositionDetail");
     table.remove()
 		.where("TradingDay = :TradingDay and AccountID = :AccountID and ExchangeID = :ExchangeID and InstrumentID = :InstrumentID and PosiDirection = :PosiDirection")
 		.bind("TradingDay", record->TradingDay)
@@ -1468,7 +1465,7 @@ void MysqlWrapper::DeletePositionDetailByTradeMatchIndex(PositionDetail* record)
 void MysqlWrapper::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PositionDetail");
     table.remove()
 		.where("TradingDay = :TradingDay")
 		.bind("TradingDay", record->TradingDay)
@@ -1482,7 +1479,7 @@ void MysqlWrapper::DeletePositionDetailByTradingDayIndex(PositionDetail* record)
 void MysqlWrapper::UpdatePositionDetail(PositionDetail* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PositionDetail");
     table.update()
 		.set("TradingDay", record->TradingDay)
 		.set("AccountID", record->AccountID)
@@ -1527,7 +1524,7 @@ void MysqlWrapper::UpdatePositionDetail(PositionDetail* record)
 void MysqlWrapper::SelectPositionDetail(std::list<PositionDetail*>& records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_PositionDetail");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_PositionDetail");
     auto result = table.select("*")
 		.execute();
 	while (auto row = result.fetchOne())
@@ -1579,7 +1576,7 @@ void MysqlWrapper::DropOrder()
 void MysqlWrapper::InsertOrder(Order* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Order");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Order");
 	
     table.insert("TradingDay", "AccountID", "AccountType", "ExchangeID", "InstrumentID", "ProductClass", "OrderID", "OrderSysID", "Direction", "OffsetFlag", "OrderPriceType", "Price", "Volume", "VolumeTotal", "VolumeTraded", "VolumeMultiple", "OrderStatus", "OrderDate", "OrderTime", "CancelDate", "CancelTime", "SessionID", "ClientOrderID", "RequestID", "OfferID", "TradeGroupID", "RiskGroupID", "CommissionGroupID", "FrozenCash", "FrozenMargin", "FrozenCommission", "RebuildMark", "IsForceClose")
 		.values(record->TradingDay, record->AccountID, (int)record->AccountType, record->ExchangeID, record->InstrumentID, (int)record->ProductClass, record->OrderID, record->OrderSysID, (int)record->Direction, (int)record->OffsetFlag, (int)record->OrderPriceType, record->Price, record->Volume, record->VolumeTotal, record->VolumeTraded, record->VolumeMultiple, (int)record->OrderStatus, record->OrderDate, record->OrderTime, record->CancelDate, record->CancelTime, record->SessionID, record->ClientOrderID, record->RequestID, record->OfferID, record->TradeGroupID, record->RiskGroupID, record->CommissionGroupID, record->FrozenCash, record->FrozenMargin, record->FrozenCommission, record->RebuildMark, record->IsForceClose)
@@ -1593,7 +1590,7 @@ void MysqlWrapper::InsertOrder(Order* record)
 void MysqlWrapper::BatchInsertOrder(std::list<Order*>* records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Order");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Order");
 	
     auto insert = table.insert("TradingDay", "AccountID", "AccountType", "ExchangeID", "InstrumentID", "ProductClass", "OrderID", "OrderSysID", "Direction", "OffsetFlag", "OrderPriceType", "Price", "Volume", "VolumeTotal", "VolumeTraded", "VolumeMultiple", "OrderStatus", "OrderDate", "OrderTime", "CancelDate", "CancelTime", "SessionID", "ClientOrderID", "RequestID", "OfferID", "TradeGroupID", "RiskGroupID", "CommissionGroupID", "FrozenCash", "FrozenMargin", "FrozenCommission", "RebuildMark", "IsForceClose");
 	for (auto record : *records)
@@ -1607,7 +1604,7 @@ void MysqlWrapper::BatchInsertOrder(std::list<Order*>* records)
 void MysqlWrapper::DeleteOrder(Order* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Order");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Order");
     table.remove()
 		.where("TradingDay = :TradingDay and AccountID = :AccountID and ExchangeID = :ExchangeID and InstrumentID = :InstrumentID and OrderID = :OrderID")
 		.bind("TradingDay", record->TradingDay)
@@ -1625,7 +1622,7 @@ void MysqlWrapper::DeleteOrder(Order* record)
 void MysqlWrapper::UpdateOrder(Order* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Order");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Order");
     table.update()
 		.set("TradingDay", record->TradingDay)
 		.set("AccountID", record->AccountID)
@@ -1676,7 +1673,7 @@ void MysqlWrapper::UpdateOrder(Order* record)
 void MysqlWrapper::SelectOrder(std::list<Order*>& records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Order");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Order");
     auto result = table.select("*")
 		.execute();
 	while (auto row = result.fetchOne())
@@ -1728,7 +1725,7 @@ void MysqlWrapper::DropTrade()
 void MysqlWrapper::InsertTrade(Trade* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Trade");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Trade");
 	
     table.insert("TradingDay", "AccountID", "AccountType", "ExchangeID", "InstrumentID", "ProductClass", "OrderID", "OrderSysID", "TradeID", "Direction", "OffsetFlag", "Price", "Volume", "VolumeMultiple", "TradeAmount", "Commission", "TradeDate", "TradeTime")
 		.values(record->TradingDay, record->AccountID, (int)record->AccountType, record->ExchangeID, record->InstrumentID, (int)record->ProductClass, record->OrderID, record->OrderSysID, record->TradeID, (int)record->Direction, (int)record->OffsetFlag, record->Price, record->Volume, record->VolumeMultiple, record->TradeAmount, record->Commission, record->TradeDate, record->TradeTime)
@@ -1742,7 +1739,7 @@ void MysqlWrapper::InsertTrade(Trade* record)
 void MysqlWrapper::BatchInsertTrade(std::list<Trade*>* records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Trade");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Trade");
 	
     auto insert = table.insert("TradingDay", "AccountID", "AccountType", "ExchangeID", "InstrumentID", "ProductClass", "OrderID", "OrderSysID", "TradeID", "Direction", "OffsetFlag", "Price", "Volume", "VolumeMultiple", "TradeAmount", "Commission", "TradeDate", "TradeTime");
 	for (auto record : *records)
@@ -1756,7 +1753,7 @@ void MysqlWrapper::BatchInsertTrade(std::list<Trade*>* records)
 void MysqlWrapper::DeleteTrade(Trade* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Trade");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Trade");
     table.remove()
 		.where("TradingDay = :TradingDay and ExchangeID = :ExchangeID and TradeID = :TradeID and Direction = :Direction")
 		.bind("TradingDay", record->TradingDay)
@@ -1773,7 +1770,7 @@ void MysqlWrapper::DeleteTrade(Trade* record)
 void MysqlWrapper::UpdateTrade(Trade* record)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Trade");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Trade");
     table.update()
 		.set("TradingDay", record->TradingDay)
 		.set("AccountID", record->AccountID)
@@ -1808,7 +1805,7 @@ void MysqlWrapper::UpdateTrade(Trade* record)
 void MysqlWrapper::SelectTrade(std::list<Trade*>& records)
 {
 	auto start = steady_clock::now();
-	auto table = m_Impl->m_DefaultSchema.getTable("t_Trade");
+	auto table = m_Impl->m_Session.getDefaultSchema().getTable("t_Trade");
     auto result = table.select("*")
 		.execute();
 	while (auto row = result.fetchOne())
