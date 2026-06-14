@@ -24,6 +24,7 @@ public:
 	virtual void DeleteTradingDay(mdb::TradingDay* record) = 0;
 	virtual void UpdateTradingDay(mdb::TradingDay* record) = 0;
 	virtual void SelectTradingDay(std::list<mdb::TradingDay*>& records) = 0;
+	virtual void SelectTradingDayWithSql(const char* sql, std::list<mdb::TradingDay*>& records) = 0;
 	virtual void TruncateTradingDay() = 0;
 
 	virtual void CreateExchange() = 0;
@@ -33,6 +34,7 @@ public:
 	virtual void DeleteExchange(mdb::Exchange* record) = 0;
 	virtual void UpdateExchange(mdb::Exchange* record) = 0;
 	virtual void SelectExchange(std::list<mdb::Exchange*>& records) = 0;
+	virtual void SelectExchangeWithSql(const char* sql, std::list<mdb::Exchange*>& records) = 0;
 	virtual void TruncateExchange() = 0;
 
 	virtual void CreateProduct() = 0;
@@ -42,6 +44,7 @@ public:
 	virtual void DeleteProduct(mdb::Product* record) = 0;
 	virtual void UpdateProduct(mdb::Product* record) = 0;
 	virtual void SelectProduct(std::list<mdb::Product*>& records) = 0;
+	virtual void SelectProductWithSql(const char* sql, std::list<mdb::Product*>& records) = 0;
 	virtual void TruncateProduct() = 0;
 
 	virtual void CreateInstrument() = 0;
@@ -51,6 +54,7 @@ public:
 	virtual void DeleteInstrument(mdb::Instrument* record) = 0;
 	virtual void UpdateInstrument(mdb::Instrument* record) = 0;
 	virtual void SelectInstrument(std::list<mdb::Instrument*>& records) = 0;
+	virtual void SelectInstrumentWithSql(const char* sql, std::list<mdb::Instrument*>& records) = 0;
 	virtual void TruncateInstrument() = 0;
 
 	virtual void CreatePrimaryAccount() = 0;
@@ -61,6 +65,7 @@ public:
 	virtual void DeletePrimaryAccountByOfferIDIndex(mdb::PrimaryAccount* record) = 0;
 	virtual void UpdatePrimaryAccount(mdb::PrimaryAccount* record) = 0;
 	virtual void SelectPrimaryAccount(std::list<mdb::PrimaryAccount*>& records) = 0;
+	virtual void SelectPrimaryAccountWithSql(const char* sql, std::list<mdb::PrimaryAccount*>& records) = 0;
 	virtual void TruncatePrimaryAccount() = 0;
 
 	virtual void CreateAccount() = 0;
@@ -70,6 +75,7 @@ public:
 	virtual void DeleteAccount(mdb::Account* record) = 0;
 	virtual void UpdateAccount(mdb::Account* record) = 0;
 	virtual void SelectAccount(std::list<mdb::Account*>& records) = 0;
+	virtual void SelectAccountWithSql(const char* sql, std::list<mdb::Account*>& records) = 0;
 	virtual void TruncateAccount() = 0;
 
 	virtual void CreateCapital() = 0;
@@ -80,6 +86,7 @@ public:
 	virtual void DeleteCapitalByTradingDayIndex(mdb::Capital* record) = 0;
 	virtual void UpdateCapital(mdb::Capital* record) = 0;
 	virtual void SelectCapital(std::list<mdb::Capital*>& records) = 0;
+	virtual void SelectCapitalWithSql(const char* sql, std::list<mdb::Capital*>& records) = 0;
 	virtual void TruncateCapital() = 0;
 
 	virtual void CreatePosition() = 0;
@@ -91,6 +98,7 @@ public:
 	virtual void DeletePositionByTradingDayIndex(mdb::Position* record) = 0;
 	virtual void UpdatePosition(mdb::Position* record) = 0;
 	virtual void SelectPosition(std::list<mdb::Position*>& records) = 0;
+	virtual void SelectPositionWithSql(const char* sql, std::list<mdb::Position*>& records) = 0;
 	virtual void TruncatePosition() = 0;
 
 	virtual void CreatePositionDetail() = 0;
@@ -102,6 +110,7 @@ public:
 	virtual void DeletePositionDetailByTradingDayIndex(mdb::PositionDetail* record) = 0;
 	virtual void UpdatePositionDetail(mdb::PositionDetail* record) = 0;
 	virtual void SelectPositionDetail(std::list<mdb::PositionDetail*>& records) = 0;
+	virtual void SelectPositionDetailWithSql(const char* sql, std::list<mdb::PositionDetail*>& records) = 0;
 	virtual void TruncatePositionDetail() = 0;
 
 	virtual void CreateOrder() = 0;
@@ -111,6 +120,7 @@ public:
 	virtual void DeleteOrder(mdb::Order* record) = 0;
 	virtual void UpdateOrder(mdb::Order* record) = 0;
 	virtual void SelectOrder(std::list<mdb::Order*>& records) = 0;
+	virtual void SelectOrderWithSql(const char* sql, std::list<mdb::Order*>& records) = 0;
 	virtual void TruncateOrder() = 0;
 
 	virtual void CreateTrade() = 0;
@@ -120,6 +130,7 @@ public:
 	virtual void DeleteTrade(mdb::Trade* record) = 0;
 	virtual void UpdateTrade(mdb::Trade* record) = 0;
 	virtual void SelectTrade(std::list<mdb::Trade*>& records) = 0;
+	virtual void SelectTradeWithSql(const char* sql, std::list<mdb::Trade*>& records) = 0;
 	virtual void TruncateTrade() = 0;
 
 };

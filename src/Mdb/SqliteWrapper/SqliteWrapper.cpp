@@ -1285,19 +1285,42 @@ void SelectTradingDay(std::list<TradingDay*>& records)
 	auto start = steady_clock::now();
 	if (m_TradingDaySelectStatement == nullptr)
 	{
-		sqlite3_prepare_v2(m_DB, "select * from t_TradingDay;", -1, &m_TradingDaySelectStatement, nullptr);
+		if (sqlite3_prepare_v2(m_DB, "select * from t_TradingDay;", -1, &m_TradingDaySelectStatement, nullptr) != SQLITE_OK)
+		{
+			WriteLog(LogLevel::Warning, "SelectTradingDay prepare failed: %s", sqlite3_errmsg(m_DB));
+			return;
+		}
 	}
-
 	while (sqlite3_step(m_TradingDaySelectStatement) == SQLITE_ROW)
 	{
 		ParseRecord(m_TradingDaySelectStatement, records);
 	}
 	sqlite3_reset(m_TradingDaySelectStatement);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectTradingDay Spend:%lldms", duration);
+	}
+}
+void SelectTradingDayWithSql(const char* sql, std::list<TradingDay*>& records)
+{
+	auto start = steady_clock::now();
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(m_DB, sql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		WriteLog(LogLevel::Warning, "SelectTradingDayWithSql prepare failed: %s", sqlite3_errmsg(m_DB));
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		ParseRecord(stmt, records);
+	}
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectTradingDayWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateTradingDay()
@@ -1458,19 +1481,42 @@ void SelectExchange(std::list<Exchange*>& records)
 	auto start = steady_clock::now();
 	if (m_ExchangeSelectStatement == nullptr)
 	{
-		sqlite3_prepare_v2(m_DB, "select * from t_Exchange;", -1, &m_ExchangeSelectStatement, nullptr);
+		if (sqlite3_prepare_v2(m_DB, "select * from t_Exchange;", -1, &m_ExchangeSelectStatement, nullptr) != SQLITE_OK)
+		{
+			WriteLog(LogLevel::Warning, "SelectExchange prepare failed: %s", sqlite3_errmsg(m_DB));
+			return;
+		}
 	}
-
 	while (sqlite3_step(m_ExchangeSelectStatement) == SQLITE_ROW)
 	{
 		ParseRecord(m_ExchangeSelectStatement, records);
 	}
 	sqlite3_reset(m_ExchangeSelectStatement);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectExchange Spend:%lldms", duration);
+	}
+}
+void SelectExchangeWithSql(const char* sql, std::list<Exchange*>& records)
+{
+	auto start = steady_clock::now();
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(m_DB, sql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		WriteLog(LogLevel::Warning, "SelectExchangeWithSql prepare failed: %s", sqlite3_errmsg(m_DB));
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		ParseRecord(stmt, records);
+	}
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectExchangeWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateExchange()
@@ -1631,19 +1677,42 @@ void SelectProduct(std::list<Product*>& records)
 	auto start = steady_clock::now();
 	if (m_ProductSelectStatement == nullptr)
 	{
-		sqlite3_prepare_v2(m_DB, "select * from t_Product;", -1, &m_ProductSelectStatement, nullptr);
+		if (sqlite3_prepare_v2(m_DB, "select * from t_Product;", -1, &m_ProductSelectStatement, nullptr) != SQLITE_OK)
+		{
+			WriteLog(LogLevel::Warning, "SelectProduct prepare failed: %s", sqlite3_errmsg(m_DB));
+			return;
+		}
 	}
-
 	while (sqlite3_step(m_ProductSelectStatement) == SQLITE_ROW)
 	{
 		ParseRecord(m_ProductSelectStatement, records);
 	}
 	sqlite3_reset(m_ProductSelectStatement);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectProduct Spend:%lldms", duration);
+	}
+}
+void SelectProductWithSql(const char* sql, std::list<Product*>& records)
+{
+	auto start = steady_clock::now();
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(m_DB, sql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		WriteLog(LogLevel::Warning, "SelectProductWithSql prepare failed: %s", sqlite3_errmsg(m_DB));
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		ParseRecord(stmt, records);
+	}
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectProductWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateProduct()
@@ -1804,19 +1873,42 @@ void SelectInstrument(std::list<Instrument*>& records)
 	auto start = steady_clock::now();
 	if (m_InstrumentSelectStatement == nullptr)
 	{
-		sqlite3_prepare_v2(m_DB, "select * from t_Instrument;", -1, &m_InstrumentSelectStatement, nullptr);
+		if (sqlite3_prepare_v2(m_DB, "select * from t_Instrument;", -1, &m_InstrumentSelectStatement, nullptr) != SQLITE_OK)
+		{
+			WriteLog(LogLevel::Warning, "SelectInstrument prepare failed: %s", sqlite3_errmsg(m_DB));
+			return;
+		}
 	}
-
 	while (sqlite3_step(m_InstrumentSelectStatement) == SQLITE_ROW)
 	{
 		ParseRecord(m_InstrumentSelectStatement, records);
 	}
 	sqlite3_reset(m_InstrumentSelectStatement);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectInstrument Spend:%lldms", duration);
+	}
+}
+void SelectInstrumentWithSql(const char* sql, std::list<Instrument*>& records)
+{
+	auto start = steady_clock::now();
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(m_DB, sql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		WriteLog(LogLevel::Warning, "SelectInstrumentWithSql prepare failed: %s", sqlite3_errmsg(m_DB));
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		ParseRecord(stmt, records);
+	}
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectInstrumentWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateInstrument()
@@ -1999,19 +2091,42 @@ void SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 	auto start = steady_clock::now();
 	if (m_PrimaryAccountSelectStatement == nullptr)
 	{
-		sqlite3_prepare_v2(m_DB, "select * from t_PrimaryAccount;", -1, &m_PrimaryAccountSelectStatement, nullptr);
+		if (sqlite3_prepare_v2(m_DB, "select * from t_PrimaryAccount;", -1, &m_PrimaryAccountSelectStatement, nullptr) != SQLITE_OK)
+		{
+			WriteLog(LogLevel::Warning, "SelectPrimaryAccount prepare failed: %s", sqlite3_errmsg(m_DB));
+			return;
+		}
 	}
-
 	while (sqlite3_step(m_PrimaryAccountSelectStatement) == SQLITE_ROW)
 	{
 		ParseRecord(m_PrimaryAccountSelectStatement, records);
 	}
 	sqlite3_reset(m_PrimaryAccountSelectStatement);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectPrimaryAccount Spend:%lldms", duration);
+	}
+}
+void SelectPrimaryAccountWithSql(const char* sql, std::list<PrimaryAccount*>& records)
+{
+	auto start = steady_clock::now();
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(m_DB, sql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		WriteLog(LogLevel::Warning, "SelectPrimaryAccountWithSql prepare failed: %s", sqlite3_errmsg(m_DB));
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		ParseRecord(stmt, records);
+	}
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectPrimaryAccountWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncatePrimaryAccount()
@@ -2172,19 +2287,42 @@ void SelectAccount(std::list<Account*>& records)
 	auto start = steady_clock::now();
 	if (m_AccountSelectStatement == nullptr)
 	{
-		sqlite3_prepare_v2(m_DB, "select * from t_Account;", -1, &m_AccountSelectStatement, nullptr);
+		if (sqlite3_prepare_v2(m_DB, "select * from t_Account;", -1, &m_AccountSelectStatement, nullptr) != SQLITE_OK)
+		{
+			WriteLog(LogLevel::Warning, "SelectAccount prepare failed: %s", sqlite3_errmsg(m_DB));
+			return;
+		}
 	}
-
 	while (sqlite3_step(m_AccountSelectStatement) == SQLITE_ROW)
 	{
 		ParseRecord(m_AccountSelectStatement, records);
 	}
 	sqlite3_reset(m_AccountSelectStatement);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectAccount Spend:%lldms", duration);
+	}
+}
+void SelectAccountWithSql(const char* sql, std::list<Account*>& records)
+{
+	auto start = steady_clock::now();
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(m_DB, sql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		WriteLog(LogLevel::Warning, "SelectAccountWithSql prepare failed: %s", sqlite3_errmsg(m_DB));
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		ParseRecord(stmt, records);
+	}
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectAccountWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateAccount()
@@ -2367,19 +2505,42 @@ void SelectCapital(std::list<Capital*>& records)
 	auto start = steady_clock::now();
 	if (m_CapitalSelectStatement == nullptr)
 	{
-		sqlite3_prepare_v2(m_DB, "select * from t_Capital;", -1, &m_CapitalSelectStatement, nullptr);
+		if (sqlite3_prepare_v2(m_DB, "select * from t_Capital;", -1, &m_CapitalSelectStatement, nullptr) != SQLITE_OK)
+		{
+			WriteLog(LogLevel::Warning, "SelectCapital prepare failed: %s", sqlite3_errmsg(m_DB));
+			return;
+		}
 	}
-
 	while (sqlite3_step(m_CapitalSelectStatement) == SQLITE_ROW)
 	{
 		ParseRecord(m_CapitalSelectStatement, records);
 	}
 	sqlite3_reset(m_CapitalSelectStatement);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectCapital Spend:%lldms", duration);
+	}
+}
+void SelectCapitalWithSql(const char* sql, std::list<Capital*>& records)
+{
+	auto start = steady_clock::now();
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(m_DB, sql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		WriteLog(LogLevel::Warning, "SelectCapitalWithSql prepare failed: %s", sqlite3_errmsg(m_DB));
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		ParseRecord(stmt, records);
+	}
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectCapitalWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateCapital()
@@ -2584,19 +2745,42 @@ void SelectPosition(std::list<Position*>& records)
 	auto start = steady_clock::now();
 	if (m_PositionSelectStatement == nullptr)
 	{
-		sqlite3_prepare_v2(m_DB, "select * from t_Position;", -1, &m_PositionSelectStatement, nullptr);
+		if (sqlite3_prepare_v2(m_DB, "select * from t_Position;", -1, &m_PositionSelectStatement, nullptr) != SQLITE_OK)
+		{
+			WriteLog(LogLevel::Warning, "SelectPosition prepare failed: %s", sqlite3_errmsg(m_DB));
+			return;
+		}
 	}
-
 	while (sqlite3_step(m_PositionSelectStatement) == SQLITE_ROW)
 	{
 		ParseRecord(m_PositionSelectStatement, records);
 	}
 	sqlite3_reset(m_PositionSelectStatement);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectPosition Spend:%lldms", duration);
+	}
+}
+void SelectPositionWithSql(const char* sql, std::list<Position*>& records)
+{
+	auto start = steady_clock::now();
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(m_DB, sql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		WriteLog(LogLevel::Warning, "SelectPositionWithSql prepare failed: %s", sqlite3_errmsg(m_DB));
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		ParseRecord(stmt, records);
+	}
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectPositionWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncatePosition()
@@ -2801,19 +2985,42 @@ void SelectPositionDetail(std::list<PositionDetail*>& records)
 	auto start = steady_clock::now();
 	if (m_PositionDetailSelectStatement == nullptr)
 	{
-		sqlite3_prepare_v2(m_DB, "select * from t_PositionDetail;", -1, &m_PositionDetailSelectStatement, nullptr);
+		if (sqlite3_prepare_v2(m_DB, "select * from t_PositionDetail;", -1, &m_PositionDetailSelectStatement, nullptr) != SQLITE_OK)
+		{
+			WriteLog(LogLevel::Warning, "SelectPositionDetail prepare failed: %s", sqlite3_errmsg(m_DB));
+			return;
+		}
 	}
-
 	while (sqlite3_step(m_PositionDetailSelectStatement) == SQLITE_ROW)
 	{
 		ParseRecord(m_PositionDetailSelectStatement, records);
 	}
 	sqlite3_reset(m_PositionDetailSelectStatement);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectPositionDetail Spend:%lldms", duration);
+	}
+}
+void SelectPositionDetailWithSql(const char* sql, std::list<PositionDetail*>& records)
+{
+	auto start = steady_clock::now();
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(m_DB, sql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		WriteLog(LogLevel::Warning, "SelectPositionDetailWithSql prepare failed: %s", sqlite3_errmsg(m_DB));
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		ParseRecord(stmt, records);
+	}
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectPositionDetailWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncatePositionDetail()
@@ -2974,19 +3181,42 @@ void SelectOrder(std::list<Order*>& records)
 	auto start = steady_clock::now();
 	if (m_OrderSelectStatement == nullptr)
 	{
-		sqlite3_prepare_v2(m_DB, "select * from t_Order;", -1, &m_OrderSelectStatement, nullptr);
+		if (sqlite3_prepare_v2(m_DB, "select * from t_Order;", -1, &m_OrderSelectStatement, nullptr) != SQLITE_OK)
+		{
+			WriteLog(LogLevel::Warning, "SelectOrder prepare failed: %s", sqlite3_errmsg(m_DB));
+			return;
+		}
 	}
-
 	while (sqlite3_step(m_OrderSelectStatement) == SQLITE_ROW)
 	{
 		ParseRecord(m_OrderSelectStatement, records);
 	}
 	sqlite3_reset(m_OrderSelectStatement);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectOrder Spend:%lldms", duration);
+	}
+}
+void SelectOrderWithSql(const char* sql, std::list<Order*>& records)
+{
+	auto start = steady_clock::now();
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(m_DB, sql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		WriteLog(LogLevel::Warning, "SelectOrderWithSql prepare failed: %s", sqlite3_errmsg(m_DB));
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		ParseRecord(stmt, records);
+	}
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectOrderWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateOrder()
@@ -3147,19 +3377,42 @@ void SelectTrade(std::list<Trade*>& records)
 	auto start = steady_clock::now();
 	if (m_TradeSelectStatement == nullptr)
 	{
-		sqlite3_prepare_v2(m_DB, "select * from t_Trade;", -1, &m_TradeSelectStatement, nullptr);
+		if (sqlite3_prepare_v2(m_DB, "select * from t_Trade;", -1, &m_TradeSelectStatement, nullptr) != SQLITE_OK)
+		{
+			WriteLog(LogLevel::Warning, "SelectTrade prepare failed: %s", sqlite3_errmsg(m_DB));
+			return;
+		}
 	}
-
 	while (sqlite3_step(m_TradeSelectStatement) == SQLITE_ROW)
 	{
 		ParseRecord(m_TradeSelectStatement, records);
 	}
 	sqlite3_reset(m_TradeSelectStatement);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectTrade Spend:%lldms", duration);
+	}
+}
+void SelectTradeWithSql(const char* sql, std::list<Trade*>& records)
+{
+	auto start = steady_clock::now();
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(m_DB, sql, -1, &stmt, nullptr) != SQLITE_OK)
+	{
+		WriteLog(LogLevel::Warning, "SelectTradeWithSql prepare failed: %s", sqlite3_errmsg(m_DB));
+		return;
+	}
+	while (sqlite3_step(stmt) == SQLITE_ROW)
+	{
+		ParseRecord(stmt, records);
+	}
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectTradeWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateTrade()
@@ -3370,6 +3623,10 @@ void SqliteWrapper::SelectTradingDay(std::list<TradingDay*>& records)
 {
 	m_Impl->SelectTradingDay(records);
 }
+void SqliteWrapper::SelectTradingDayWithSql(const char* sql, std::list<TradingDay*>& records)
+{
+	m_Impl->SelectTradingDayWithSql(sql, records);
+}
 void SqliteWrapper::TruncateTradingDay()
 {
 	m_Impl->TruncateTradingDay();
@@ -3401,6 +3658,10 @@ void SqliteWrapper::UpdateExchange(Exchange* record)
 void SqliteWrapper::SelectExchange(std::list<Exchange*>& records)
 {
 	m_Impl->SelectExchange(records);
+}
+void SqliteWrapper::SelectExchangeWithSql(const char* sql, std::list<Exchange*>& records)
+{
+	m_Impl->SelectExchangeWithSql(sql, records);
 }
 void SqliteWrapper::TruncateExchange()
 {
@@ -3434,6 +3695,10 @@ void SqliteWrapper::SelectProduct(std::list<Product*>& records)
 {
 	m_Impl->SelectProduct(records);
 }
+void SqliteWrapper::SelectProductWithSql(const char* sql, std::list<Product*>& records)
+{
+	m_Impl->SelectProductWithSql(sql, records);
+}
 void SqliteWrapper::TruncateProduct()
 {
 	m_Impl->TruncateProduct();
@@ -3465,6 +3730,10 @@ void SqliteWrapper::UpdateInstrument(Instrument* record)
 void SqliteWrapper::SelectInstrument(std::list<Instrument*>& records)
 {
 	m_Impl->SelectInstrument(records);
+}
+void SqliteWrapper::SelectInstrumentWithSql(const char* sql, std::list<Instrument*>& records)
+{
+	m_Impl->SelectInstrumentWithSql(sql, records);
 }
 void SqliteWrapper::TruncateInstrument()
 {
@@ -3502,6 +3771,10 @@ void SqliteWrapper::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 {
 	m_Impl->SelectPrimaryAccount(records);
 }
+void SqliteWrapper::SelectPrimaryAccountWithSql(const char* sql, std::list<PrimaryAccount*>& records)
+{
+	m_Impl->SelectPrimaryAccountWithSql(sql, records);
+}
 void SqliteWrapper::TruncatePrimaryAccount()
 {
 	m_Impl->TruncatePrimaryAccount();
@@ -3533,6 +3806,10 @@ void SqliteWrapper::UpdateAccount(Account* record)
 void SqliteWrapper::SelectAccount(std::list<Account*>& records)
 {
 	m_Impl->SelectAccount(records);
+}
+void SqliteWrapper::SelectAccountWithSql(const char* sql, std::list<Account*>& records)
+{
+	m_Impl->SelectAccountWithSql(sql, records);
 }
 void SqliteWrapper::TruncateAccount()
 {
@@ -3569,6 +3846,10 @@ void SqliteWrapper::UpdateCapital(Capital* record)
 void SqliteWrapper::SelectCapital(std::list<Capital*>& records)
 {
 	m_Impl->SelectCapital(records);
+}
+void SqliteWrapper::SelectCapitalWithSql(const char* sql, std::list<Capital*>& records)
+{
+	m_Impl->SelectCapitalWithSql(sql, records);
 }
 void SqliteWrapper::TruncateCapital()
 {
@@ -3610,6 +3891,10 @@ void SqliteWrapper::SelectPosition(std::list<Position*>& records)
 {
 	m_Impl->SelectPosition(records);
 }
+void SqliteWrapper::SelectPositionWithSql(const char* sql, std::list<Position*>& records)
+{
+	m_Impl->SelectPositionWithSql(sql, records);
+}
 void SqliteWrapper::TruncatePosition()
 {
 	m_Impl->TruncatePosition();
@@ -3650,6 +3935,10 @@ void SqliteWrapper::SelectPositionDetail(std::list<PositionDetail*>& records)
 {
 	m_Impl->SelectPositionDetail(records);
 }
+void SqliteWrapper::SelectPositionDetailWithSql(const char* sql, std::list<PositionDetail*>& records)
+{
+	m_Impl->SelectPositionDetailWithSql(sql, records);
+}
 void SqliteWrapper::TruncatePositionDetail()
 {
 	m_Impl->TruncatePositionDetail();
@@ -3682,6 +3971,10 @@ void SqliteWrapper::SelectOrder(std::list<Order*>& records)
 {
 	m_Impl->SelectOrder(records);
 }
+void SqliteWrapper::SelectOrderWithSql(const char* sql, std::list<Order*>& records)
+{
+	m_Impl->SelectOrderWithSql(sql, records);
+}
 void SqliteWrapper::TruncateOrder()
 {
 	m_Impl->TruncateOrder();
@@ -3713,6 +4006,10 @@ void SqliteWrapper::UpdateTrade(Trade* record)
 void SqliteWrapper::SelectTrade(std::list<Trade*>& records)
 {
 	m_Impl->SelectTrade(records);
+}
+void SqliteWrapper::SelectTradeWithSql(const char* sql, std::list<Trade*>& records)
+{
+	m_Impl->SelectTradeWithSql(sql, records);
 }
 void SqliteWrapper::TruncateTrade()
 {

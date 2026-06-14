@@ -27,7 +27,7 @@ public:
 	virtual void DeleteTradingDay(mdb::TradingDay* record) override;
 	virtual void UpdateTradingDay(mdb::TradingDay* record) override;
 	virtual void SelectTradingDay(std::list<mdb::TradingDay*>& records) override;
-	virtual void SelectTradingDayWithSql(const char* sql, std::list<mdb::TradingDay*>& records);
+	virtual void SelectTradingDayWithSql(const char* sql, std::list<mdb::TradingDay*>& records) override;
 	virtual void TruncateTradingDay() override;
 	
 	virtual void CreateExchange() override;
@@ -37,7 +37,7 @@ public:
 	virtual void DeleteExchange(mdb::Exchange* record) override;
 	virtual void UpdateExchange(mdb::Exchange* record) override;
 	virtual void SelectExchange(std::list<mdb::Exchange*>& records) override;
-	virtual void SelectExchangeWithSql(const char* sql, std::list<mdb::Exchange*>& records);
+	virtual void SelectExchangeWithSql(const char* sql, std::list<mdb::Exchange*>& records) override;
 	virtual void TruncateExchange() override;
 	
 	virtual void CreateProduct() override;
@@ -47,7 +47,7 @@ public:
 	virtual void DeleteProduct(mdb::Product* record) override;
 	virtual void UpdateProduct(mdb::Product* record) override;
 	virtual void SelectProduct(std::list<mdb::Product*>& records) override;
-	virtual void SelectProductWithSql(const char* sql, std::list<mdb::Product*>& records);
+	virtual void SelectProductWithSql(const char* sql, std::list<mdb::Product*>& records) override;
 	virtual void TruncateProduct() override;
 	
 	virtual void CreateInstrument() override;
@@ -57,7 +57,7 @@ public:
 	virtual void DeleteInstrument(mdb::Instrument* record) override;
 	virtual void UpdateInstrument(mdb::Instrument* record) override;
 	virtual void SelectInstrument(std::list<mdb::Instrument*>& records) override;
-	virtual void SelectInstrumentWithSql(const char* sql, std::list<mdb::Instrument*>& records);
+	virtual void SelectInstrumentWithSql(const char* sql, std::list<mdb::Instrument*>& records) override;
 	virtual void TruncateInstrument() override;
 	
 	virtual void CreatePrimaryAccount() override;
@@ -68,7 +68,7 @@ public:
 	virtual void DeletePrimaryAccountByOfferIDIndex(mdb::PrimaryAccount* record) override;
 	virtual void UpdatePrimaryAccount(mdb::PrimaryAccount* record) override;
 	virtual void SelectPrimaryAccount(std::list<mdb::PrimaryAccount*>& records) override;
-	virtual void SelectPrimaryAccountWithSql(const char* sql, std::list<mdb::PrimaryAccount*>& records);
+	virtual void SelectPrimaryAccountWithSql(const char* sql, std::list<mdb::PrimaryAccount*>& records) override;
 	virtual void TruncatePrimaryAccount() override;
 	
 	virtual void CreateAccount() override;
@@ -78,7 +78,7 @@ public:
 	virtual void DeleteAccount(mdb::Account* record) override;
 	virtual void UpdateAccount(mdb::Account* record) override;
 	virtual void SelectAccount(std::list<mdb::Account*>& records) override;
-	virtual void SelectAccountWithSql(const char* sql, std::list<mdb::Account*>& records);
+	virtual void SelectAccountWithSql(const char* sql, std::list<mdb::Account*>& records) override;
 	virtual void TruncateAccount() override;
 	
 	virtual void CreateCapital() override;
@@ -89,7 +89,7 @@ public:
 	virtual void DeleteCapitalByTradingDayIndex(mdb::Capital* record) override;
 	virtual void UpdateCapital(mdb::Capital* record) override;
 	virtual void SelectCapital(std::list<mdb::Capital*>& records) override;
-	virtual void SelectCapitalWithSql(const char* sql, std::list<mdb::Capital*>& records);
+	virtual void SelectCapitalWithSql(const char* sql, std::list<mdb::Capital*>& records) override;
 	virtual void TruncateCapital() override;
 	
 	virtual void CreatePosition() override;
@@ -101,7 +101,7 @@ public:
 	virtual void DeletePositionByTradingDayIndex(mdb::Position* record) override;
 	virtual void UpdatePosition(mdb::Position* record) override;
 	virtual void SelectPosition(std::list<mdb::Position*>& records) override;
-	virtual void SelectPositionWithSql(const char* sql, std::list<mdb::Position*>& records);
+	virtual void SelectPositionWithSql(const char* sql, std::list<mdb::Position*>& records) override;
 	virtual void TruncatePosition() override;
 	
 	virtual void CreatePositionDetail() override;
@@ -113,7 +113,7 @@ public:
 	virtual void DeletePositionDetailByTradingDayIndex(mdb::PositionDetail* record) override;
 	virtual void UpdatePositionDetail(mdb::PositionDetail* record) override;
 	virtual void SelectPositionDetail(std::list<mdb::PositionDetail*>& records) override;
-	virtual void SelectPositionDetailWithSql(const char* sql, std::list<mdb::PositionDetail*>& records);
+	virtual void SelectPositionDetailWithSql(const char* sql, std::list<mdb::PositionDetail*>& records) override;
 	virtual void TruncatePositionDetail() override;
 	
 	virtual void CreateOrder() override;
@@ -123,7 +123,7 @@ public:
 	virtual void DeleteOrder(mdb::Order* record) override;
 	virtual void UpdateOrder(mdb::Order* record) override;
 	virtual void SelectOrder(std::list<mdb::Order*>& records) override;
-	virtual void SelectOrderWithSql(const char* sql, std::list<mdb::Order*>& records);
+	virtual void SelectOrderWithSql(const char* sql, std::list<mdb::Order*>& records) override;
 	virtual void TruncateOrder() override;
 	
 	virtual void CreateTrade() override;
@@ -133,7 +133,7 @@ public:
 	virtual void DeleteTrade(mdb::Trade* record) override;
 	virtual void UpdateTrade(mdb::Trade* record) override;
 	virtual void SelectTrade(std::list<mdb::Trade*>& records) override;
-	virtual void SelectTradeWithSql(const char* sql, std::list<mdb::Trade*>& records);
+	virtual void SelectTradeWithSql(const char* sql, std::list<mdb::Trade*>& records) override;
 	virtual void TruncateTrade() override;
 	
 

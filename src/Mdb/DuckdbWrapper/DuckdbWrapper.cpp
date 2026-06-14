@@ -1836,6 +1836,8 @@ public:
 explicit Impl(const std::string& dbName)
 	:m_DBName(dbName)
 {
+	m_DB = nullptr;
+	m_Connection = nullptr;
 	m_TradingDayDeleteStatement = nullptr;
 	m_TradingDayUpdateStatement = nullptr;
 	m_TradingDaySelectStatement = nullptr;
@@ -2309,7 +2311,6 @@ void SelectTradingDay(std::list<TradingDay*>& records)
 	{
 		duckdb_prepare(m_Connection, "select * from t_TradingDay;", &m_TradingDaySelectStatement);
 	}
-
 	duckdb_result result;
 	auto rc = duckdb_execute_prepared(m_TradingDaySelectStatement, &result);
 	if (rc != DuckDBSuccess)
@@ -2318,14 +2319,31 @@ void SelectTradingDay(std::list<TradingDay*>& records)
 		duckdb_destroy_result(&result);
 		return;
 	}
-
 	ParseRecord(result, records);
 	duckdb_destroy_result(&result);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectTradingDay Spend:%lldms", duration);
+	}
+}
+void SelectTradingDayWithSql(const char* sql, std::list<TradingDay*>& records)
+{
+	auto start = steady_clock::now();
+	duckdb_result result;
+	auto rc = duckdb_query(m_Connection, sql, &result);
+	if (rc != DuckDBSuccess)
+	{
+		WriteLog(LogLevel::Warning, "SelectTradingDayWithSql failed, sql:%s, ErrorMsg:%s", sql, duckdb_result_error(&result));
+		duckdb_destroy_result(&result);
+		return;
+	}
+	ParseRecord(result, records);
+	duckdb_destroy_result(&result);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectTradingDayWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateTradingDay()
@@ -2456,7 +2474,6 @@ void SelectExchange(std::list<Exchange*>& records)
 	{
 		duckdb_prepare(m_Connection, "select * from t_Exchange;", &m_ExchangeSelectStatement);
 	}
-
 	duckdb_result result;
 	auto rc = duckdb_execute_prepared(m_ExchangeSelectStatement, &result);
 	if (rc != DuckDBSuccess)
@@ -2465,14 +2482,31 @@ void SelectExchange(std::list<Exchange*>& records)
 		duckdb_destroy_result(&result);
 		return;
 	}
-
 	ParseRecord(result, records);
 	duckdb_destroy_result(&result);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectExchange Spend:%lldms", duration);
+	}
+}
+void SelectExchangeWithSql(const char* sql, std::list<Exchange*>& records)
+{
+	auto start = steady_clock::now();
+	duckdb_result result;
+	auto rc = duckdb_query(m_Connection, sql, &result);
+	if (rc != DuckDBSuccess)
+	{
+		WriteLog(LogLevel::Warning, "SelectExchangeWithSql failed, sql:%s, ErrorMsg:%s", sql, duckdb_result_error(&result));
+		duckdb_destroy_result(&result);
+		return;
+	}
+	ParseRecord(result, records);
+	duckdb_destroy_result(&result);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectExchangeWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateExchange()
@@ -2603,7 +2637,6 @@ void SelectProduct(std::list<Product*>& records)
 	{
 		duckdb_prepare(m_Connection, "select * from t_Product;", &m_ProductSelectStatement);
 	}
-
 	duckdb_result result;
 	auto rc = duckdb_execute_prepared(m_ProductSelectStatement, &result);
 	if (rc != DuckDBSuccess)
@@ -2612,14 +2645,31 @@ void SelectProduct(std::list<Product*>& records)
 		duckdb_destroy_result(&result);
 		return;
 	}
-
 	ParseRecord(result, records);
 	duckdb_destroy_result(&result);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectProduct Spend:%lldms", duration);
+	}
+}
+void SelectProductWithSql(const char* sql, std::list<Product*>& records)
+{
+	auto start = steady_clock::now();
+	duckdb_result result;
+	auto rc = duckdb_query(m_Connection, sql, &result);
+	if (rc != DuckDBSuccess)
+	{
+		WriteLog(LogLevel::Warning, "SelectProductWithSql failed, sql:%s, ErrorMsg:%s", sql, duckdb_result_error(&result));
+		duckdb_destroy_result(&result);
+		return;
+	}
+	ParseRecord(result, records);
+	duckdb_destroy_result(&result);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectProductWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateProduct()
@@ -2750,7 +2800,6 @@ void SelectInstrument(std::list<Instrument*>& records)
 	{
 		duckdb_prepare(m_Connection, "select * from t_Instrument;", &m_InstrumentSelectStatement);
 	}
-
 	duckdb_result result;
 	auto rc = duckdb_execute_prepared(m_InstrumentSelectStatement, &result);
 	if (rc != DuckDBSuccess)
@@ -2759,14 +2808,31 @@ void SelectInstrument(std::list<Instrument*>& records)
 		duckdb_destroy_result(&result);
 		return;
 	}
-
 	ParseRecord(result, records);
 	duckdb_destroy_result(&result);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectInstrument Spend:%lldms", duration);
+	}
+}
+void SelectInstrumentWithSql(const char* sql, std::list<Instrument*>& records)
+{
+	auto start = steady_clock::now();
+	duckdb_result result;
+	auto rc = duckdb_query(m_Connection, sql, &result);
+	if (rc != DuckDBSuccess)
+	{
+		WriteLog(LogLevel::Warning, "SelectInstrumentWithSql failed, sql:%s, ErrorMsg:%s", sql, duckdb_result_error(&result));
+		duckdb_destroy_result(&result);
+		return;
+	}
+	ParseRecord(result, records);
+	duckdb_destroy_result(&result);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectInstrumentWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateInstrument()
@@ -2920,7 +2986,6 @@ void SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 	{
 		duckdb_prepare(m_Connection, "select * from t_PrimaryAccount;", &m_PrimaryAccountSelectStatement);
 	}
-
 	duckdb_result result;
 	auto rc = duckdb_execute_prepared(m_PrimaryAccountSelectStatement, &result);
 	if (rc != DuckDBSuccess)
@@ -2929,14 +2994,31 @@ void SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 		duckdb_destroy_result(&result);
 		return;
 	}
-
 	ParseRecord(result, records);
 	duckdb_destroy_result(&result);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectPrimaryAccount Spend:%lldms", duration);
+	}
+}
+void SelectPrimaryAccountWithSql(const char* sql, std::list<PrimaryAccount*>& records)
+{
+	auto start = steady_clock::now();
+	duckdb_result result;
+	auto rc = duckdb_query(m_Connection, sql, &result);
+	if (rc != DuckDBSuccess)
+	{
+		WriteLog(LogLevel::Warning, "SelectPrimaryAccountWithSql failed, sql:%s, ErrorMsg:%s", sql, duckdb_result_error(&result));
+		duckdb_destroy_result(&result);
+		return;
+	}
+	ParseRecord(result, records);
+	duckdb_destroy_result(&result);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectPrimaryAccountWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncatePrimaryAccount()
@@ -3067,7 +3149,6 @@ void SelectAccount(std::list<Account*>& records)
 	{
 		duckdb_prepare(m_Connection, "select * from t_Account;", &m_AccountSelectStatement);
 	}
-
 	duckdb_result result;
 	auto rc = duckdb_execute_prepared(m_AccountSelectStatement, &result);
 	if (rc != DuckDBSuccess)
@@ -3076,14 +3157,31 @@ void SelectAccount(std::list<Account*>& records)
 		duckdb_destroy_result(&result);
 		return;
 	}
-
 	ParseRecord(result, records);
 	duckdb_destroy_result(&result);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectAccount Spend:%lldms", duration);
+	}
+}
+void SelectAccountWithSql(const char* sql, std::list<Account*>& records)
+{
+	auto start = steady_clock::now();
+	duckdb_result result;
+	auto rc = duckdb_query(m_Connection, sql, &result);
+	if (rc != DuckDBSuccess)
+	{
+		WriteLog(LogLevel::Warning, "SelectAccountWithSql failed, sql:%s, ErrorMsg:%s", sql, duckdb_result_error(&result));
+		duckdb_destroy_result(&result);
+		return;
+	}
+	ParseRecord(result, records);
+	duckdb_destroy_result(&result);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectAccountWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateAccount()
@@ -3237,7 +3335,6 @@ void SelectCapital(std::list<Capital*>& records)
 	{
 		duckdb_prepare(m_Connection, "select * from t_Capital;", &m_CapitalSelectStatement);
 	}
-
 	duckdb_result result;
 	auto rc = duckdb_execute_prepared(m_CapitalSelectStatement, &result);
 	if (rc != DuckDBSuccess)
@@ -3246,14 +3343,31 @@ void SelectCapital(std::list<Capital*>& records)
 		duckdb_destroy_result(&result);
 		return;
 	}
-
 	ParseRecord(result, records);
 	duckdb_destroy_result(&result);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectCapital Spend:%lldms", duration);
+	}
+}
+void SelectCapitalWithSql(const char* sql, std::list<Capital*>& records)
+{
+	auto start = steady_clock::now();
+	duckdb_result result;
+	auto rc = duckdb_query(m_Connection, sql, &result);
+	if (rc != DuckDBSuccess)
+	{
+		WriteLog(LogLevel::Warning, "SelectCapitalWithSql failed, sql:%s, ErrorMsg:%s", sql, duckdb_result_error(&result));
+		duckdb_destroy_result(&result);
+		return;
+	}
+	ParseRecord(result, records);
+	duckdb_destroy_result(&result);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectCapitalWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateCapital()
@@ -3430,7 +3544,6 @@ void SelectPosition(std::list<Position*>& records)
 	{
 		duckdb_prepare(m_Connection, "select * from t_Position;", &m_PositionSelectStatement);
 	}
-
 	duckdb_result result;
 	auto rc = duckdb_execute_prepared(m_PositionSelectStatement, &result);
 	if (rc != DuckDBSuccess)
@@ -3439,14 +3552,31 @@ void SelectPosition(std::list<Position*>& records)
 		duckdb_destroy_result(&result);
 		return;
 	}
-
 	ParseRecord(result, records);
 	duckdb_destroy_result(&result);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectPosition Spend:%lldms", duration);
+	}
+}
+void SelectPositionWithSql(const char* sql, std::list<Position*>& records)
+{
+	auto start = steady_clock::now();
+	duckdb_result result;
+	auto rc = duckdb_query(m_Connection, sql, &result);
+	if (rc != DuckDBSuccess)
+	{
+		WriteLog(LogLevel::Warning, "SelectPositionWithSql failed, sql:%s, ErrorMsg:%s", sql, duckdb_result_error(&result));
+		duckdb_destroy_result(&result);
+		return;
+	}
+	ParseRecord(result, records);
+	duckdb_destroy_result(&result);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectPositionWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncatePosition()
@@ -3623,7 +3753,6 @@ void SelectPositionDetail(std::list<PositionDetail*>& records)
 	{
 		duckdb_prepare(m_Connection, "select * from t_PositionDetail;", &m_PositionDetailSelectStatement);
 	}
-
 	duckdb_result result;
 	auto rc = duckdb_execute_prepared(m_PositionDetailSelectStatement, &result);
 	if (rc != DuckDBSuccess)
@@ -3632,14 +3761,31 @@ void SelectPositionDetail(std::list<PositionDetail*>& records)
 		duckdb_destroy_result(&result);
 		return;
 	}
-
 	ParseRecord(result, records);
 	duckdb_destroy_result(&result);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectPositionDetail Spend:%lldms", duration);
+	}
+}
+void SelectPositionDetailWithSql(const char* sql, std::list<PositionDetail*>& records)
+{
+	auto start = steady_clock::now();
+	duckdb_result result;
+	auto rc = duckdb_query(m_Connection, sql, &result);
+	if (rc != DuckDBSuccess)
+	{
+		WriteLog(LogLevel::Warning, "SelectPositionDetailWithSql failed, sql:%s, ErrorMsg:%s", sql, duckdb_result_error(&result));
+		duckdb_destroy_result(&result);
+		return;
+	}
+	ParseRecord(result, records);
+	duckdb_destroy_result(&result);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectPositionDetailWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncatePositionDetail()
@@ -3770,7 +3916,6 @@ void SelectOrder(std::list<Order*>& records)
 	{
 		duckdb_prepare(m_Connection, "select * from t_Order;", &m_OrderSelectStatement);
 	}
-
 	duckdb_result result;
 	auto rc = duckdb_execute_prepared(m_OrderSelectStatement, &result);
 	if (rc != DuckDBSuccess)
@@ -3779,14 +3924,31 @@ void SelectOrder(std::list<Order*>& records)
 		duckdb_destroy_result(&result);
 		return;
 	}
-
 	ParseRecord(result, records);
 	duckdb_destroy_result(&result);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectOrder Spend:%lldms", duration);
+	}
+}
+void SelectOrderWithSql(const char* sql, std::list<Order*>& records)
+{
+	auto start = steady_clock::now();
+	duckdb_result result;
+	auto rc = duckdb_query(m_Connection, sql, &result);
+	if (rc != DuckDBSuccess)
+	{
+		WriteLog(LogLevel::Warning, "SelectOrderWithSql failed, sql:%s, ErrorMsg:%s", sql, duckdb_result_error(&result));
+		duckdb_destroy_result(&result);
+		return;
+	}
+	ParseRecord(result, records);
+	duckdb_destroy_result(&result);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectOrderWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateOrder()
@@ -3917,7 +4079,6 @@ void SelectTrade(std::list<Trade*>& records)
 	{
 		duckdb_prepare(m_Connection, "select * from t_Trade;", &m_TradeSelectStatement);
 	}
-
 	duckdb_result result;
 	auto rc = duckdb_execute_prepared(m_TradeSelectStatement, &result);
 	if (rc != DuckDBSuccess)
@@ -3926,14 +4087,31 @@ void SelectTrade(std::list<Trade*>& records)
 		duckdb_destroy_result(&result);
 		return;
 	}
-
 	ParseRecord(result, records);
 	duckdb_destroy_result(&result);
-	
 	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
 	if (duration >= 100)
 	{
 		WriteLog(LogLevel::Warning, "SelectTrade Spend:%lldms", duration);
+	}
+}
+void SelectTradeWithSql(const char* sql, std::list<Trade*>& records)
+{
+	auto start = steady_clock::now();
+	duckdb_result result;
+	auto rc = duckdb_query(m_Connection, sql, &result);
+	if (rc != DuckDBSuccess)
+	{
+		WriteLog(LogLevel::Warning, "SelectTradeWithSql failed, sql:%s, ErrorMsg:%s", sql, duckdb_result_error(&result));
+		duckdb_destroy_result(&result);
+		return;
+	}
+	ParseRecord(result, records);
+	duckdb_destroy_result(&result);
+	auto duration = TimeUtility::GetDuration<chrono::milliseconds>(start);
+	if (duration >= 100)
+	{
+		WriteLog(LogLevel::Warning, "SelectTradeWithSql Spend:%lldms, sql:%s", duration, sql);
 	}
 }
 void TruncateTrade()
@@ -4132,6 +4310,10 @@ void DuckdbWrapper::SelectTradingDay(std::list<TradingDay*>& records)
 {
 	m_Impl->SelectTradingDay(records);
 }
+void DuckdbWrapper::SelectTradingDayWithSql(const char* sql, std::list<TradingDay*>& records)
+{
+	m_Impl->SelectTradingDayWithSql(sql, records);
+}
 void DuckdbWrapper::TruncateTradingDay()
 {
 	m_Impl->TruncateTradingDay();
@@ -4163,6 +4345,10 @@ void DuckdbWrapper::UpdateExchange(Exchange* record)
 void DuckdbWrapper::SelectExchange(std::list<Exchange*>& records)
 {
 	m_Impl->SelectExchange(records);
+}
+void DuckdbWrapper::SelectExchangeWithSql(const char* sql, std::list<Exchange*>& records)
+{
+	m_Impl->SelectExchangeWithSql(sql, records);
 }
 void DuckdbWrapper::TruncateExchange()
 {
@@ -4196,6 +4382,10 @@ void DuckdbWrapper::SelectProduct(std::list<Product*>& records)
 {
 	m_Impl->SelectProduct(records);
 }
+void DuckdbWrapper::SelectProductWithSql(const char* sql, std::list<Product*>& records)
+{
+	m_Impl->SelectProductWithSql(sql, records);
+}
 void DuckdbWrapper::TruncateProduct()
 {
 	m_Impl->TruncateProduct();
@@ -4227,6 +4417,10 @@ void DuckdbWrapper::UpdateInstrument(Instrument* record)
 void DuckdbWrapper::SelectInstrument(std::list<Instrument*>& records)
 {
 	m_Impl->SelectInstrument(records);
+}
+void DuckdbWrapper::SelectInstrumentWithSql(const char* sql, std::list<Instrument*>& records)
+{
+	m_Impl->SelectInstrumentWithSql(sql, records);
 }
 void DuckdbWrapper::TruncateInstrument()
 {
@@ -4264,6 +4458,10 @@ void DuckdbWrapper::SelectPrimaryAccount(std::list<PrimaryAccount*>& records)
 {
 	m_Impl->SelectPrimaryAccount(records);
 }
+void DuckdbWrapper::SelectPrimaryAccountWithSql(const char* sql, std::list<PrimaryAccount*>& records)
+{
+	m_Impl->SelectPrimaryAccountWithSql(sql, records);
+}
 void DuckdbWrapper::TruncatePrimaryAccount()
 {
 	m_Impl->TruncatePrimaryAccount();
@@ -4295,6 +4493,10 @@ void DuckdbWrapper::UpdateAccount(Account* record)
 void DuckdbWrapper::SelectAccount(std::list<Account*>& records)
 {
 	m_Impl->SelectAccount(records);
+}
+void DuckdbWrapper::SelectAccountWithSql(const char* sql, std::list<Account*>& records)
+{
+	m_Impl->SelectAccountWithSql(sql, records);
 }
 void DuckdbWrapper::TruncateAccount()
 {
@@ -4331,6 +4533,10 @@ void DuckdbWrapper::UpdateCapital(Capital* record)
 void DuckdbWrapper::SelectCapital(std::list<Capital*>& records)
 {
 	m_Impl->SelectCapital(records);
+}
+void DuckdbWrapper::SelectCapitalWithSql(const char* sql, std::list<Capital*>& records)
+{
+	m_Impl->SelectCapitalWithSql(sql, records);
 }
 void DuckdbWrapper::TruncateCapital()
 {
@@ -4372,6 +4578,10 @@ void DuckdbWrapper::SelectPosition(std::list<Position*>& records)
 {
 	m_Impl->SelectPosition(records);
 }
+void DuckdbWrapper::SelectPositionWithSql(const char* sql, std::list<Position*>& records)
+{
+	m_Impl->SelectPositionWithSql(sql, records);
+}
 void DuckdbWrapper::TruncatePosition()
 {
 	m_Impl->TruncatePosition();
@@ -4412,6 +4622,10 @@ void DuckdbWrapper::SelectPositionDetail(std::list<PositionDetail*>& records)
 {
 	m_Impl->SelectPositionDetail(records);
 }
+void DuckdbWrapper::SelectPositionDetailWithSql(const char* sql, std::list<PositionDetail*>& records)
+{
+	m_Impl->SelectPositionDetailWithSql(sql, records);
+}
 void DuckdbWrapper::TruncatePositionDetail()
 {
 	m_Impl->TruncatePositionDetail();
@@ -4444,6 +4658,10 @@ void DuckdbWrapper::SelectOrder(std::list<Order*>& records)
 {
 	m_Impl->SelectOrder(records);
 }
+void DuckdbWrapper::SelectOrderWithSql(const char* sql, std::list<Order*>& records)
+{
+	m_Impl->SelectOrderWithSql(sql, records);
+}
 void DuckdbWrapper::TruncateOrder()
 {
 	m_Impl->TruncateOrder();
@@ -4475,6 +4693,10 @@ void DuckdbWrapper::UpdateTrade(Trade* record)
 void DuckdbWrapper::SelectTrade(std::list<Trade*>& records)
 {
 	m_Impl->SelectTrade(records);
+}
+void DuckdbWrapper::SelectTradeWithSql(const char* sql, std::list<Trade*>& records)
+{
+	m_Impl->SelectTradeWithSql(sql, records);
 }
 void DuckdbWrapper::TruncateTrade()
 {
