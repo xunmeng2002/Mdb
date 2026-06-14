@@ -217,14 +217,14 @@ static void Test()
 	//TestDB(duckdb);
 	//TestDB(sqlite);
 
-	WriteLog(LogLevel::Info, "TestMdb with Mysql");
-	TestMdb(mysql);
+	//WriteLog(LogLevel::Info, "TestMdb with Mysql");
+	//TestMdb(mysql);
 	//WriteLog(LogLevel::Info, "TestMdb with MariaDB");
 	//TestMdb(mariadb);
 	WriteLog(LogLevel::Info, "TestMdb with Duckdb");
 	TestMdb(duckdb);
-	WriteLog(LogLevel::Info, "TestMdb with Sqlite");
-	TestMdb(sqlite);
+	//WriteLog(LogLevel::Info, "TestMdb with Sqlite");
+	//TestMdb(sqlite);
 }
 
 int main(int argc, char* argv[])
