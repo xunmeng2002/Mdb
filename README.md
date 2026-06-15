@@ -1,120 +1,245 @@
 # Mdb
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Language](https://img.shields.io/badge/Language-C++17+-orange.svg)]()
+[![Build](https://img.shields.io/badge/Build-CMake3.15+-green.svg)]()
 
-Mdb 是一个用于金融交易系统的内存数据库（In-Memory Database）框架，提供了对多种关系型数据库的统一访问接口。
+**Mdb** 是面向**金融交易系统**设计的 C++ 内存数据库框架，核心实现**内存数据优先读写 + 日志异步持久化**架构，内置统一接口适配多款主流数据库，专门用于存储和管理交易、持仓、资金、订单等金融核心业务数据，兼顾高性能与数据可靠性。
 
-## 项目简介
+## 一、项目简介
+在金融高频交易场景中，传统磁盘数据库读写延迟高，纯内存数据库又存在数据丢失风险。Mdb 针对性解决该痛点：
+1.  业务读写优先操作内存，保障微秒/毫秒级响应速度，适配金融低时延要求；
+2.  自动生成数据库操作日志，**异步同步至物理数据库**，保证数据落地不丢失；
+3.  屏蔽不同数据库的语法与接口差异，提供一套统一的 C++ 调用接口，可无缝切换 MySQL、MariaDB、SQLite、DuckDB 后端。
 
-Mdb 为金融交易系统设计，支持多种数据库后端，包括 MySQL、MariaDB、SQLite 和 DuckDB。它提供了统一的数据库操作接口，支持交易数据（持仓、订单、成交、资金等）的存储、查询和管理。
+本项目基于 C++17 开发，采用 CMake 跨平台构建，搭配 Python 脚本实现数据模型自动化解析与代码生成，内置全套建表脚本与测试用例，适用于交易系统、风控系统、行情系统等金融后端场景。
 
-## 主要特性
+## 二、核心特性
+- ✅ **多数据库兼容**：原生支持 MySQL、MariaDB、SQLite、DuckDB 四大数据库后端
+- ✅ **统一访问接口**：一套代码对接所有数据库，切换存储引擎无需修改业务逻辑
+- ✅ **内存+磁盘双写架构**：内存高速读写，异步日志落地磁盘，性能与安全兼顾
+- ✅ **金融专属数据表**：内置完整的交易业务数据表模型，覆盖交易日、合约、账户、订单、持仓、成交等核心场景
+- ✅ **索引能力**：支持主键、普通索引创建与索引查询，加速海量金融数据检索
+- ✅ **异步写入**：数据库落地操作异步执行，避免阻塞核心交易链路
+- ✅ **自动化工具链**：配套 Python 脚本，实现表模型解析、代码自动生成，提升开发效率
 
-- **多数据库支持**：支持 MySQL、MariaDB、SQLite、DuckDB 四种数据库后端
-- **统一接口**：提供统一的数据库操作接口，便于在不同数据库间切换
-- **完整的交易数据模型**：包含完整的交易相关数据表
-- **索引支持**：支持主键和多种索引的创建与查询
-- **异步写入**：支持异步数据库写入操作
+## 三、内置金融数据表模型
+框架预置金融交易全链路数据表，开箱即用：
 
-## 数据表模型
+| 表名 | 中文说明 | 业务用途 |
+| ---- | ---- | ---- |
+| TradingDay | 交易日表 | 记录市场正常交易日期 |
+| Exchange | 交易所表 | 存储上交所、深交所、期货交易所等机构信息 |
+| Product | 产品表 | 金融品类分类（股票、期货、期权等） |
+| Instrument | 合约/证券表 | 具体标的代码、名称、交易参数等 |
+| PrimaryAccount | 主账户表 | 顶层资金账户信息 |
+| Account | 子账户表 | 交易子账户、租户账户管理 |
+| Capital | 资金表 | 账户可用资金、冻结资金、盈亏等数据 |
+| Position | 持仓表 | 标的总持仓数量、均价等汇总数据 |
+| PositionDetail | 持仓明细表 | 逐笔持仓明细记录 |
+| Order | 委托订单表 | 客户委托单全量信息 |
+| Trade | 成交记录表 | 撮合完成的成交明细 |
 
-| 表名 | 说明 |
-|------|------|
-| TradingDay | 交易日 |
-| Exchange | 交易所 |
-| Product | 产品 |
-| Instrument | 合约/证券 |
-| PrimaryAccount | 主账户 |
-| Account | 账户 |
-| Capital | 资金 |
-| Position | 持仓 |
-| PositionDetail | 持仓明细 |
-| Order | 订单 |
-| Trade | 成交 |
-
-## 项目结构
-
+## 四、项目目录结构
 ```
 Mdb/
-├── include/Mdb/           # 头文件
-│   ├── Mdb/               # 核心数据库类
-│   ├── MysqlWrapper/     # MySQL 包装类
-│   ├── MariadbWrapper/    # MariaDB 包装类
-│   ├── SqliteWrapper/    # SQLite 包装类
-│   └── DuckdbWrapper/    # DuckDB 包装类
-├── src/Mdb/               # 源代码
-│   ├── Mdb/               # 核心实现
-│   ├── MysqlWrapper/     # MySQL 实现
-│   ├── MariadbWrapper/   # MariaDB 实现
-│   ├── SqliteWrapper/    # SQLite 实现
-│   └── DuckdbWrapper/    # DuckDB 实现
-├── Sql/                   # SQL 脚本
-│   ├── Mysql/            # MySQL 建表脚本
-│   ├── Mariadb/          # MariaDB 建表脚本
-│   ├── Sqlite/           # SQLite 建表脚本
-│   └── Duckdb/          # DuckDB 建表脚本
-├── Model/                # 数据模型定义
-├── Test/                  # 测试代码
-└── *.py                  # 辅助脚本
+├── include/Mdb/              # 对外头文件目录
+│   ├── Mdb/                  # 框架核心基类与通用接口
+│   ├── MysqlWrapper/         # MySQL 数据库封装层
+│   ├── MariadbWrapper/       # MariaDB 数据库封装层
+│   ├── SqliteWrapper/        # SQLite 数据库封装层
+│   └── DuckdbWrapper/        # DuckDB 数据库封装层
+├── src/Mdb/                  # 源码实现目录
+│   ├── Mdb/                  # 核心逻辑实现
+│   ├── MysqlWrapper/         # MySQL 功能实现
+│   ├── MariadbWrapper/       # MariaDB 功能实现
+│   ├── SqliteWrapper/        # SQLite 功能实现
+│   └── DuckdbWrapper/        # DuckDB 功能实现
+├── Sql/                      # 各数据库专属 SQL 建表脚本
+│   ├── Mysql/
+│   ├── Mariadb/
+│   ├── Sqlite/
+│   └── Duckdb/
+├── Model/                    # 金融数据表模型定义文件
+├── Test/                     # 单元测试 & 功能测试代码
+├── submodules/               # 依赖子模块 CMakeCommon
+├── *.py                      # Python 自动化工具脚本
+├── vcpkg.json                # vcpkg 依赖管理配置
+├── CMakeLists.txt            # CMake 主构建配置
+├── CMakeSettings.json        # Visual Studio CMake 配置
+├── UpdateSubmodule.bat/sh    # 子模块更新脚本（Windows/Linux）
+├── .gitmodules               # Git 子模块配置
+├── .gitignore                # Git 忽略规则
+└── LICENSE                   # MIT 开源许可证
 ```
 
-## 编译要求
+## 五、编译环境与依赖
+### 1. 基础环境要求
+| 依赖项 | 版本要求 | 备注 |
+| ---- | ---- | ---- |
+| C++ 编译器 | C++17 及以上 | GCC、Clang、MSVC 均可 |
+| CMake | 3.15 及以上 | 跨平台编译核心工具 |
+| Python | 3.6+ | 仅用于自动化脚本，非运行依赖 |
 
-- C++17 或更高版本
-- CMake 3.15+
-- MySQL Connector/C++ 或 MariaDB Connector/C++
-- SQLite3 开发库
-- DuckDB 开发库
+### 2. 数据库依赖库
+根据使用的后端数据库，安装对应开发库：
+- MySQL / MariaDB：MySQL Connector/C++ 、MariaDB Connector/C++
+- SQLite：SQLite3 开发库
+- DuckDB：DuckDB 官方开发库
+- 推荐使用 `vcpkg` 统一管理第三方依赖（项目已提供 `vcpkg.json`）
 
-## 使用示例
+### 3. 子模块依赖
+项目依赖 `CMakeCommon` 子模块，克隆代码后必须同步拉取子模块。
 
-### 创建数据库连接
+## 六、编译 & 部署步骤
+### 1. 克隆代码（推荐递归克隆，自动拉取子模块）
+```bash
+git clone --recursive https://gitee.com/xunmeng200/Mdb.git
+cd Mdb
+```
 
+### 2. 手动更新子模块（非递归克隆时执行）
+```bash
+# Linux / macOS 系统
+sh UpdateSubmodule.sh
+
+# Windows 系统（CMD/PowerShell）
+UpdateSubmodule.bat
+```
+
+### 3. CMake 标准编译流程
+```bash
+# 1. 创建编译目录
+mkdir build && cd build
+
+# 2. 配置 CMake 项目
+cmake ..
+
+# 3. 编译 Release 正式版本
+cmake --build . --config Release
+```
+编译完成后，库文件、测试程序会输出至 build 目录下对应子文件夹。
+
+## 七、完整使用示例
+### 示例 1：MySQL 数据库连接 + 初始化数据表
 ```cpp
 #include "Mdb/Mdb.h"
 #include "MysqlWrapper/MysqlWrapper.h"
 
-// 使用 MySQL
-mdb::MysqlWrapper* db = new mdb::MysqlWrapper("localhost");
-db->Connect();
+int main()
+{
+    // 实例化 MySQL 封装对象，传入数据库地址
+    mdb::MysqlWrapper db("127.0.0.1");
 
-// 创建表
-db->CreateTables();
-```
+    // 建立数据库连接
+    if (!db.Connect())
+    {
+        return -1;
+    }
 
-### 插入数据
+    // 自动执行建表语句，初始化所有金融业务表
+    db.CreateTables();
 
-```cpp
-// 创建交易日记录
-mdb::TradingDay* tradingDay = new mdb::TradingDay();
-tradingDay->TradingDay = "20240101";
-
-// 插入记录
-db->InsertTradingDay(tradingDay);
-```
-
-### 查询数据
-
-```cpp
-std::list<mdb::TradingDay*> records;
-db->SelectTradingDay(records);
-
-for (auto* record : records) {
-    std::cout << record->TradingDay << std::endl;
+    return 0;
 }
 ```
 
-## Python 工具脚本
+### 示例 2：插入交易日数据（单条数据写入）
+```cpp
+#include "Mdb/Mdb.h"
+#include "MysqlWrapper/MysqlWrapper.h"
+#include <iostream>
 
-项目提供了多个 Python 脚本用于数据模型解析和代码生成：
+int main()
+{
+    mdb::MysqlWrapper db("127.0.0.1");
+    db.Connect();
+    db.CreateTables();
 
-- `ParsePackageModel.py` - 解析数据包模型
-- `ParseTableModel.py` - 解析表模型
-- `ParseShortField.py` - 解析短字段
-- `geninc.py` - 生成增量代码
+    // 构建数据模型对象
+    mdb::TradingDay* day = new mdb::TradingDay();
+    day->TradingDay = "20260615"; // 交易日字符串
 
-## 许可证
+    // 插入数据（内存即时写入，磁盘异步落地）
+    db->InsertTradingDay(day);
 
-请查看 LICENSE 文件了解具体的许可证信息。
+    delete day;
+    return 0;
+}
+```
 
-## 贡献指南
+### 示例 3：批量查询数据表数据
+```cpp
+#include "Mdb/Mdb.h"
+#include "MysqlWrapper/MysqlWrapper.h"
+#include <iostream>
+#include <list>
 
-请阅读 .gitee/PULL_REQUEST_TEMPLATE_zh-CN.md 了解提交 PR 的要求。
+int main()
+{
+    mdb::MysqlWrapper db("127.0.0.1");
+    db.Connect();
+
+    // 定义容器接收查询结果
+    std::list<mdb::TradingDay*> resultList;
+
+    // 查询所有交易日数据
+    db.SelectTradingDay(resultList);
+
+    // 遍历打印结果
+    for (auto* item : resultList)
+    {
+        std::cout << "交易日：" << item->TradingDay << std::endl;
+    }
+
+    return 0;
+}
+```
+
+### 示例 4：切换数据库（以 SQLite 为例，接口完全一致）
+仅需修改封装类，业务代码无需改动：
+```cpp
+#include "Mdb/Mdb.h"
+#include "SqliteWrapper/SqliteWrapper.h"
+
+int main()
+{
+    // 切换为 SQLite 数据库
+    mdb::SqliteWrapper db("./finance.db");
+    db.Connect();
+    db.CreateTables();
+    
+    // 后续增删改查代码与 MySQL 完全一致
+    return 0;
+}
+```
+
+## 八、Python 自动化脚本说明
+项目根目录下 Python 脚本用于数据模型解析、代码自动生成，减少重复编码工作：
+
+- `ParsePackageModel.py`：解析网络数据包模型，生成对应数据结构代码
+- `ParseTableModel.py`：解析数据表模型，自动生成 C++ 实体类与数据库操作代码
+- `ParseShortField.py`：解析短字段配置，批量生成字段映射逻辑
+- `geninc.py`：增量代码生成脚本，适配迭代开发
+- `copyheader.py` / `copymodel.py`：头文件、数据模型批量复制
+- `clearall.py`：清理编译临时文件、缓存文件
+- `pump.py` / `pumpall.py`：批量数据导入、同步脚本
+
+## 九、测试程序说明
+测试代码统一存放在 `Test/` 目录，可直接运行验证功能：
+
+- **数据库连通性测试**：验证四大数据库连接、建表能力
+- **CRUD 增删改查测试**：验证单条 / 批量数据读写
+- **异步写入测试**：验证内存写入、磁盘异步同步逻辑
+- **模型适配测试**：校验金融数据表字段映射正确性
+
+## 十、许可证与声明
+- **开源协议**：本项目基于 [MIT 许可证](LICENSE) 开源，可自由使用、修改、二次分发
+- **适用场景**：主要面向金融交易、风险管理、行情分析等系统开发，也可作为 C++ 数据库中间件学习案例
+- **风险提示**：本项目为个人开源项目，建议在测试环境充分压测、功能验证后，再评估是否接入生产环境；高频核心交易场景请自行做性能调优与容灾改造
+
+## 十一、贡献指南
+欢迎提交 Issue、Pull Request 参与项目迭代：
+
+- 提交 Bug 反馈或功能建议，请在 Issue 中详细描述复现步骤、使用场景
+- 提交代码 PR 前，请遵循现有代码风格，并完成单元测试
+- 详细 PR 提交规范参考目录 `.gitee/PULL_REQUEST_TEMPLATE_zh-CN.md`
