@@ -1,6 +1,6 @@
 # Mdb
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Language](https://img.shields.io/badge/Language-C++17+-orange.svg)]()
+[![Language](https://img.shields.io/badge/Language-C++20+-orange.svg)]()
 [![Build](https://img.shields.io/badge/Build-CMake3.15+-green.svg)]()
 
 **Mdb** 是面向**金融交易系统**设计的 C++ 内存数据库框架，核心实现**内存数据优先读写 + 日志异步持久化**架构，内置统一接口适配多款主流数据库，专门用于存储和管理交易、持仓、资金、订单等金融核心业务数据，兼顾高性能与数据可靠性。
@@ -11,7 +11,7 @@
 2.  自动生成数据库操作日志，**异步同步至物理数据库**，保证数据落地不丢失；
 3.  屏蔽不同数据库的语法与接口差异，提供一套统一的 C++ 调用接口，可无缝切换 MySQL、MariaDB、SQLite、DuckDB 后端。
 
-本项目基于 C++17 开发，采用 CMake 跨平台构建，搭配 Python 脚本实现数据模型自动化解析与代码生成，内置全套建表脚本与测试用例，适用于交易系统、风控系统、行情系统等金融后端场景。
+本项目基于 C++20 开发，采用 CMake 跨平台构建，搭配 Python 脚本实现数据模型自动化解析与代码生成，内置全套建表脚本与测试用例，适用于交易系统、风控系统、行情系统等金融后端场景。
 
 ## 二、核心特性
 - ✅ **多数据库兼容**：原生支持 MySQL、MariaDB、SQLite、DuckDB 四大数据库后端
@@ -76,7 +76,7 @@ Mdb/
 ### 1. 基础环境要求
 | 依赖项 | 版本要求 | 备注 |
 | ---- | ---- | ---- |
-| C++ 编译器 | C++17 及以上 | GCC、Clang、MSVC 均可 |
+| C++ 编译器 | C++20 及以上 | GCC、Clang、MSVC 均可 |
 | CMake | 3.15 及以上 | 跨平台编译核心工具 |
 | Python | 3.6+ | 仅用于自动化脚本，非运行依赖 |
 
