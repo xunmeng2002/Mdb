@@ -92,6 +92,9 @@ Mdb/
 ### 3. 子模块依赖
 项目依赖 `CMakeCommon` 子模块，克隆代码后必须同步拉取子模块。
 
+### 4. 项目依赖
+- **PersonalLib**（[https://gitee.com/xunmeng200/PersonalLib](https://gitee.com/xunmeng200/PersonalLib)）：个人基础库，提供 Core、Serialization 等通用模块。需提前编译并放置于 `../Libs/PersonalLib` 路径下（CMake 通过 `find_package(PersonalLib REQUIRED PATHS "../Libs/PersonalLib")` 查找）。
+
 ## 六、编译 & 部署步骤
 ### 1. 克隆代码（推荐递归克隆，自动拉取子模块）
 ```bash
