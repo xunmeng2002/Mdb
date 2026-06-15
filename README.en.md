@@ -5,6 +5,8 @@
 
 **Mdb** is a C++ in-memory database framework designed for **financial trading systems**, built on an **in-memory priority read/write + asynchronous log persistence** architecture. It provides a unified interface compatible with multiple mainstream databases, purpose-built for storing and managing core financial business data such as trades, positions, capital, and orders, delivering both high performance and data reliability.
 
+Created by [Fireseeker](https://fireseeker.cn/)
+
 ## 1. Introduction
 In high-frequency financial trading scenarios, traditional disk-based databases suffer from high read/write latency, while pure in-memory databases risk data loss. Mdb addresses these pain points:
 1.  Business reads and writes operate on in-memory data first, ensuring microsecond/millisecond-level response times for low-latency financial requirements;
