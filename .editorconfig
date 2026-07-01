@@ -1,23 +1,23 @@
 root = true
 
-[]
+[*]
 indent_style = space
 end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[.{cpp,h,hpp}]
+[*.{cpp,h,hpp}]
 indent_size = 4
 
-[.cs]
+[*.cs]
 indent_size = 4
 
-[.{py,pyi}]
+[*.{py,pyi}]
 indent_size = 4
 
-[.{js,ts,vue,css,scss,html}]
+[*.{js,ts,vue,css,scss,html}]
 indent_size = 2
 
-[.{md,markdown}]
+[*.{md,markdown}]
 indent_size = 2
