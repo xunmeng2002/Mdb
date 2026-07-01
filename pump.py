@@ -135,7 +135,7 @@ if __name__ == "__main__":
     #tpl文件中的python代码嵌入标记
     expr = "!!.*?!!"
     #临时python文件
-    pump_file = open("pumptemp.py", "w+", encoding="UTF-8-SIG")
+    pump_file = open("pumptemp.py", "w+", encoding="UTF-8-SIG", newline='\n')
 
     #entry列表
     entry_list = []
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     out_content += "#coding:utf-8\n" 
     out_content += "import xml.etree.cElementTree as ET\n"
     out_content += "import sys\n\n"
-    out_content += "out_file = open(\"%s\", \"w+\", encoding=\"UTF-8-SIG\")\n\n" % out_file_name
+    out_content += "out_file = open('%s', 'w+', encoding='UTF-8-SIG', newline='\n')\n\n" % out_file_name
     #xml文件可以大于1，如果有多个xml文件，添加一个根节点，把每个xml文件的根节点挂在新加的根节点下面，新加的根节点作为当前节点
     out_content += "curr_node = ET.Element(\"root\")\n"
     for i in range(4, len(sys.argv)):
@@ -325,3 +325,4 @@ if __name__ == "__main__":
 
     #执行完毕后删除临时文件
     #os.remove("pumptemp.py")
+
