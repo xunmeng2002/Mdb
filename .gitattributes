@@ -26,6 +26,7 @@ CMakeLists.txt text eol=lf
 *.bat text eol=lf
 .gitattributes text eol=lf
 .gitignore text eol=lf
+.gitmodules text eol=lf
 LICENSE text eol=lf
 
 # 所有文本文件默认使用 LF
