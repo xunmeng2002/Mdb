@@ -21,13 +21,13 @@
 CMakeLists.txt text eol=lf
 *.cmake text eol=lf
 *.sh text eol=lf
-*.bat text eol=lf # Windows 批处理文件，注意它需要 CRLF？实际上现代 Windows 也支持 LF，但为了兼容性可以考虑保留
+*.bat text eol=lf
+
+# 所有文本文件默认使用 LF
+* text=auto
 
 # 标记二进制文件
 *.png binary
 *.jpg binary
 *.ico binary
 *.pdf binary
-
-# 所有文本文件默认使用 LF
-* text=auto
