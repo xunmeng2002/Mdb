@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <Mdb/Mdb/MdbExport.h>
+#include <Mdb/Mdb/Schema.h>
 #include <PersonalLib/Types.h>
 
 namespace mdb
@@ -20,6 +21,7 @@ namespace mdb
 		const char* GetString() const;
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
+		static const TableSchema& GetSchema();
 	};
 	class MDB_EXPORTS Exchange
 	{
@@ -35,6 +37,7 @@ namespace mdb
 		const char* GetString() const;
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
+		static const TableSchema& GetSchema();
 	};
 	class MDB_EXPORTS Product
 	{
@@ -68,6 +71,7 @@ namespace mdb
 		const char* GetString() const;
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
+		static const TableSchema& GetSchema();
 	};
 	class MDB_EXPORTS Instrument
 	{
@@ -109,6 +113,7 @@ namespace mdb
 		const char* GetString() const;
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
+		static const TableSchema& GetSchema();
 	};
 	class MDB_EXPORTS PrimaryAccount
 	{
@@ -138,6 +143,7 @@ namespace mdb
 		const char* GetString() const;
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
+		static const TableSchema& GetSchema();
 	};
 	class MDB_EXPORTS Account
 	{
@@ -165,6 +171,7 @@ namespace mdb
 		const char* GetString() const;
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
+		static const TableSchema& GetSchema();
 	};
 	class MDB_EXPORTS Capital
 	{
@@ -216,6 +223,7 @@ namespace mdb
 		const char* GetString() const;
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
+		static const TableSchema& GetSchema();
 	};
 	class MDB_EXPORTS Position
 	{
@@ -277,6 +285,7 @@ namespace mdb
 		const char* GetString() const;
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
+		static const TableSchema& GetSchema();
 	};
 	class MDB_EXPORTS PositionDetail
 	{
@@ -338,6 +347,7 @@ namespace mdb
 		const char* GetString() const;
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
+		static const TableSchema& GetSchema();
 	};
 	class MDB_EXPORTS Order
 	{
@@ -415,6 +425,7 @@ namespace mdb
 		const char* GetString() const;
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
+		static const TableSchema& GetSchema();
 	};
 	class MDB_EXPORTS Trade
 	{
@@ -462,6 +473,7 @@ namespace mdb
 		const char* GetString() const;
 		int GetSqlString(char* buff) const;
 		const char* GetDebugString() const;
+		static const TableSchema& GetSchema();
 	};
 
 	extern thread_local TradingDay t_CompareTradingDay;

@@ -1,7 +1,8 @@
-﻿#include <Mdb/Mdb/DBWriter.h>
+#include <Mdb/Mdb/DBWriter.h>
 #include <Mdb/Mdb/MdbIndexes.h>
 #include <PersonalLib/Core/Logger/Logger.h>
 #include <cstring>
+#include <vector>
 
 using namespace std;
 using namespace mdb;
@@ -761,383 +762,270 @@ void DBWriter::AddDBOperate(DBOperate* dbOperate)
 	m_ConditionVariable.notify_one();
 }
 
+namespace {
+	const TableSchema* GetSchema(unsigned int tableID)
+	{
+		switch (tableID)
+		{
+		case mdb::TradingDay::TableID:       return &mdb::TradingDay::GetSchema();
+		case mdb::Exchange::TableID:         return &mdb::Exchange::GetSchema();
+		case mdb::Product::TableID:          return &mdb::Product::GetSchema();
+		case mdb::Instrument::TableID:       return &mdb::Instrument::GetSchema();
+		case mdb::PrimaryAccount::TableID:   return &mdb::PrimaryAccount::GetSchema();
+		case mdb::Account::TableID:          return &mdb::Account::GetSchema();
+		case mdb::Capital::TableID:          return &mdb::Capital::GetSchema();
+		case mdb::Position::TableID:         return &mdb::Position::GetSchema();
+		case mdb::PositionDetail::TableID:   return &mdb::PositionDetail::GetSchema();
+		case mdb::Order::TableID:            return &mdb::Order::GetSchema();
+		case mdb::Trade::TableID:            return &mdb::Trade::GetSchema();
+		default:                             return nullptr;
+		}
+	}
+
+	const TableSchema* kAllSchemas[] = {
+		&mdb::TradingDay::GetSchema(),
+		&mdb::Exchange::GetSchema(),
+		&mdb::Product::GetSchema(),
+		&mdb::Instrument::GetSchema(),
+		&mdb::PrimaryAccount::GetSchema(),
+		&mdb::Account::GetSchema(),
+		&mdb::Capital::GetSchema(),
+		&mdb::Position::GetSchema(),
+		&mdb::PositionDetail::GetSchema(),
+		&mdb::Order::GetSchema(),
+		&mdb::Trade::GetSchema(),
+	};
+	constexpr int kTableCount = 11;
+}
+
 void DBWriter::CreateTables(DBOperate* dbOperate)
 {
-	m_DB->CreateTables();
+	m_DB->CreateTables(kAllSchemas, kTableCount);
 }
 void DBWriter::DropTables(DBOperate* dbOperate)
 {
-	m_DB->DropTables();
+	m_DB->DropTables(kAllSchemas, kTableCount);
 }
 void DBWriter::TruncateTables(DBOperate* dbOperate)
 {
-	m_DB->TruncateTables();
+	m_DB->TruncateTables(kAllSchemas, kTableCount);
 }
 void DBWriter::InsertRecord(DBOperate* dbOperate)
 {
-	switch (dbOperate->TableID)
+	const TableSchema* schema = GetSchema(dbOperate->TableID);
+	if (schema)
 	{
-	case TradingDay::TableID:
-		m_DB->InsertTradingDay((TradingDay*)dbOperate->Record);
-		break;
-	case Exchange::TableID:
-		m_DB->InsertExchange((Exchange*)dbOperate->Record);
-		break;
-	case Product::TableID:
-		m_DB->InsertProduct((Product*)dbOperate->Record);
-		break;
-	case Instrument::TableID:
-		m_DB->InsertInstrument((Instrument*)dbOperate->Record);
-		break;
-	case PrimaryAccount::TableID:
-		m_DB->InsertPrimaryAccount((PrimaryAccount*)dbOperate->Record);
-		break;
-	case Account::TableID:
-		m_DB->InsertAccount((Account*)dbOperate->Record);
-		break;
-	case Capital::TableID:
-		m_DB->InsertCapital((Capital*)dbOperate->Record);
-		break;
-	case Position::TableID:
-		m_DB->InsertPosition((Position*)dbOperate->Record);
-		break;
-	case PositionDetail::TableID:
-		m_DB->InsertPositionDetail((PositionDetail*)dbOperate->Record);
-		break;
-	case Order::TableID:
-		m_DB->InsertOrder((Order*)dbOperate->Record);
-		break;
-	case Trade::TableID:
-		m_DB->InsertTrade((Trade*)dbOperate->Record);
-		break;
-	default:
-		break;
+		m_DB->Insert(schema, dbOperate->Record);
 	}
 }
 void DBWriter::BatchInsertRecords(DBOperate* dbOperate)
 {
+	const TableSchema* schema = GetSchema(dbOperate->TableID);
+	if (!schema) return;
+
+	std::vector<const void*> ptrs;
 	switch (dbOperate->TableID)
 	{
-	case TradingDay::TableID:
+	case mdb::TradingDay::TableID:
 	{
-		auto records = (std::list<TradingDay*>*)dbOperate->Record;
-		m_DB->BatchInsertTradingDay(records);
+		auto records = (std::list<mdb::TradingDay*>*)dbOperate->Record;
+		ptrs.reserve(records->size());
+		for (auto& r : *records) ptrs.push_back(r);
 		records->clear();
 		delete records;
 		break;
 	}
-	case Exchange::TableID:
+	case mdb::Exchange::TableID:
 	{
-		auto records = (std::list<Exchange*>*)dbOperate->Record;
-		m_DB->BatchInsertExchange(records);
+		auto records = (std::list<mdb::Exchange*>*)dbOperate->Record;
+		ptrs.reserve(records->size());
+		for (auto& r : *records) ptrs.push_back(r);
 		records->clear();
 		delete records;
 		break;
 	}
-	case Product::TableID:
+	case mdb::Product::TableID:
 	{
-		auto records = (std::list<Product*>*)dbOperate->Record;
-		m_DB->BatchInsertProduct(records);
+		auto records = (std::list<mdb::Product*>*)dbOperate->Record;
+		ptrs.reserve(records->size());
+		for (auto& r : *records) ptrs.push_back(r);
 		records->clear();
 		delete records;
 		break;
 	}
-	case Instrument::TableID:
+	case mdb::Instrument::TableID:
 	{
-		auto records = (std::list<Instrument*>*)dbOperate->Record;
-		m_DB->BatchInsertInstrument(records);
+		auto records = (std::list<mdb::Instrument*>*)dbOperate->Record;
+		ptrs.reserve(records->size());
+		for (auto& r : *records) ptrs.push_back(r);
 		records->clear();
 		delete records;
 		break;
 	}
-	case PrimaryAccount::TableID:
+	case mdb::PrimaryAccount::TableID:
 	{
-		auto records = (std::list<PrimaryAccount*>*)dbOperate->Record;
-		m_DB->BatchInsertPrimaryAccount(records);
+		auto records = (std::list<mdb::PrimaryAccount*>*)dbOperate->Record;
+		ptrs.reserve(records->size());
+		for (auto& r : *records) ptrs.push_back(r);
 		records->clear();
 		delete records;
 		break;
 	}
-	case Account::TableID:
+	case mdb::Account::TableID:
 	{
-		auto records = (std::list<Account*>*)dbOperate->Record;
-		m_DB->BatchInsertAccount(records);
+		auto records = (std::list<mdb::Account*>*)dbOperate->Record;
+		ptrs.reserve(records->size());
+		for (auto& r : *records) ptrs.push_back(r);
 		records->clear();
 		delete records;
 		break;
 	}
-	case Capital::TableID:
+	case mdb::Capital::TableID:
 	{
-		auto records = (std::list<Capital*>*)dbOperate->Record;
-		m_DB->BatchInsertCapital(records);
+		auto records = (std::list<mdb::Capital*>*)dbOperate->Record;
+		ptrs.reserve(records->size());
+		for (auto& r : *records) ptrs.push_back(r);
 		records->clear();
 		delete records;
 		break;
 	}
-	case Position::TableID:
+	case mdb::Position::TableID:
 	{
-		auto records = (std::list<Position*>*)dbOperate->Record;
-		m_DB->BatchInsertPosition(records);
+		auto records = (std::list<mdb::Position*>*)dbOperate->Record;
+		ptrs.reserve(records->size());
+		for (auto& r : *records) ptrs.push_back(r);
 		records->clear();
 		delete records;
 		break;
 	}
-	case PositionDetail::TableID:
+	case mdb::PositionDetail::TableID:
 	{
-		auto records = (std::list<PositionDetail*>*)dbOperate->Record;
-		m_DB->BatchInsertPositionDetail(records);
+		auto records = (std::list<mdb::PositionDetail*>*)dbOperate->Record;
+		ptrs.reserve(records->size());
+		for (auto& r : *records) ptrs.push_back(r);
 		records->clear();
 		delete records;
 		break;
 	}
-	case Order::TableID:
+	case mdb::Order::TableID:
 	{
-		auto records = (std::list<Order*>*)dbOperate->Record;
-		m_DB->BatchInsertOrder(records);
+		auto records = (std::list<mdb::Order*>*)dbOperate->Record;
+		ptrs.reserve(records->size());
+		for (auto& r : *records) ptrs.push_back(r);
 		records->clear();
 		delete records;
 		break;
 	}
-	case Trade::TableID:
+	case mdb::Trade::TableID:
 	{
-		auto records = (std::list<Trade*>*)dbOperate->Record;
-		m_DB->BatchInsertTrade(records);
+		auto records = (std::list<mdb::Trade*>*)dbOperate->Record;
+		ptrs.reserve(records->size());
+		for (auto& r : *records) ptrs.push_back(r);
 		records->clear();
 		delete records;
 		break;
 	}
 	default:
 		WriteLog(LogLevel::Error, "Unexpected BatchInsert TableID:0x%X", dbOperate->TableID);
-		break;
+		return;
+	}
+	if (!ptrs.empty())
+	{
+		m_DB->BatchInsert(schema, ptrs.data(), (int)ptrs.size());
 	}
 }
 void DBWriter::DeleteRecord(DBOperate* dbOperate)
 {
-	switch (dbOperate->TableID)
+	const TableSchema* schema = GetSchema(dbOperate->TableID);
+	if (schema)
 	{
-	case TradingDay::TableID:
-		m_DB->DeleteTradingDay((TradingDay*)dbOperate->Record);
-		((TradingDay*)dbOperate->Record)->Deallocate();
-		break;
-	case Exchange::TableID:
-		m_DB->DeleteExchange((Exchange*)dbOperate->Record);
-		((Exchange*)dbOperate->Record)->Deallocate();
-		break;
-	case Product::TableID:
-		m_DB->DeleteProduct((Product*)dbOperate->Record);
-		((Product*)dbOperate->Record)->Deallocate();
-		break;
-	case Instrument::TableID:
-		m_DB->DeleteInstrument((Instrument*)dbOperate->Record);
-		((Instrument*)dbOperate->Record)->Deallocate();
-		break;
-	case PrimaryAccount::TableID:
-		m_DB->DeletePrimaryAccount((PrimaryAccount*)dbOperate->Record);
-		((PrimaryAccount*)dbOperate->Record)->Deallocate();
-		break;
-	case Account::TableID:
-		m_DB->DeleteAccount((Account*)dbOperate->Record);
-		((Account*)dbOperate->Record)->Deallocate();
-		break;
-	case Capital::TableID:
-		m_DB->DeleteCapital((Capital*)dbOperate->Record);
-		((Capital*)dbOperate->Record)->Deallocate();
-		break;
-	case Position::TableID:
-		m_DB->DeletePosition((Position*)dbOperate->Record);
-		((Position*)dbOperate->Record)->Deallocate();
-		break;
-	case PositionDetail::TableID:
-		m_DB->DeletePositionDetail((PositionDetail*)dbOperate->Record);
-		((PositionDetail*)dbOperate->Record)->Deallocate();
-		break;
-	case Order::TableID:
-		m_DB->DeleteOrder((Order*)dbOperate->Record);
-		((Order*)dbOperate->Record)->Deallocate();
-		break;
-	case Trade::TableID:
-		m_DB->DeleteTrade((Trade*)dbOperate->Record);
-		((Trade*)dbOperate->Record)->Deallocate();
-		break;
-	default:
-		break;
+		m_DB->Delete(schema, dbOperate->Record, schema->primaryKeyIndices, schema->primaryKeyCount);
+		schema->DeallocateRecord(dbOperate->Record);
 	}
 }
 void DBWriter::DeleteRecordByIndex(DBOperate* dbOperate)
 {
+	const TableSchema* schema = GetSchema(dbOperate->TableID);
+	if (!schema) return;
+
 	switch (dbOperate->TableID)
 	{
-	case PrimaryAccount::TableID:
+	case mdb::PrimaryAccount::TableID:
 	{
-		switch (dbOperate->IndexID)
-		{
-		case PrimaryAccountIndexOfferID::IndexID:
-		{
-			m_DB->DeletePrimaryAccountByOfferIDIndex((PrimaryAccount*)dbOperate->Record);
-			break;
-		}
-		default:
-			WriteLog(LogLevel::Error, "Incorrect IndexID for DeleteRecordByIndex. TableID:0x%X, IndexID:%d", dbOperate->TableID, dbOperate->IndexID);
-			break;
-		}
-		((PrimaryAccount*)dbOperate->Record)->Deallocate();
+		static const int idxFields[] = {4};
+		m_DB->Delete(schema, dbOperate->Record, idxFields, 1);
 		break;
 	}
-	case Capital::TableID:
+	case mdb::Capital::TableID:
 	{
-		switch (dbOperate->IndexID)
-		{
-		case CapitalIndexTradingDay::IndexID:
-		{
-			m_DB->DeleteCapitalByTradingDayIndex((Capital*)dbOperate->Record);
-			break;
-		}
-		default:
-			WriteLog(LogLevel::Error, "Incorrect IndexID for DeleteRecordByIndex. TableID:0x%X, IndexID:%d", dbOperate->TableID, dbOperate->IndexID);
-			break;
-		}
-		((Capital*)dbOperate->Record)->Deallocate();
+		static const int idxFields[] = {0};
+		m_DB->Delete(schema, dbOperate->Record, idxFields, 1);
 		break;
 	}
-	case Position::TableID:
+	case mdb::Position::TableID:
 	{
 		switch (dbOperate->IndexID)
 		{
-		case PositionIndexAccount::IndexID:
+		case mdb::PositionIndexAccount::IndexID:
 		{
-			m_DB->DeletePositionByAccountIndex((Position*)dbOperate->Record);
+			static const int idxFields[] = {0, 1};
+			m_DB->Delete(schema, dbOperate->Record, idxFields, 2);
 			break;
 		}
-		case PositionIndexTradingDay::IndexID:
+		case mdb::PositionIndexTradingDay::IndexID:
 		{
-			m_DB->DeletePositionByTradingDayIndex((Position*)dbOperate->Record);
+			static const int idxFields[] = {0};
+			m_DB->Delete(schema, dbOperate->Record, idxFields, 1);
 			break;
 		}
 		default:
 			WriteLog(LogLevel::Error, "Incorrect IndexID for DeleteRecordByIndex. TableID:0x%X, IndexID:%d", dbOperate->TableID, dbOperate->IndexID);
 			break;
 		}
-		((Position*)dbOperate->Record)->Deallocate();
 		break;
 	}
-	case PositionDetail::TableID:
+	case mdb::PositionDetail::TableID:
 	{
 		switch (dbOperate->IndexID)
 		{
-		case PositionDetailIndexTradeMatch::IndexID:
+		case mdb::PositionDetailIndexTradeMatch::IndexID:
 		{
-			m_DB->DeletePositionDetailByTradeMatchIndex((PositionDetail*)dbOperate->Record);
+			static const int idxFields[] = {0, 1, 2, 3, 6};
+			m_DB->Delete(schema, dbOperate->Record, idxFields, 5);
 			break;
 		}
-		case PositionDetailIndexTradingDay::IndexID:
+		case mdb::PositionDetailIndexTradingDay::IndexID:
 		{
-			m_DB->DeletePositionDetailByTradingDayIndex((PositionDetail*)dbOperate->Record);
+			static const int idxFields[] = {0};
+			m_DB->Delete(schema, dbOperate->Record, idxFields, 1);
 			break;
 		}
 		default:
 			WriteLog(LogLevel::Error, "Incorrect IndexID for DeleteRecordByIndex. TableID:0x%X, IndexID:%d", dbOperate->TableID, dbOperate->IndexID);
 			break;
 		}
-		((PositionDetail*)dbOperate->Record)->Deallocate();
 		break;
 	}
 	default:
 		WriteLog(LogLevel::Error, "Incorrect TableID for DeleteRecordByIndex. TableID:0x%X", dbOperate->TableID);
 		break;
 	}
+	schema->DeallocateRecord(dbOperate->Record);
 }
 void DBWriter::UpdateRecord(DBOperate* dbOperate)
 {
-	switch (dbOperate->TableID)
+	const TableSchema* schema = GetSchema(dbOperate->TableID);
+	if (schema)
 	{
-	case TradingDay::TableID:
-		m_DB->UpdateTradingDay((TradingDay*)dbOperate->Record);
-		((TradingDay*)dbOperate->Record)->Deallocate();
-		break;
-	case Exchange::TableID:
-		m_DB->UpdateExchange((Exchange*)dbOperate->Record);
-		((Exchange*)dbOperate->Record)->Deallocate();
-		break;
-	case Product::TableID:
-		m_DB->UpdateProduct((Product*)dbOperate->Record);
-		((Product*)dbOperate->Record)->Deallocate();
-		break;
-	case Instrument::TableID:
-		m_DB->UpdateInstrument((Instrument*)dbOperate->Record);
-		((Instrument*)dbOperate->Record)->Deallocate();
-		break;
-	case PrimaryAccount::TableID:
-		m_DB->UpdatePrimaryAccount((PrimaryAccount*)dbOperate->Record);
-		((PrimaryAccount*)dbOperate->Record)->Deallocate();
-		break;
-	case Account::TableID:
-		m_DB->UpdateAccount((Account*)dbOperate->Record);
-		((Account*)dbOperate->Record)->Deallocate();
-		break;
-	case Capital::TableID:
-		m_DB->UpdateCapital((Capital*)dbOperate->Record);
-		((Capital*)dbOperate->Record)->Deallocate();
-		break;
-	case Position::TableID:
-		m_DB->UpdatePosition((Position*)dbOperate->Record);
-		((Position*)dbOperate->Record)->Deallocate();
-		break;
-	case PositionDetail::TableID:
-		m_DB->UpdatePositionDetail((PositionDetail*)dbOperate->Record);
-		((PositionDetail*)dbOperate->Record)->Deallocate();
-		break;
-	case Order::TableID:
-		m_DB->UpdateOrder((Order*)dbOperate->Record);
-		((Order*)dbOperate->Record)->Deallocate();
-		break;
-	case Trade::TableID:
-		m_DB->UpdateTrade((Trade*)dbOperate->Record);
-		((Trade*)dbOperate->Record)->Deallocate();
-		break;
-	default:
-		break;
+		m_DB->Update(schema, dbOperate->Record);
+		schema->DeallocateRecord(dbOperate->Record);
 	}
 }
-
 void DBWriter::TruncateTable(DBOperate* dbOperate)
 {
-	switch (dbOperate->TableID)
+	const TableSchema* schema = GetSchema(dbOperate->TableID);
+	if (schema)
 	{
-	case TradingDay::TableID:
-		m_DB->TruncateTradingDay();
-		break;
-	case Exchange::TableID:
-		m_DB->TruncateExchange();
-		break;
-	case Product::TableID:
-		m_DB->TruncateProduct();
-		break;
-	case Instrument::TableID:
-		m_DB->TruncateInstrument();
-		break;
-	case PrimaryAccount::TableID:
-		m_DB->TruncatePrimaryAccount();
-		break;
-	case Account::TableID:
-		m_DB->TruncateAccount();
-		break;
-	case Capital::TableID:
-		m_DB->TruncateCapital();
-		break;
-	case Position::TableID:
-		m_DB->TruncatePosition();
-		break;
-	case PositionDetail::TableID:
-		m_DB->TruncatePositionDetail();
-		break;
-	case Order::TableID:
-		m_DB->TruncateOrder();
-		break;
-	case Trade::TableID:
-		m_DB->TruncateTrade();
-		break;
-	default:
-		break;
+		m_DB->TruncateTable(schema->tableName);
 	}
 }
-

@@ -1,7 +1,4 @@
 #include "Mdb/Mdb/Mdb.h"
-#include "Mdb/MysqlWrapper/MysqlWrapper.h"
-#include "Mdb/MariadbWrapper/MariadbWrapper.h"
-#include "Mdb/DuckdbWrapper/DuckDBWrapper.h"
 #include "Mdb/SqliteWrapper/SqliteWrapper.h"
 #include "Mdb/Mdb/DB.h"
 #include "Mdb/Mdb/DBWriter.h"
@@ -13,12 +10,7 @@
 using namespace std;
 using namespace mdb;
 
-const char* dbUser = "ams";
-const char* dbPasswd = "ams";
-const char* mariadbHost = "tcp://172.24.5.87:3306/Quant";
-const char* mysqlHost = "mysqlx://ams:ams%401234@localhost:33060/Quant";
-const char* sqliteDBName = "./Test.sqlite";
-const char* duckDBName = "./Test.duckdb";
+const char* sqliteDBName = "./Test.sqlitedb";
 
 TradingDay* PrepareTradingDay()
 {
@@ -30,9 +22,9 @@ TradingDay* PrepareTradingDay()
 	TimeUtility::GetNextTradingDay(tradingDay->PreTradingDay, tradingDay->CurrTradingDay);
 	return tradingDay;
 }
-std::list<Exchange*>* PrepareExchanges()
+list<Exchange*>* PrepareExchanges()
 {
-	std::list<Exchange*>* exchanges = new std::list<Exchange*>();
+	list<Exchange*>* exchanges = new list<Exchange*>();
 	Exchange* exchange1 = new Exchange();
 	Exchange* exchange2 = new Exchange();
 	Exchange* exchange3 = new Exchange();
@@ -40,17 +32,17 @@ std::list<Exchange*>* PrepareExchanges()
 	Exchange* exchange5 = new Exchange();
 	Exchange* exchange6 = new Exchange();
 	strcpy(exchange1->ExchangeID, "SHFE");
-	strcpy(exchange1->ExchangeName, (const char*)(u8"ÉÏº£ÆÚ»õ½»Ò×Ëù"));
+	strcpy(exchange1->ExchangeName, (const char*)(u8"ä¸Šæµ·æœŸè´§äº¤æ˜“æ‰€"));
 	strcpy(exchange2->ExchangeID, "INE");
-	strcpy(exchange2->ExchangeName, (const char*)(u8"ÉÏº£ÄÜÔ´ÖÐÐÄ"));
+	strcpy(exchange2->ExchangeName, (const char*)(u8"ä¸Šæµ·å›½é™…èƒ½æºäº¤æ˜“ä¸­å¿ƒ"));
 	strcpy(exchange3->ExchangeID, "CFFEX");
-	strcpy(exchange3->ExchangeName, (const char*)(u8"ÖÐ¹ú½ðÈÚÆÚ»õ½»Ò×Ëù"));
+	strcpy(exchange3->ExchangeName, (const char*)(u8"ä¸­å›½é‡‘èžæœŸè´§äº¤æ˜“æ‰€"));
 	strcpy(exchange4->ExchangeID, "CZCE");
-	strcpy(exchange4->ExchangeName, (const char*)(u8"Ö£ÖÝÉÌÆ·ÆÚ»õ½»Ò×Ëù"));
+	strcpy(exchange4->ExchangeName, (const char*)(u8"éƒ‘å·žå•†å“æœŸè´§äº¤æ˜“æ‰€"));
 	strcpy(exchange5->ExchangeID, "DCE");
-	strcpy(exchange5->ExchangeName, (const char*)(u8"´óÁ¬ÉÌÆ·ÆÚ»õ½»Ò×Ëù"));
+	strcpy(exchange5->ExchangeName, (const char*)(u8"å¤§è¿žå•†å“æœŸè´§äº¤æ˜“æ‰€"));
 	strcpy(exchange6->ExchangeID, "GFE");
-	strcpy(exchange6->ExchangeName, (const char*)(u8"¹ãÖÝÆÚ»õ½»Ò×Ëù"));
+	strcpy(exchange6->ExchangeName, (const char*)(u8"å¹¿æœŸæ‰€"));
 
 	exchanges->push_back(exchange1);
 	exchanges->push_back(exchange2);
@@ -111,18 +103,26 @@ void Print(Account* account)
 
 static void InitTradingDay(DB* db)
 {
+	const auto* schema = &TradingDay::GetSchema();
 	auto tradingDay = PrepareTradingDay();
-	db->InsertTradingDay(tradingDay);
+	db->Insert(schema, tradingDay);
 }
 static void InitExchange(DB* db)
 {
+	const auto* schema = &Exchange::GetSchema();
 	auto exchanges = PrepareExchanges();
-	db->BatchInsertExchange(exchanges);
+	for (auto exchange : *exchanges)
+	{
+		db->Insert(schema, exchange);
+	}
+	exchanges->clear();
+	delete exchanges;
 }
 static void InitAccount(DB* db)
 {
+	const auto* schema = &Account::GetSchema();
 	Account* account = PrepareAccount("Xunmeng01", "Xunmeng01", "123456");
-	db->InsertAccount(account);
+	db->Insert(schema, account);
 }
 
 
@@ -133,18 +133,17 @@ static void TestMdb(DB* db)
 	mdb->Subscribe(dbWriter);
 	dbWriter->Subscribe(mdb);
 	dbWriter->Start();
-	
+
 	this_thread::sleep_for(chrono::seconds(1));
 
 	InitTradingDay(mdb);
 	InitExchange(mdb);
 	InitAccount(mdb);
 
-	
 	ExchangeIDType exchangeID("CFFEX");
 	auto exchange = mdb->t_Exchange->m_PrimaryKey->Select(exchangeID);
 	Print(exchange);
-	
+
 	auto tradingDay = mdb->t_TradingDay->m_PrimaryKey->Select(1);
 	Print(tradingDay);
 	mdb->t_TradingDay->Erase(tradingDay);
@@ -165,6 +164,7 @@ static void TestMdb(DB* db)
 	delete dbWriter;
 	this_thread::sleep_for(chrono::seconds(1));
 }
+
 static void TestDB(DB* db)
 {
 	if (!db->Connect())
@@ -172,59 +172,74 @@ static void TestDB(DB* db)
 		WriteLog(LogLevel::Warning, "Connect Failed.");
 		return;
 	}
-	db->CreateTables();
-	db->TruncateTables();
+
+	static const TableSchema* allSchemas[] = {
+		&TradingDay::GetSchema(), &Exchange::GetSchema(), &Product::GetSchema(),
+		&Instrument::GetSchema(), &PrimaryAccount::GetSchema(), &Account::GetSchema(),
+		&Capital::GetSchema(), &Position::GetSchema(), &PositionDetail::GetSchema(),
+		&Order::GetSchema(), &Trade::GetSchema(),
+	};
+	db->CreateTables(allSchemas, 11);
+	db->TruncateTables(allSchemas, 11);
 
 	InitTradingDay(db);
 	InitExchange(db);
 	InitAccount(db);
 
-	std::list<Account*> accounts;
-	db->SelectAccount(accounts);
-	for (auto account : accounts)
 	{
-		Print(account);
+		const auto* schema = &Account::GetSchema();
+		std::list<Account*> accounts;
+		RecordFactory factory = {
+			[]() -> void* { return Account::Allocate(); },
+			[](void* records, void* record) {
+				((std::list<Account*>*)records)->push_back((Account*)record);
+			}
+		};
+		db->SelectAll(schema, &accounts, factory);
+		for (auto account : accounts)
+		{
+			Print(account);
+		}
+		if (!accounts.empty())
+		{
+			auto account = accounts.front();
+			Account newAccount;
+			memcpy(&newAccount, account, sizeof(Account));
+			strcpy(newAccount.AccountName, "Jack01");
+			db->Update(schema, &newAccount);
+		}
 	}
-	if (!accounts.empty())
-	{
-		auto account = accounts.front();
-		Account newAccount;
-		memcpy(&newAccount, account, sizeof(Account));
-		strcpy(newAccount.AccountName, "Jack01");
-		db->UpdateAccount(&newAccount);
-	}
-	accounts.clear();
 
-	list<Exchange*> exchanges;
-	db->SelectExchange(exchanges);
-	for (auto exchange : exchanges)
 	{
-		Print(exchange);
+		const auto* schema = &Exchange::GetSchema();
+		std::list<Exchange*> exchanges;
+		RecordFactory factory = {
+			[]() -> void* { return Exchange::Allocate(); },
+			[](void* records, void* record) {
+				((std::list<Exchange*>*)records)->push_back((Exchange*)record);
+			}
+		};
+		db->SelectAll(schema, &exchanges, factory);
+		for (auto exchange : exchanges)
+		{
+			Print(exchange);
+		}
+		if (!exchanges.empty())
+		{
+			auto exchange = exchanges.front();
+			db->Delete(schema, exchange, schema->primaryKeyIndices, schema->primaryKeyCount);
+		}
 	}
-	db->DeleteExchange(exchanges.front());
-	db->DropTables();
+
+    //db->DropAllTables(allSchemas, 11);
 	db->DisConnect();
 }
+
 static void Test()
 {
-	MysqlWrapper* mysql = new MysqlWrapper(mysqlHost);
-	MariadbWrapper* mariadb = new MariadbWrapper(mariadbHost, dbUser, dbPasswd);
-	DuckdbWrapper* duckdb = new DuckdbWrapper(duckDBName);
 	SqliteWrapper* sqlite = new SqliteWrapper(sqliteDBName);
-
-	//TestDB(mysql);
-	//TestMdb(mariadb);
-	//TestDB(duckdb);
-	//TestDB(sqlite);
-
-	//WriteLog(LogLevel::Info, "TestMdb with Mysql");
-	//TestMdb(mysql);
-	//WriteLog(LogLevel::Info, "TestMdb with MariaDB");
-	//TestMdb(mariadb);
-	//WriteLog(LogLevel::Info, "TestMdb with Duckdb");
-	//TestMdb(duckdb);
-	WriteLog(LogLevel::Info, "TestMdb with Sqlite");
-	TestMdb(sqlite);
+	WriteLog(LogLevel::Info, "TestDB with Sqlite");
+	TestDB(sqlite);
 }
 
 int main(int argc, char* argv[])
@@ -234,7 +249,7 @@ int main(int argc, char* argv[])
 	Logger::GetInstance().Start();
 
 	Test();
-	
+
 	Logger::GetInstance().Stop();
 	Logger::GetInstance().Join();
 	return 0;
