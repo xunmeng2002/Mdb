@@ -4,9 +4,6 @@
 #include <string>
 
 
-struct sqlite3;
-struct sqlite3_stmt;
-
 class SQLITEWRAPPER_EXPORTS SqliteWrapper : public DB
 {
 public:
@@ -38,16 +35,6 @@ public:
 	                   void* recordsList, const RecordFactory& factory) override;
 
 private:
-	bool PrepareAndBind(const TableSchema* schema, const void* record,
-	                    const char* sql, sqlite3_stmt** stmt);
-	void BindField(sqlite3_stmt* stmt, int index, const FieldDescriptor& field,
-	               const void* record);
-	void BindFields(sqlite3_stmt* stmt, const TableSchema* schema,
-	                const void* record);
-	void BindKeyFields(sqlite3_stmt* stmt, const TableSchema* schema,
-	                   const void* record, const int* keyIndices, int keyCount);
-	void ReadRow(sqlite3_stmt* stmt, const TableSchema* schema, void* record);
-
 	struct Impl;
 	Impl* m_Impl;
 };
