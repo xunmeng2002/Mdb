@@ -1,6 +1,6 @@
 #pragma once
 #include <Mdb/SqliteWrapper/SqliteWrapperExport.h>
-#include <Mdb/Mdb/DB.h>
+#include <DBInterface/DB.h>
 #include <string>
 
 

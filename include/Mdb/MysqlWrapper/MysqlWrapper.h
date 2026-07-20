@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <Mdb/MysqlWrapper/MysqlWrapperExport.h>
-#include <Mdb/Mdb/DB.h>
+#include <DBInterface/DB.h>
 #include <string>
 #include <list>
 #include <memory>

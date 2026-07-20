@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <Mdb/DuckdbWrapper/DuckdbWrapperExport.h>
-#include <Mdb/Mdb/DB.h>
+#include <DBInterface/DB.h>
 #include <string>
 #include <list>
 #include <memory>

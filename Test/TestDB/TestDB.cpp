@@ -1,6 +1,6 @@
 #include "Mdb/Mdb/Mdb.h"
 #include "Mdb/SqliteWrapper/SqliteWrapper.h"
-#include "Mdb/Mdb/DB.h"
+#include <DBInterface/DB.h>
 #include "Mdb/Mdb/DBWriter.h"
 #include "Mdb/Mdb/InitMdbFromDB.h"
 #include "PersonalLib/Core/Core.h"
