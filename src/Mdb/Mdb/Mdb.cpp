@@ -93,21 +93,21 @@ namespace mdb
 	{
 		if (m_MdbSubscriber != nullptr)
 		{
-			m_MdbSubscriber->OnCreateTables();	
+			m_MdbSubscriber->OnTableOp(DBOperateType::CreateTables);
 		}
 	}
 	void Mdb::DropTables()
 	{
 		if (m_MdbSubscriber != nullptr)
 		{
-			m_MdbSubscriber->OnDropTables();
+			m_MdbSubscriber->OnTableOp(DBOperateType::DropTables);
 		}
 	}
 	void Mdb::TruncateTables()
 	{
 		if (m_MdbSubscriber != nullptr)
 		{
-			m_MdbSubscriber->OnTruncateTables();
+			m_MdbSubscriber->OnTableOp(DBOperateType::TruncateTables);
 		}
 		t_TradingDay->TruncateTables();
 		t_Exchange->TruncateTables();

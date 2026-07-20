@@ -24,6 +24,13 @@ struct RecordFactory
     void  (*PushBack)(void* records, void* record);
 };
 
+struct IndexDefinition
+{
+    unsigned int    indexID;
+    const int*      fieldIndices;
+    int             fieldCount;
+};
+
 struct TableSchema
 {
     const char*             tableName;
@@ -32,4 +39,6 @@ struct TableSchema
     const int*              primaryKeyIndices;
     int                     primaryKeyCount;
     void                    (*DeallocateRecord)(void*);
+    const IndexDefinition*  secondaryIndices;
+    int                     secondaryIndexCount;
 };

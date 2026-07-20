@@ -1,4 +1,5 @@
 ﻿#include <Mdb/Mdb/MdbStructs.h>
+#include <Mdb/Mdb/MdbIndexes.h>
 #include <PersonalLib/TemplateLib/TemplateLib.h>
 #include <string>
 #include <cstring>
@@ -318,7 +319,7 @@ static void DeallocateTradingDay(void* r) { static_cast<TradingDay*>(r)->Dealloc
 
 const TableSchema& TradingDay::GetSchema()
 {
-	static const TableSchema schema = {"t_TradingDay", TradingDayFields, 3, TradingDayPKIndices, 1, DeallocateTradingDay};
+	static const TableSchema schema = {"t_TradingDay", TradingDayFields, 3, TradingDayPKIndices, 1, DeallocateTradingDay, nullptr, 0};
 	return schema;
 }
 
@@ -330,7 +331,7 @@ static const int ExchangePKIndices[] = {0};
 static void DeallocateExchange(void* r) { static_cast<Exchange*>(r)->Deallocate(); }
 const TableSchema& Exchange::GetSchema()
 {
-	static const TableSchema schema = {"t_Exchange", ExchangeFields, 2, ExchangePKIndices, 1, DeallocateExchange};
+	static const TableSchema schema = {"t_Exchange", ExchangeFields, 2, ExchangePKIndices, 1, DeallocateExchange, nullptr, 0};
 	return schema;
 }
 
@@ -351,7 +352,7 @@ static const int ProductPKIndices[] = {0, 1};
 static void DeallocateProduct(void* r) { static_cast<Product*>(r)->Deallocate(); }
 const TableSchema& Product::GetSchema()
 {
-	static const TableSchema schema = {"t_Product", ProductFields, 11, ProductPKIndices, 2, DeallocateProduct};
+	static const TableSchema schema = {"t_Product", ProductFields, 11, ProductPKIndices, 2, DeallocateProduct, nullptr, 0};
 	return schema;
 }
 
@@ -376,7 +377,7 @@ static const int InstrumentPKIndices[] = {0, 1};
 static void DeallocateInstrument(void* r) { static_cast<Instrument*>(r)->Deallocate(); }
 const TableSchema& Instrument::GetSchema()
 {
-	static const TableSchema schema = {"t_Instrument", InstrumentFields, 15, InstrumentPKIndices, 2, DeallocateInstrument};
+	static const TableSchema schema = {"t_Instrument", InstrumentFields, 15, InstrumentPKIndices, 2, DeallocateInstrument, nullptr, 0};
 	return schema;
 }
 
@@ -395,7 +396,11 @@ static const int PrimaryAccountPKIndices[] = {0};
 static void DeallocatePrimaryAccount(void* r) { static_cast<PrimaryAccount*>(r)->Deallocate(); }
 const TableSchema& PrimaryAccount::GetSchema()
 {
-	static const TableSchema schema = {"t_PrimaryAccount", PrimaryAccountFields, 9, PrimaryAccountPKIndices, 1, DeallocatePrimaryAccount};
+	static const int kPrimaryAccountIdxOfferID[] = {4};
+	static const IndexDefinition PrimaryAccountIndices[] = {
+		{PrimaryAccountIndexOfferID::IndexID, kPrimaryAccountIdxOfferID, 1},
+	};
+	static const TableSchema schema = {"t_PrimaryAccount", PrimaryAccountFields, 9, PrimaryAccountPKIndices, 1, DeallocatePrimaryAccount, PrimaryAccountIndices, 1};
 	return schema;
 }
 
@@ -413,7 +418,7 @@ static const int AccountPKIndices[] = {0};
 static void DeallocateAccount(void* r) { static_cast<Account*>(r)->Deallocate(); }
 const TableSchema& Account::GetSchema()
 {
-	static const TableSchema schema = {"t_Account", AccountFields, 8, AccountPKIndices, 1, DeallocateAccount};
+	static const TableSchema schema = {"t_Account", AccountFields, 8, AccountPKIndices, 1, DeallocateAccount, nullptr, 0};
 	return schema;
 }
 
@@ -443,7 +448,11 @@ static const int CapitalPKIndices[] = {0, 1};
 static void DeallocateCapital(void* r) { static_cast<Capital*>(r)->Deallocate(); }
 const TableSchema& Capital::GetSchema()
 {
-	static const TableSchema schema = {"t_Capital", CapitalFields, 20, CapitalPKIndices, 2, DeallocateCapital};
+	static const int kCapitalIdxTradingDay[] = {0};
+	static const IndexDefinition CapitalIndices[] = {
+		{CapitalIndexTradingDay::IndexID, kCapitalIdxTradingDay, 1},
+	};
+	static const TableSchema schema = {"t_Capital", CapitalFields, 20, CapitalPKIndices, 2, DeallocateCapital, CapitalIndices, 1};
 	return schema;
 }
 
@@ -478,7 +487,13 @@ static const int PositionPKIndices[] = {0, 1, 2, 3, 6};
 static void DeallocatePosition(void* r) { static_cast<Position*>(r)->Deallocate(); }
 const TableSchema& Position::GetSchema()
 {
-	static const TableSchema schema = {"t_Position", PositionFields, 25, PositionPKIndices, 5, DeallocatePosition};
+	static const int kPositionIdxAccount[] = {0, 1};
+	static const int kPositionIdxTradingDay[] = {0};
+	static const IndexDefinition PositionIndices[] = {
+		{PositionIndexAccount::IndexID, kPositionIdxAccount, 2},
+		{PositionIndexTradingDay::IndexID, kPositionIdxTradingDay, 1},
+	};
+	static const TableSchema schema = {"t_Position", PositionFields, 25, PositionPKIndices, 5, DeallocatePosition, PositionIndices, 2};
 	return schema;
 }
 
@@ -513,7 +528,13 @@ static const int PositionDetailPKIndices[] = {0, 1, 2, 3, 6, 7, 8};
 static void DeallocatePositionDetail(void* r) { static_cast<PositionDetail*>(r)->Deallocate(); }
 const TableSchema& PositionDetail::GetSchema()
 {
-	static const TableSchema schema = {"t_PositionDetail", PositionDetailFields, 25, PositionDetailPKIndices, 7, DeallocatePositionDetail};
+	static const int kPositionDetailIdxTradeMatch[] = {0, 1, 2, 3, 6};
+	static const int kPositionDetailIdxTradingDay[] = {0};
+	static const IndexDefinition PositionDetailIndices[] = {
+		{PositionDetailIndexTradeMatch::IndexID, kPositionDetailIdxTradeMatch, 5},
+		{PositionDetailIndexTradingDay::IndexID, kPositionDetailIdxTradingDay, 1},
+	};
+	static const TableSchema schema = {"t_PositionDetail", PositionDetailFields, 25, PositionDetailPKIndices, 7, DeallocatePositionDetail, PositionDetailIndices, 2};
 	return schema;
 }
 
@@ -556,7 +577,7 @@ static const int OrderPKIndices[] = {0, 1, 2, 3, 6};
 static void DeallocateOrder(void* r) { static_cast<Order*>(r)->Deallocate(); }
 const TableSchema& Order::GetSchema()
 {
-	static const TableSchema schema = {"t_Order", OrderFields, 33, OrderPKIndices, 5, DeallocateOrder};
+	static const TableSchema schema = {"t_Order", OrderFields, 33, OrderPKIndices, 5, DeallocateOrder, nullptr, 0};
 	return schema;
 }
 
@@ -584,7 +605,7 @@ static const int TradePKIndices[] = {0, 3, 8, 9};
 static void DeallocateTrade(void* r) { static_cast<Trade*>(r)->Deallocate(); }
 const TableSchema& Trade::GetSchema()
 {
-	static const TableSchema schema = {"t_Trade", TradeFields, 18, TradePKIndices, 4, DeallocateTrade};
+	static const TableSchema schema = {"t_Trade", TradeFields, 18, TradePKIndices, 4, DeallocateTrade, nullptr, 0};
 	return schema;
 }
 

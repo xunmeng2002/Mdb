@@ -5,10 +5,26 @@
 #include <string.h>
 #include <set>
 #include <list>
+#include <vector>
 
 using std::string;
 using std::set;
 using std::list;
+
+
+template<typename T>
+void* BatchListToVector(void* listPtr)
+{
+	auto* list = static_cast<std::list<T*>*>(listPtr);
+	auto* vec = new std::vector<const void*>();
+	vec->reserve(list->size());
+	for (auto* r : *list)
+		vec->push_back(r);
+	list->clear();
+	delete list;
+	return vec;
+}
+
 
 namespace mdb
 {
@@ -41,7 +57,7 @@ namespace mdb
 	}
 	void TradingDayTable::InitDB()
 	{
-		m_MdbSubscriber->OnTradingDayTruncate();
+		m_MdbSubscriber->OnRecordTruncate(TradingDay::TableID);
 		
 		std::list<TradingDay*>* records = new std::list<TradingDay*>();
 		std::shared_lock guard(m_SharedMutex);
@@ -55,7 +71,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnTradingDayBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(TradingDay::TableID, records, BatchListToVector<TradingDay>);
 		}
 		m_DBInited = true;
 	}
@@ -74,7 +90,7 @@ namespace mdb
 		
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnTradingDayInsert(record);
+			m_MdbSubscriber->OnRecordInsert(TradingDay::TableID, record);
 		}
 		return true;
 	}
@@ -92,7 +108,7 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnTradingDayBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(TradingDay::TableID, records, BatchListToVector<TradingDay>);
 		}
 	}
 	void TradingDayTable::Erase(TradingDay* record)
@@ -102,7 +118,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnTradingDayErase(record);
+			m_MdbSubscriber->OnRecordErase(TradingDay::TableID, record);
 		}
 		else
 		{
@@ -124,7 +140,7 @@ namespace mdb
 
 		if (updateDB && m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnTradingDayUpdate(newRecord);
+			m_MdbSubscriber->OnRecordUpdate(TradingDay::TableID, newRecord);
 		}
 		else
 		{
@@ -151,7 +167,7 @@ namespace mdb
 		m_PrimaryKey->m_Index.clear();
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnTradingDayTruncate();
+			m_MdbSubscriber->OnRecordTruncate(TradingDay::TableID);
 		}
 	}
 	void TradingDayTable::Dump(const char* dir)
@@ -215,7 +231,7 @@ namespace mdb
 	}
 	void ExchangeTable::InitDB()
 	{
-		m_MdbSubscriber->OnExchangeTruncate();
+		m_MdbSubscriber->OnRecordTruncate(Exchange::TableID);
 		
 		std::list<Exchange*>* records = new std::list<Exchange*>();
 		std::shared_lock guard(m_SharedMutex);
@@ -229,7 +245,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnExchangeBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Exchange::TableID, records, BatchListToVector<Exchange>);
 		}
 		m_DBInited = true;
 	}
@@ -248,7 +264,7 @@ namespace mdb
 		
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnExchangeInsert(record);
+			m_MdbSubscriber->OnRecordInsert(Exchange::TableID, record);
 		}
 		return true;
 	}
@@ -266,7 +282,7 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnExchangeBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Exchange::TableID, records, BatchListToVector<Exchange>);
 		}
 	}
 	void ExchangeTable::Erase(Exchange* record)
@@ -276,7 +292,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnExchangeErase(record);
+			m_MdbSubscriber->OnRecordErase(Exchange::TableID, record);
 		}
 		else
 		{
@@ -298,7 +314,7 @@ namespace mdb
 
 		if (updateDB && m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnExchangeUpdate(newRecord);
+			m_MdbSubscriber->OnRecordUpdate(Exchange::TableID, newRecord);
 		}
 		else
 		{
@@ -325,7 +341,7 @@ namespace mdb
 		m_PrimaryKey->m_Index.clear();
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnExchangeTruncate();
+			m_MdbSubscriber->OnRecordTruncate(Exchange::TableID);
 		}
 	}
 	void ExchangeTable::Dump(const char* dir)
@@ -389,7 +405,7 @@ namespace mdb
 	}
 	void ProductTable::InitDB()
 	{
-		m_MdbSubscriber->OnProductTruncate();
+		m_MdbSubscriber->OnRecordTruncate(Product::TableID);
 		
 		std::list<Product*>* records = new std::list<Product*>();
 		std::shared_lock guard(m_SharedMutex);
@@ -403,7 +419,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnProductBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Product::TableID, records, BatchListToVector<Product>);
 		}
 		m_DBInited = true;
 	}
@@ -422,7 +438,7 @@ namespace mdb
 		
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnProductInsert(record);
+			m_MdbSubscriber->OnRecordInsert(Product::TableID, record);
 		}
 		return true;
 	}
@@ -440,7 +456,7 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnProductBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Product::TableID, records, BatchListToVector<Product>);
 		}
 	}
 	void ProductTable::Erase(Product* record)
@@ -450,7 +466,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnProductErase(record);
+			m_MdbSubscriber->OnRecordErase(Product::TableID, record);
 		}
 		else
 		{
@@ -472,7 +488,7 @@ namespace mdb
 
 		if (updateDB && m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnProductUpdate(newRecord);
+			m_MdbSubscriber->OnRecordUpdate(Product::TableID, newRecord);
 		}
 		else
 		{
@@ -499,7 +515,7 @@ namespace mdb
 		m_PrimaryKey->m_Index.clear();
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnProductTruncate();
+			m_MdbSubscriber->OnRecordTruncate(Product::TableID);
 		}
 	}
 	void ProductTable::Dump(const char* dir)
@@ -563,7 +579,7 @@ namespace mdb
 	}
 	void InstrumentTable::InitDB()
 	{
-		m_MdbSubscriber->OnInstrumentTruncate();
+		m_MdbSubscriber->OnRecordTruncate(Instrument::TableID);
 		
 		std::list<Instrument*>* records = new std::list<Instrument*>();
 		std::shared_lock guard(m_SharedMutex);
@@ -577,7 +593,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnInstrumentBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Instrument::TableID, records, BatchListToVector<Instrument>);
 		}
 		m_DBInited = true;
 	}
@@ -596,7 +612,7 @@ namespace mdb
 		
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnInstrumentInsert(record);
+			m_MdbSubscriber->OnRecordInsert(Instrument::TableID, record);
 		}
 		return true;
 	}
@@ -614,7 +630,7 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnInstrumentBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Instrument::TableID, records, BatchListToVector<Instrument>);
 		}
 	}
 	void InstrumentTable::Erase(Instrument* record)
@@ -624,7 +640,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnInstrumentErase(record);
+			m_MdbSubscriber->OnRecordErase(Instrument::TableID, record);
 		}
 		else
 		{
@@ -646,7 +662,7 @@ namespace mdb
 
 		if (updateDB && m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnInstrumentUpdate(newRecord);
+			m_MdbSubscriber->OnRecordUpdate(Instrument::TableID, newRecord);
 		}
 		else
 		{
@@ -673,7 +689,7 @@ namespace mdb
 		m_PrimaryKey->m_Index.clear();
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnInstrumentTruncate();
+			m_MdbSubscriber->OnRecordTruncate(Instrument::TableID);
 		}
 	}
 	void InstrumentTable::Dump(const char* dir)
@@ -740,7 +756,7 @@ namespace mdb
 	}
 	void PrimaryAccountTable::InitDB()
 	{
-		m_MdbSubscriber->OnPrimaryAccountTruncate();
+		m_MdbSubscriber->OnRecordTruncate(PrimaryAccount::TableID);
 		
 		std::list<PrimaryAccount*>* records = new std::list<PrimaryAccount*>();
 		std::shared_lock guard(m_SharedMutex);
@@ -754,7 +770,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnPrimaryAccountBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(PrimaryAccount::TableID, records, BatchListToVector<PrimaryAccount>);
 		}
 		m_DBInited = true;
 	}
@@ -774,7 +790,7 @@ namespace mdb
 		
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPrimaryAccountInsert(record);
+			m_MdbSubscriber->OnRecordInsert(PrimaryAccount::TableID, record);
 		}
 		return true;
 	}
@@ -793,7 +809,7 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPrimaryAccountBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(PrimaryAccount::TableID, records, BatchListToVector<PrimaryAccount>);
 		}
 	}
 	void PrimaryAccountTable::Erase(PrimaryAccount* record)
@@ -803,7 +819,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPrimaryAccountErase(record);
+			m_MdbSubscriber->OnRecordEraseByIndex(PrimaryAccount::TableID, PrimaryAccountIndexOfferID::IndexID, record);
 		}
 		else
 		{
@@ -830,7 +846,7 @@ namespace mdb
 		{
 			auto record = PrimaryAccount::Allocate();
 			memcpy(record, &t_ComparePrimaryAccount, sizeof(PrimaryAccount));
-			m_MdbSubscriber->OnPrimaryAccountEraseByOfferIDIndex(record);
+			m_MdbSubscriber->OnRecordEraseByIndex(PrimaryAccount::TableID, PrimaryAccountIndexOfferID::IndexID, record);
 		}
 		return (int)records.size();
 	}
@@ -859,7 +875,7 @@ namespace mdb
 
 		if (updateDB && m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPrimaryAccountUpdate(newRecord);
+			m_MdbSubscriber->OnRecordUpdate(PrimaryAccount::TableID, newRecord);
 		}
 		else
 		{
@@ -888,7 +904,7 @@ namespace mdb
 		m_OfferIDIndex->m_Index.clear();
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPrimaryAccountTruncate();
+			m_MdbSubscriber->OnRecordTruncate(PrimaryAccount::TableID);
 		}
 	}
 	void PrimaryAccountTable::Dump(const char* dir)
@@ -953,7 +969,7 @@ namespace mdb
 	}
 	void AccountTable::InitDB()
 	{
-		m_MdbSubscriber->OnAccountTruncate();
+		m_MdbSubscriber->OnRecordTruncate(Account::TableID);
 		
 		std::list<Account*>* records = new std::list<Account*>();
 		std::shared_lock guard(m_SharedMutex);
@@ -967,7 +983,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnAccountBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Account::TableID, records, BatchListToVector<Account>);
 		}
 		m_DBInited = true;
 	}
@@ -986,7 +1002,7 @@ namespace mdb
 		
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnAccountInsert(record);
+			m_MdbSubscriber->OnRecordInsert(Account::TableID, record);
 		}
 		return true;
 	}
@@ -1004,7 +1020,7 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnAccountBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Account::TableID, records, BatchListToVector<Account>);
 		}
 	}
 	void AccountTable::Erase(Account* record)
@@ -1014,7 +1030,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnAccountErase(record);
+			m_MdbSubscriber->OnRecordErase(Account::TableID, record);
 		}
 		else
 		{
@@ -1036,7 +1052,7 @@ namespace mdb
 
 		if (updateDB && m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnAccountUpdate(newRecord);
+			m_MdbSubscriber->OnRecordUpdate(Account::TableID, newRecord);
 		}
 		else
 		{
@@ -1063,7 +1079,7 @@ namespace mdb
 		m_PrimaryKey->m_Index.clear();
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnAccountTruncate();
+			m_MdbSubscriber->OnRecordTruncate(Account::TableID);
 		}
 	}
 	void AccountTable::Dump(const char* dir)
@@ -1130,7 +1146,7 @@ namespace mdb
 	}
 	void CapitalTable::InitDB()
 	{
-		m_MdbSubscriber->OnCapitalTruncate();
+		m_MdbSubscriber->OnRecordTruncate(Capital::TableID);
 		
 		std::list<Capital*>* records = new std::list<Capital*>();
 		std::shared_lock guard(m_SharedMutex);
@@ -1144,7 +1160,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnCapitalBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Capital::TableID, records, BatchListToVector<Capital>);
 		}
 		m_DBInited = true;
 	}
@@ -1164,7 +1180,7 @@ namespace mdb
 		
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnCapitalInsert(record);
+			m_MdbSubscriber->OnRecordInsert(Capital::TableID, record);
 		}
 		return true;
 	}
@@ -1183,7 +1199,7 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnCapitalBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Capital::TableID, records, BatchListToVector<Capital>);
 		}
 	}
 	void CapitalTable::Erase(Capital* record)
@@ -1193,7 +1209,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnCapitalErase(record);
+			m_MdbSubscriber->OnRecordEraseByIndex(Capital::TableID, CapitalIndexTradingDay::IndexID, record);
 		}
 		else
 		{
@@ -1220,7 +1236,7 @@ namespace mdb
 		{
 			auto record = Capital::Allocate();
 			memcpy(record, &t_CompareCapital, sizeof(Capital));
-			m_MdbSubscriber->OnCapitalEraseByTradingDayIndex(record);
+			m_MdbSubscriber->OnRecordEraseByIndex(Capital::TableID, CapitalIndexTradingDay::IndexID, record);
 		}
 		return (int)records.size();
 	}
@@ -1249,7 +1265,7 @@ namespace mdb
 
 		if (updateDB && m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnCapitalUpdate(newRecord);
+			m_MdbSubscriber->OnRecordUpdate(Capital::TableID, newRecord);
 		}
 		else
 		{
@@ -1278,7 +1294,7 @@ namespace mdb
 		m_TradingDayIndex->m_Index.clear();
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnCapitalTruncate();
+			m_MdbSubscriber->OnRecordTruncate(Capital::TableID);
 		}
 	}
 	void CapitalTable::Dump(const char* dir)
@@ -1349,7 +1365,7 @@ namespace mdb
 	}
 	void PositionTable::InitDB()
 	{
-		m_MdbSubscriber->OnPositionTruncate();
+		m_MdbSubscriber->OnRecordTruncate(Position::TableID);
 		
 		std::list<Position*>* records = new std::list<Position*>();
 		std::shared_lock guard(m_SharedMutex);
@@ -1363,7 +1379,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnPositionBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Position::TableID, records, BatchListToVector<Position>);
 		}
 		m_DBInited = true;
 	}
@@ -1384,7 +1400,7 @@ namespace mdb
 		
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPositionInsert(record);
+			m_MdbSubscriber->OnRecordInsert(Position::TableID, record);
 		}
 		return true;
 	}
@@ -1404,7 +1420,7 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPositionBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Position::TableID, records, BatchListToVector<Position>);
 		}
 	}
 	void PositionTable::Erase(Position* record)
@@ -1414,7 +1430,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPositionErase(record);
+			m_MdbSubscriber->OnRecordEraseByIndex(Position::TableID, PositionIndexAccount::IndexID, record);
 		}
 		else
 		{
@@ -1441,7 +1457,7 @@ namespace mdb
 		{
 			auto record = Position::Allocate();
 			memcpy(record, &t_ComparePosition, sizeof(Position));
-			m_MdbSubscriber->OnPositionEraseByAccountIndex(record);
+			m_MdbSubscriber->OnRecordEraseByIndex(Position::TableID, PositionIndexTradingDay::IndexID, record);
 		}
 		return (int)records.size();
 	}
@@ -1465,7 +1481,7 @@ namespace mdb
 		{
 			auto record = Position::Allocate();
 			memcpy(record, &t_ComparePosition, sizeof(Position));
-			m_MdbSubscriber->OnPositionEraseByTradingDayIndex(record);
+			m_MdbSubscriber->OnRecordErase(Position::TableID, record);
 		}
 		return (int)records.size();
 	}
@@ -1504,7 +1520,7 @@ namespace mdb
 
 		if (updateDB && m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPositionUpdate(newRecord);
+			m_MdbSubscriber->OnRecordUpdate(Position::TableID, newRecord);
 		}
 		else
 		{
@@ -1535,7 +1551,7 @@ namespace mdb
 		m_TradingDayIndex->m_Index.clear();
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPositionTruncate();
+			m_MdbSubscriber->OnRecordTruncate(Position::TableID);
 		}
 	}
 	void PositionTable::Dump(const char* dir)
@@ -1607,7 +1623,7 @@ namespace mdb
 	}
 	void PositionDetailTable::InitDB()
 	{
-		m_MdbSubscriber->OnPositionDetailTruncate();
+		m_MdbSubscriber->OnRecordTruncate(PositionDetail::TableID);
 		
 		std::list<PositionDetail*>* records = new std::list<PositionDetail*>();
 		std::shared_lock guard(m_SharedMutex);
@@ -1621,7 +1637,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnPositionDetailBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(PositionDetail::TableID, records, BatchListToVector<PositionDetail>);
 		}
 		m_DBInited = true;
 	}
@@ -1642,7 +1658,7 @@ namespace mdb
 		
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPositionDetailInsert(record);
+			m_MdbSubscriber->OnRecordInsert(PositionDetail::TableID, record);
 		}
 		return true;
 	}
@@ -1662,7 +1678,7 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPositionDetailBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(PositionDetail::TableID, records, BatchListToVector<PositionDetail>);
 		}
 	}
 	void PositionDetailTable::Erase(PositionDetail* record)
@@ -1672,7 +1688,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPositionDetailErase(record);
+			m_MdbSubscriber->OnRecordEraseByIndex(PositionDetail::TableID, PositionDetailIndexTradeMatch::IndexID, record);
 		}
 		else
 		{
@@ -1699,7 +1715,7 @@ namespace mdb
 		{
 			auto record = PositionDetail::Allocate();
 			memcpy(record, &t_ComparePositionDetail, sizeof(PositionDetail));
-			m_MdbSubscriber->OnPositionDetailEraseByTradeMatchIndex(record);
+			m_MdbSubscriber->OnRecordEraseByIndex(PositionDetail::TableID, PositionDetailIndexTradingDay::IndexID, record);
 		}
 		return (int)records.size();
 	}
@@ -1723,7 +1739,7 @@ namespace mdb
 		{
 			auto record = PositionDetail::Allocate();
 			memcpy(record, &t_ComparePositionDetail, sizeof(PositionDetail));
-			m_MdbSubscriber->OnPositionDetailEraseByTradingDayIndex(record);
+			m_MdbSubscriber->OnRecordErase(PositionDetail::TableID, record);
 		}
 		return (int)records.size();
 	}
@@ -1762,7 +1778,7 @@ namespace mdb
 
 		if (updateDB && m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPositionDetailUpdate(newRecord);
+			m_MdbSubscriber->OnRecordUpdate(PositionDetail::TableID, newRecord);
 		}
 		else
 		{
@@ -1793,7 +1809,7 @@ namespace mdb
 		m_TradingDayIndex->m_Index.clear();
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnPositionDetailTruncate();
+			m_MdbSubscriber->OnRecordTruncate(PositionDetail::TableID);
 		}
 	}
 	void PositionDetailTable::Dump(const char* dir)
@@ -1862,7 +1878,7 @@ namespace mdb
 	}
 	void OrderTable::InitDB()
 	{
-		m_MdbSubscriber->OnOrderTruncate();
+		m_MdbSubscriber->OnRecordTruncate(Order::TableID);
 		
 		std::list<Order*>* records = new std::list<Order*>();
 		std::shared_lock guard(m_SharedMutex);
@@ -1876,7 +1892,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnOrderBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Order::TableID, records, BatchListToVector<Order>);
 		}
 		m_DBInited = true;
 	}
@@ -1896,7 +1912,7 @@ namespace mdb
 		
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnOrderInsert(record);
+			m_MdbSubscriber->OnRecordInsert(Order::TableID, record);
 		}
 		return true;
 	}
@@ -1915,7 +1931,7 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnOrderBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Order::TableID, records, BatchListToVector<Order>);
 		}
 	}
 	void OrderTable::Erase(Order* record)
@@ -1925,7 +1941,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnOrderErase(record);
+			m_MdbSubscriber->OnRecordErase(Order::TableID, record);
 		}
 		else
 		{
@@ -1947,7 +1963,7 @@ namespace mdb
 
 		if (updateDB && m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnOrderUpdate(newRecord);
+			m_MdbSubscriber->OnRecordUpdate(Order::TableID, newRecord);
 		}
 		else
 		{
@@ -1976,7 +1992,7 @@ namespace mdb
 		m_ClientOrderIDUniqueKey->m_Index.clear();
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnOrderTruncate();
+			m_MdbSubscriber->OnRecordTruncate(Order::TableID);
 		}
 	}
 	void OrderTable::Dump(const char* dir)
@@ -2041,7 +2057,7 @@ namespace mdb
 	}
 	void TradeTable::InitDB()
 	{
-		m_MdbSubscriber->OnTradeTruncate();
+		m_MdbSubscriber->OnRecordTruncate(Trade::TableID);
 		
 		std::list<Trade*>* records = new std::list<Trade*>();
 		std::shared_lock guard(m_SharedMutex);
@@ -2055,7 +2071,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnTradeBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Trade::TableID, records, BatchListToVector<Trade>);
 		}
 		m_DBInited = true;
 	}
@@ -2074,7 +2090,7 @@ namespace mdb
 		
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnTradeInsert(record);
+			m_MdbSubscriber->OnRecordInsert(Trade::TableID, record);
 		}
 		return true;
 	}
@@ -2092,7 +2108,7 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnTradeBatchInsert(records);
+			m_MdbSubscriber->OnRecordBatchInsert(Trade::TableID, records, BatchListToVector<Trade>);
 		}
 	}
 	void TradeTable::Erase(Trade* record)
@@ -2102,7 +2118,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnTradeErase(record);
+			m_MdbSubscriber->OnRecordErase(Trade::TableID, record);
 		}
 		else
 		{
@@ -2124,7 +2140,7 @@ namespace mdb
 
 		if (updateDB && m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnTradeUpdate(newRecord);
+			m_MdbSubscriber->OnRecordUpdate(Trade::TableID, newRecord);
 		}
 		else
 		{
@@ -2151,7 +2167,7 @@ namespace mdb
 		m_PrimaryKey->m_Index.clear();
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnTradeTruncate();
+			m_MdbSubscriber->OnRecordTruncate(Trade::TableID);
 		}
 	}
 	void TradeTable::Dump(const char* dir)

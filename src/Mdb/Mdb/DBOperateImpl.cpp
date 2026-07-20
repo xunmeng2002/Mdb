@@ -12,6 +12,7 @@ DBOperate* DBOperate::Allocate()
 }
 void DBOperateImpl::Deallocate()
 {
+	batch_data_.clear();
 	ObjectPool<DBOperateImpl>::GetInstance().Deallocate(this);
 }
 void DBOperateImpl::DeallocateRecord()
