@@ -1,5 +1,6 @@
 #include <Mdb/Mdb/DBWriter.h>
 #include <Mdb/Mdb/MdbIndexes.h>
+#include "MdbTableRegistry.h"
 #include <PersonalLib/Core/Logger/Logger.h>
 #include <cstring>
 #include <vector>
@@ -762,41 +763,6 @@ void DBWriter::AddDBOperate(DBOperate* dbOperate)
 	m_ConditionVariable.notify_one();
 }
 
-namespace {
-	const TableSchema* GetSchema(unsigned int tableID)
-	{
-		switch (tableID)
-		{
-		case mdb::TradingDay::TableID:       return &mdb::TradingDay::GetSchema();
-		case mdb::Exchange::TableID:         return &mdb::Exchange::GetSchema();
-		case mdb::Product::TableID:          return &mdb::Product::GetSchema();
-		case mdb::Instrument::TableID:       return &mdb::Instrument::GetSchema();
-		case mdb::PrimaryAccount::TableID:   return &mdb::PrimaryAccount::GetSchema();
-		case mdb::Account::TableID:          return &mdb::Account::GetSchema();
-		case mdb::Capital::TableID:          return &mdb::Capital::GetSchema();
-		case mdb::Position::TableID:         return &mdb::Position::GetSchema();
-		case mdb::PositionDetail::TableID:   return &mdb::PositionDetail::GetSchema();
-		case mdb::Order::TableID:            return &mdb::Order::GetSchema();
-		case mdb::Trade::TableID:            return &mdb::Trade::GetSchema();
-		default:                             return nullptr;
-		}
-	}
-
-	const TableSchema* kAllSchemas[] = {
-		&mdb::TradingDay::GetSchema(),
-		&mdb::Exchange::GetSchema(),
-		&mdb::Product::GetSchema(),
-		&mdb::Instrument::GetSchema(),
-		&mdb::PrimaryAccount::GetSchema(),
-		&mdb::Account::GetSchema(),
-		&mdb::Capital::GetSchema(),
-		&mdb::Position::GetSchema(),
-		&mdb::PositionDetail::GetSchema(),
-		&mdb::Order::GetSchema(),
-		&mdb::Trade::GetSchema(),
-	};
-	constexpr int kTableCount = 11;
-}
 
 void DBWriter::CreateTables(DBOperate* dbOperate)
 {
@@ -812,7 +778,7 @@ void DBWriter::TruncateTables(DBOperate* dbOperate)
 }
 void DBWriter::InsertRecord(DBOperate* dbOperate)
 {
-	const TableSchema* schema = GetSchema(dbOperate->TableID);
+	const TableSchema* schema = GetSchemaByTableID(dbOperate->TableID);
 	if (schema)
 	{
 		m_DB->Insert(schema, dbOperate->Record);
@@ -820,7 +786,7 @@ void DBWriter::InsertRecord(DBOperate* dbOperate)
 }
 void DBWriter::BatchInsertRecords(DBOperate* dbOperate)
 {
-	const TableSchema* schema = GetSchema(dbOperate->TableID);
+	const TableSchema* schema = GetSchemaByTableID(dbOperate->TableID);
 	if (!schema) return;
 
 	std::vector<const void*> ptrs;
@@ -936,7 +902,7 @@ void DBWriter::BatchInsertRecords(DBOperate* dbOperate)
 }
 void DBWriter::DeleteRecord(DBOperate* dbOperate)
 {
-	const TableSchema* schema = GetSchema(dbOperate->TableID);
+	const TableSchema* schema = GetSchemaByTableID(dbOperate->TableID);
 	if (schema)
 	{
 		m_DB->Delete(schema, dbOperate->Record, schema->primaryKeyIndices, schema->primaryKeyCount);
@@ -945,7 +911,7 @@ void DBWriter::DeleteRecord(DBOperate* dbOperate)
 }
 void DBWriter::DeleteRecordByIndex(DBOperate* dbOperate)
 {
-	const TableSchema* schema = GetSchema(dbOperate->TableID);
+	const TableSchema* schema = GetSchemaByTableID(dbOperate->TableID);
 	if (!schema) return;
 
 	switch (dbOperate->TableID)
@@ -1014,7 +980,7 @@ void DBWriter::DeleteRecordByIndex(DBOperate* dbOperate)
 }
 void DBWriter::UpdateRecord(DBOperate* dbOperate)
 {
-	const TableSchema* schema = GetSchema(dbOperate->TableID);
+	const TableSchema* schema = GetSchemaByTableID(dbOperate->TableID);
 	if (schema)
 	{
 		m_DB->Update(schema, dbOperate->Record);
@@ -1023,7 +989,7 @@ void DBWriter::UpdateRecord(DBOperate* dbOperate)
 }
 void DBWriter::TruncateTable(DBOperate* dbOperate)
 {
-	const TableSchema* schema = GetSchema(dbOperate->TableID);
+	const TableSchema* schema = GetSchemaByTableID(dbOperate->TableID);
 	if (schema)
 	{
 		m_DB->TruncateTable(schema->tableName);

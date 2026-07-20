@@ -1,4 +1,5 @@
 ﻿#include "DBOperateImpl.h"
+#include "MdbTableRegistry.h"
 #include <Mdb/Mdb/MdbStructs.h>
 #include <PersonalLib/TemplateLib/TemplateLib.h>
 #include <cstring>
@@ -19,65 +20,10 @@ void DBOperateImpl::DeallocateRecord()
 	{
 		return;
 	}
-	switch(TableID)
+	const TableSchema* schema = mdb::GetSchemaByTableID(TableID);
+	if (schema && schema->DeallocateRecord && Record)
 	{
-	case TradingDay::TableID:
-	{
-		((TradingDay*)Record)->Deallocate();
-		break;
-	}
-	case Exchange::TableID:
-	{
-		((Exchange*)Record)->Deallocate();
-		break;
-	}
-	case Product::TableID:
-	{
-		((Product*)Record)->Deallocate();
-		break;
-	}
-	case Instrument::TableID:
-	{
-		((Instrument*)Record)->Deallocate();
-		break;
-	}
-	case PrimaryAccount::TableID:
-	{
-		((PrimaryAccount*)Record)->Deallocate();
-		break;
-	}
-	case Account::TableID:
-	{
-		((Account*)Record)->Deallocate();
-		break;
-	}
-	case Capital::TableID:
-	{
-		((Capital*)Record)->Deallocate();
-		break;
-	}
-	case Position::TableID:
-	{
-		((Position*)Record)->Deallocate();
-		break;
-	}
-	case PositionDetail::TableID:
-	{
-		((PositionDetail*)Record)->Deallocate();
-		break;
-	}
-	case Order::TableID:
-	{
-		((Order*)Record)->Deallocate();
-		break;
-	}
-	case Trade::TableID:
-	{
-		((Trade*)Record)->Deallocate();
-		break;
-	}
-	default:
-		break;
+		schema->DeallocateRecord(Record);
 	}
 	Record = nullptr;
 }
