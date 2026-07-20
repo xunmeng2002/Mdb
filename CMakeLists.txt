@@ -60,7 +60,6 @@ add_shared_module(SqliteWrapper			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CU
 
 find_package(PersonalLib REQUIRED PATHS "../Libs/PersonalLib")
 #find_package(duckdb REQUIRED PATHS "../Libs/duckdb")
-
 find_package(unofficial-sqlite3 CONFIG REQUIRED)
 #find_package(unofficial-mysql-connector-cpp CONFIG REQUIRED)
 #find_package(unofficial-mariadb-connector-cpp CONFIG REQUIRED)
@@ -68,9 +67,9 @@ find_package(unofficial-sqlite3 CONFIG REQUIRED)
 
 
 target_link_libraries(Mdb PUBLIC PersonalLib::Core PersonalLib::Serialization)
-#target_link_libraries(MysqlWrapper PUBLIC Mdb unofficial::mysql-connector-cpp::connector)
-#target_link_libraries(MariadbWrapper PUBLIC Mdb unofficial::mariadb-connector-cpp::mariadbcpp)
 #target_link_libraries(DuckdbWrapper PUBLIC Mdb DuckDB::DuckDB)
 target_link_libraries(SqliteWrapper PUBLIC Mdb unofficial::sqlite3::sqlite3)
+#target_link_libraries(MysqlWrapper PUBLIC Mdb unofficial::mysql-connector-cpp::connector)
+#target_link_libraries(MariadbWrapper PUBLIC Mdb unofficial::mariadb-connector-cpp::mariadbcpp)
 
 add_subdirectory(test)
