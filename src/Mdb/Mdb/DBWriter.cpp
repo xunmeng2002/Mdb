@@ -79,17 +79,16 @@ void DBWriter::OnRecordInsert(unsigned int tableID, void* record)
 	AddDBOperate(dbOperate);
 }
 
-void DBWriter::OnRecordBatchInsert(unsigned int tableID, void* records, void* (*convert)(void*))
+void DBWriter::OnRecordBatchInsert(unsigned int tableID, std::vector<const void*>* records)
 {
-	auto* vec = static_cast<std::vector<const void*>*>(convert(records));
 	DBOperate* dbOperate = DBOperate::Allocate();
 	dbOperate->Operate = DBOperateType::BatchInsert;
 	dbOperate->TableID = tableID;
 	dbOperate->Record = nullptr;
 
 	auto& batch = static_cast<DBOperateImpl*>(dbOperate)->GetBatchData();
-	batch.swap(*vec);
-	delete vec;
+	batch.swap(*records);
+	delete records;
 	AddDBOperate(dbOperate);
 }
 

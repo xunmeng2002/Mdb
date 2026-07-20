@@ -23,7 +23,7 @@ public:
 
 	virtual void OnTableOp(DBOperateType op) override;
 	virtual void OnRecordInsert(unsigned int tableID, void* record) override;
-	virtual void OnRecordBatchInsert(unsigned int tableID, void* records, void* (*convert)(void*)) override;
+	virtual void OnRecordBatchInsert(unsigned int tableID, std::vector<const void*>* records) override;
 	virtual void OnRecordErase(unsigned int tableID, void* record) override;
 	virtual void OnRecordEraseByIndex(unsigned int tableID, unsigned int indexID, void* record) override;
 	virtual void OnRecordUpdate(unsigned int tableID, void* record) override;

@@ -2,29 +2,12 @@
 #include <Mdb/Mdb/Mdb.h>
 #include <PersonalLib/Core/Logger/Logger.h>
 #include <string>
-#include <string.h>
+#include <cstring>
 #include <set>
-#include <list>
 #include <vector>
 
 using std::string;
 using std::set;
-using std::list;
-
-
-template<typename T>
-void* BatchListToVector(void* listPtr)
-{
-	auto* list = static_cast<std::list<T*>*>(listPtr);
-	auto* vec = new std::vector<const void*>();
-	vec->reserve(list->size());
-	for (auto* r : *list)
-		vec->push_back(r);
-	list->clear();
-	delete list;
-	return vec;
-}
-
 
 namespace mdb
 {
@@ -59,7 +42,7 @@ namespace mdb
 	{
 		m_MdbSubscriber->OnRecordTruncate(TradingDay::TableID);
 		
-		std::list<TradingDay*>* records = new std::list<TradingDay*>();
+		auto records = new std::vector<const void*>();
 		std::shared_lock guard(m_SharedMutex);
 		for (auto it = m_PrimaryKey->m_Index.begin(); it != m_PrimaryKey->m_Index.end(); ++it)
 		{
@@ -71,7 +54,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(TradingDay::TableID, records, BatchListToVector<TradingDay>);
+			m_MdbSubscriber->OnRecordBatchInsert(TradingDay::TableID, records);
 		}
 		m_DBInited = true;
 	}
@@ -94,7 +77,7 @@ namespace mdb
 		}
 		return true;
 	}
-	void TradingDayTable::BatchInsert(std::list<mdb::TradingDay*>* records)
+	void TradingDayTable::BatchInsert(std::vector<mdb::TradingDay*>* records)
 	{
 		{
 			std::lock_guard guard(m_SharedMutex);
@@ -108,8 +91,12 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(TradingDay::TableID, records, BatchListToVector<TradingDay>);
+			auto dbRecords = new std::vector<const void*>();
+			dbRecords->reserve(records->size());
+			for (auto* r : *records) dbRecords->push_back(r);
+			m_MdbSubscriber->OnRecordBatchInsert(TradingDay::TableID, dbRecords);
 		}
+		delete records;
 	}
 	void TradingDayTable::Erase(TradingDay* record)
 	{
@@ -233,7 +220,7 @@ namespace mdb
 	{
 		m_MdbSubscriber->OnRecordTruncate(Exchange::TableID);
 		
-		std::list<Exchange*>* records = new std::list<Exchange*>();
+		auto records = new std::vector<const void*>();
 		std::shared_lock guard(m_SharedMutex);
 		for (auto it = m_PrimaryKey->m_Index.begin(); it != m_PrimaryKey->m_Index.end(); ++it)
 		{
@@ -245,7 +232,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Exchange::TableID, records, BatchListToVector<Exchange>);
+			m_MdbSubscriber->OnRecordBatchInsert(Exchange::TableID, records);
 		}
 		m_DBInited = true;
 	}
@@ -268,7 +255,7 @@ namespace mdb
 		}
 		return true;
 	}
-	void ExchangeTable::BatchInsert(std::list<mdb::Exchange*>* records)
+	void ExchangeTable::BatchInsert(std::vector<mdb::Exchange*>* records)
 	{
 		{
 			std::lock_guard guard(m_SharedMutex);
@@ -282,8 +269,12 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Exchange::TableID, records, BatchListToVector<Exchange>);
+			auto dbRecords = new std::vector<const void*>();
+			dbRecords->reserve(records->size());
+			for (auto* r : *records) dbRecords->push_back(r);
+			m_MdbSubscriber->OnRecordBatchInsert(Exchange::TableID, dbRecords);
 		}
+		delete records;
 	}
 	void ExchangeTable::Erase(Exchange* record)
 	{
@@ -407,7 +398,7 @@ namespace mdb
 	{
 		m_MdbSubscriber->OnRecordTruncate(Product::TableID);
 		
-		std::list<Product*>* records = new std::list<Product*>();
+		auto records = new std::vector<const void*>();
 		std::shared_lock guard(m_SharedMutex);
 		for (auto it = m_PrimaryKey->m_Index.begin(); it != m_PrimaryKey->m_Index.end(); ++it)
 		{
@@ -419,7 +410,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Product::TableID, records, BatchListToVector<Product>);
+			m_MdbSubscriber->OnRecordBatchInsert(Product::TableID, records);
 		}
 		m_DBInited = true;
 	}
@@ -442,7 +433,7 @@ namespace mdb
 		}
 		return true;
 	}
-	void ProductTable::BatchInsert(std::list<mdb::Product*>* records)
+	void ProductTable::BatchInsert(std::vector<mdb::Product*>* records)
 	{
 		{
 			std::lock_guard guard(m_SharedMutex);
@@ -456,8 +447,12 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Product::TableID, records, BatchListToVector<Product>);
+			auto dbRecords = new std::vector<const void*>();
+			dbRecords->reserve(records->size());
+			for (auto* r : *records) dbRecords->push_back(r);
+			m_MdbSubscriber->OnRecordBatchInsert(Product::TableID, dbRecords);
 		}
+		delete records;
 	}
 	void ProductTable::Erase(Product* record)
 	{
@@ -581,7 +576,7 @@ namespace mdb
 	{
 		m_MdbSubscriber->OnRecordTruncate(Instrument::TableID);
 		
-		std::list<Instrument*>* records = new std::list<Instrument*>();
+		auto records = new std::vector<const void*>();
 		std::shared_lock guard(m_SharedMutex);
 		for (auto it = m_PrimaryKey->m_Index.begin(); it != m_PrimaryKey->m_Index.end(); ++it)
 		{
@@ -593,7 +588,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Instrument::TableID, records, BatchListToVector<Instrument>);
+			m_MdbSubscriber->OnRecordBatchInsert(Instrument::TableID, records);
 		}
 		m_DBInited = true;
 	}
@@ -616,7 +611,7 @@ namespace mdb
 		}
 		return true;
 	}
-	void InstrumentTable::BatchInsert(std::list<mdb::Instrument*>* records)
+	void InstrumentTable::BatchInsert(std::vector<mdb::Instrument*>* records)
 	{
 		{
 			std::lock_guard guard(m_SharedMutex);
@@ -630,8 +625,12 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Instrument::TableID, records, BatchListToVector<Instrument>);
+			auto dbRecords = new std::vector<const void*>();
+			dbRecords->reserve(records->size());
+			for (auto* r : *records) dbRecords->push_back(r);
+			m_MdbSubscriber->OnRecordBatchInsert(Instrument::TableID, dbRecords);
 		}
+		delete records;
 	}
 	void InstrumentTable::Erase(Instrument* record)
 	{
@@ -758,7 +757,7 @@ namespace mdb
 	{
 		m_MdbSubscriber->OnRecordTruncate(PrimaryAccount::TableID);
 		
-		std::list<PrimaryAccount*>* records = new std::list<PrimaryAccount*>();
+		auto records = new std::vector<const void*>();
 		std::shared_lock guard(m_SharedMutex);
 		for (auto it = m_PrimaryKey->m_Index.begin(); it != m_PrimaryKey->m_Index.end(); ++it)
 		{
@@ -770,7 +769,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(PrimaryAccount::TableID, records, BatchListToVector<PrimaryAccount>);
+			m_MdbSubscriber->OnRecordBatchInsert(PrimaryAccount::TableID, records);
 		}
 		m_DBInited = true;
 	}
@@ -794,7 +793,7 @@ namespace mdb
 		}
 		return true;
 	}
-	void PrimaryAccountTable::BatchInsert(std::list<mdb::PrimaryAccount*>* records)
+	void PrimaryAccountTable::BatchInsert(std::vector<mdb::PrimaryAccount*>* records)
 	{
 		{
 			std::lock_guard guard(m_SharedMutex);
@@ -809,8 +808,12 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(PrimaryAccount::TableID, records, BatchListToVector<PrimaryAccount>);
+			auto dbRecords = new std::vector<const void*>();
+			dbRecords->reserve(records->size());
+			for (auto* r : *records) dbRecords->push_back(r);
+			m_MdbSubscriber->OnRecordBatchInsert(PrimaryAccount::TableID, dbRecords);
 		}
+		delete records;
 	}
 	void PrimaryAccountTable::Erase(PrimaryAccount* record)
 	{
@@ -829,7 +832,7 @@ namespace mdb
 	int PrimaryAccountTable::EraseByOfferIDIndex(const OfferIDType& OfferID)
 	{
 		m_OfferIDIndex->FillCompareRecord(OfferID);
-		list<PrimaryAccount*> records;
+		std::vector<PrimaryAccount*> records;
 		std::lock_guard guard(m_SharedMutex);
 		auto range = m_OfferIDIndex->m_Index.equal_range(&t_ComparePrimaryAccount);
 		for (auto& it = range.first; it != range.second; ++it)
@@ -971,7 +974,7 @@ namespace mdb
 	{
 		m_MdbSubscriber->OnRecordTruncate(Account::TableID);
 		
-		std::list<Account*>* records = new std::list<Account*>();
+		auto records = new std::vector<const void*>();
 		std::shared_lock guard(m_SharedMutex);
 		for (auto it = m_PrimaryKey->m_Index.begin(); it != m_PrimaryKey->m_Index.end(); ++it)
 		{
@@ -983,7 +986,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Account::TableID, records, BatchListToVector<Account>);
+			m_MdbSubscriber->OnRecordBatchInsert(Account::TableID, records);
 		}
 		m_DBInited = true;
 	}
@@ -1006,7 +1009,7 @@ namespace mdb
 		}
 		return true;
 	}
-	void AccountTable::BatchInsert(std::list<mdb::Account*>* records)
+	void AccountTable::BatchInsert(std::vector<mdb::Account*>* records)
 	{
 		{
 			std::lock_guard guard(m_SharedMutex);
@@ -1020,8 +1023,12 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Account::TableID, records, BatchListToVector<Account>);
+			auto dbRecords = new std::vector<const void*>();
+			dbRecords->reserve(records->size());
+			for (auto* r : *records) dbRecords->push_back(r);
+			m_MdbSubscriber->OnRecordBatchInsert(Account::TableID, dbRecords);
 		}
+		delete records;
 	}
 	void AccountTable::Erase(Account* record)
 	{
@@ -1148,7 +1155,7 @@ namespace mdb
 	{
 		m_MdbSubscriber->OnRecordTruncate(Capital::TableID);
 		
-		std::list<Capital*>* records = new std::list<Capital*>();
+		auto records = new std::vector<const void*>();
 		std::shared_lock guard(m_SharedMutex);
 		for (auto it = m_PrimaryKey->m_Index.begin(); it != m_PrimaryKey->m_Index.end(); ++it)
 		{
@@ -1160,7 +1167,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Capital::TableID, records, BatchListToVector<Capital>);
+			m_MdbSubscriber->OnRecordBatchInsert(Capital::TableID, records);
 		}
 		m_DBInited = true;
 	}
@@ -1184,7 +1191,7 @@ namespace mdb
 		}
 		return true;
 	}
-	void CapitalTable::BatchInsert(std::list<mdb::Capital*>* records)
+	void CapitalTable::BatchInsert(std::vector<mdb::Capital*>* records)
 	{
 		{
 			std::lock_guard guard(m_SharedMutex);
@@ -1199,8 +1206,12 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Capital::TableID, records, BatchListToVector<Capital>);
+			auto dbRecords = new std::vector<const void*>();
+			dbRecords->reserve(records->size());
+			for (auto* r : *records) dbRecords->push_back(r);
+			m_MdbSubscriber->OnRecordBatchInsert(Capital::TableID, dbRecords);
 		}
+		delete records;
 	}
 	void CapitalTable::Erase(Capital* record)
 	{
@@ -1219,7 +1230,7 @@ namespace mdb
 	int CapitalTable::EraseByTradingDayIndex(const DateType& TradingDay)
 	{
 		m_TradingDayIndex->FillCompareRecord(TradingDay);
-		list<Capital*> records;
+		std::vector<Capital*> records;
 		std::lock_guard guard(m_SharedMutex);
 		auto range = m_TradingDayIndex->m_Index.equal_range(&t_CompareCapital);
 		for (auto& it = range.first; it != range.second; ++it)
@@ -1367,7 +1378,7 @@ namespace mdb
 	{
 		m_MdbSubscriber->OnRecordTruncate(Position::TableID);
 		
-		std::list<Position*>* records = new std::list<Position*>();
+		auto records = new std::vector<const void*>();
 		std::shared_lock guard(m_SharedMutex);
 		for (auto it = m_PrimaryKey->m_Index.begin(); it != m_PrimaryKey->m_Index.end(); ++it)
 		{
@@ -1379,7 +1390,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Position::TableID, records, BatchListToVector<Position>);
+			m_MdbSubscriber->OnRecordBatchInsert(Position::TableID, records);
 		}
 		m_DBInited = true;
 	}
@@ -1404,7 +1415,7 @@ namespace mdb
 		}
 		return true;
 	}
-	void PositionTable::BatchInsert(std::list<mdb::Position*>* records)
+	void PositionTable::BatchInsert(std::vector<mdb::Position*>* records)
 	{
 		{
 			std::lock_guard guard(m_SharedMutex);
@@ -1420,8 +1431,12 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Position::TableID, records, BatchListToVector<Position>);
+			auto dbRecords = new std::vector<const void*>();
+			dbRecords->reserve(records->size());
+			for (auto* r : *records) dbRecords->push_back(r);
+			m_MdbSubscriber->OnRecordBatchInsert(Position::TableID, dbRecords);
 		}
+		delete records;
 	}
 	void PositionTable::Erase(Position* record)
 	{
@@ -1440,7 +1455,7 @@ namespace mdb
 	int PositionTable::EraseByAccountIndex(const DateType& TradingDay, const AccountIDType& AccountID)
 	{
 		m_AccountIndex->FillCompareRecord(TradingDay, AccountID);
-		list<Position*> records;
+		std::vector<Position*> records;
 		std::lock_guard guard(m_SharedMutex);
 		auto range = m_AccountIndex->m_Index.equal_range(&t_ComparePosition);
 		for (auto& it = range.first; it != range.second; ++it)
@@ -1464,7 +1479,7 @@ namespace mdb
 	int PositionTable::EraseByTradingDayIndex(const DateType& TradingDay)
 	{
 		m_TradingDayIndex->FillCompareRecord(TradingDay);
-		list<Position*> records;
+		std::vector<Position*> records;
 		std::lock_guard guard(m_SharedMutex);
 		auto range = m_TradingDayIndex->m_Index.equal_range(&t_ComparePosition);
 		for (auto& it = range.first; it != range.second; ++it)
@@ -1625,7 +1640,7 @@ namespace mdb
 	{
 		m_MdbSubscriber->OnRecordTruncate(PositionDetail::TableID);
 		
-		std::list<PositionDetail*>* records = new std::list<PositionDetail*>();
+		auto records = new std::vector<const void*>();
 		std::shared_lock guard(m_SharedMutex);
 		for (auto it = m_PrimaryKey->m_Index.begin(); it != m_PrimaryKey->m_Index.end(); ++it)
 		{
@@ -1637,7 +1652,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(PositionDetail::TableID, records, BatchListToVector<PositionDetail>);
+			m_MdbSubscriber->OnRecordBatchInsert(PositionDetail::TableID, records);
 		}
 		m_DBInited = true;
 	}
@@ -1662,7 +1677,7 @@ namespace mdb
 		}
 		return true;
 	}
-	void PositionDetailTable::BatchInsert(std::list<mdb::PositionDetail*>* records)
+	void PositionDetailTable::BatchInsert(std::vector<mdb::PositionDetail*>* records)
 	{
 		{
 			std::lock_guard guard(m_SharedMutex);
@@ -1678,8 +1693,12 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(PositionDetail::TableID, records, BatchListToVector<PositionDetail>);
+			auto dbRecords = new std::vector<const void*>();
+			dbRecords->reserve(records->size());
+			for (auto* r : *records) dbRecords->push_back(r);
+			m_MdbSubscriber->OnRecordBatchInsert(PositionDetail::TableID, dbRecords);
 		}
+		delete records;
 	}
 	void PositionDetailTable::Erase(PositionDetail* record)
 	{
@@ -1698,7 +1717,7 @@ namespace mdb
 	int PositionDetailTable::EraseByTradeMatchIndex(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection)
 	{
 		m_TradeMatchIndex->FillCompareRecord(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection);
-		list<PositionDetail*> records;
+		std::vector<PositionDetail*> records;
 		std::lock_guard guard(m_SharedMutex);
 		auto range = m_TradeMatchIndex->m_Index.equal_range(&t_ComparePositionDetail);
 		for (auto& it = range.first; it != range.second; ++it)
@@ -1722,7 +1741,7 @@ namespace mdb
 	int PositionDetailTable::EraseByTradingDayIndex(const DateType& TradingDay)
 	{
 		m_TradingDayIndex->FillCompareRecord(TradingDay);
-		list<PositionDetail*> records;
+		std::vector<PositionDetail*> records;
 		std::lock_guard guard(m_SharedMutex);
 		auto range = m_TradingDayIndex->m_Index.equal_range(&t_ComparePositionDetail);
 		for (auto& it = range.first; it != range.second; ++it)
@@ -1880,7 +1899,7 @@ namespace mdb
 	{
 		m_MdbSubscriber->OnRecordTruncate(Order::TableID);
 		
-		std::list<Order*>* records = new std::list<Order*>();
+		auto records = new std::vector<const void*>();
 		std::shared_lock guard(m_SharedMutex);
 		for (auto it = m_PrimaryKey->m_Index.begin(); it != m_PrimaryKey->m_Index.end(); ++it)
 		{
@@ -1892,7 +1911,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Order::TableID, records, BatchListToVector<Order>);
+			m_MdbSubscriber->OnRecordBatchInsert(Order::TableID, records);
 		}
 		m_DBInited = true;
 	}
@@ -1916,7 +1935,7 @@ namespace mdb
 		}
 		return true;
 	}
-	void OrderTable::BatchInsert(std::list<mdb::Order*>* records)
+	void OrderTable::BatchInsert(std::vector<mdb::Order*>* records)
 	{
 		{
 			std::lock_guard guard(m_SharedMutex);
@@ -1931,8 +1950,12 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Order::TableID, records, BatchListToVector<Order>);
+			auto dbRecords = new std::vector<const void*>();
+			dbRecords->reserve(records->size());
+			for (auto* r : *records) dbRecords->push_back(r);
+			m_MdbSubscriber->OnRecordBatchInsert(Order::TableID, dbRecords);
 		}
+		delete records;
 	}
 	void OrderTable::Erase(Order* record)
 	{
@@ -2059,7 +2082,7 @@ namespace mdb
 	{
 		m_MdbSubscriber->OnRecordTruncate(Trade::TableID);
 		
-		std::list<Trade*>* records = new std::list<Trade*>();
+		auto records = new std::vector<const void*>();
 		std::shared_lock guard(m_SharedMutex);
 		for (auto it = m_PrimaryKey->m_Index.begin(); it != m_PrimaryKey->m_Index.end(); ++it)
 		{
@@ -2071,7 +2094,7 @@ namespace mdb
 		}
 		else
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Trade::TableID, records, BatchListToVector<Trade>);
+			m_MdbSubscriber->OnRecordBatchInsert(Trade::TableID, records);
 		}
 		m_DBInited = true;
 	}
@@ -2094,7 +2117,7 @@ namespace mdb
 		}
 		return true;
 	}
-	void TradeTable::BatchInsert(std::list<mdb::Trade*>* records)
+	void TradeTable::BatchInsert(std::vector<mdb::Trade*>* records)
 	{
 		{
 			std::lock_guard guard(m_SharedMutex);
@@ -2108,8 +2131,12 @@ namespace mdb
 		}
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordBatchInsert(Trade::TableID, records, BatchListToVector<Trade>);
+			auto dbRecords = new std::vector<const void*>();
+			dbRecords->reserve(records->size());
+			for (auto* r : *records) dbRecords->push_back(r);
+			m_MdbSubscriber->OnRecordBatchInsert(Trade::TableID, dbRecords);
 		}
+		delete records;
 	}
 	void TradeTable::Erase(Trade* record)
 	{

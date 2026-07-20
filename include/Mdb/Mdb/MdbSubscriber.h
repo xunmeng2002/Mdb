@@ -1,6 +1,7 @@
 #pragma once
 #include <PersonalLib/Core/DB/DBOperate.h>
 #include <atomic>
+#include <vector>
 
 
 class MdbSubscriber
@@ -14,7 +15,7 @@ public:
 
 	virtual void OnTableOp(DBOperateType op) {}
 	virtual void OnRecordInsert(unsigned int tableID, void* record) {}
-	virtual void OnRecordBatchInsert(unsigned int tableID, void* records, void* (*convert)(void*)) {}
+	virtual void OnRecordBatchInsert(unsigned int tableID, std::vector<const void*>* records) {}
 	virtual void OnRecordErase(unsigned int tableID, void* record) {}
 	virtual void OnRecordEraseByIndex(unsigned int tableID, unsigned int indexID, void* record) {}
 	virtual void OnRecordUpdate(unsigned int tableID, void* record) {}

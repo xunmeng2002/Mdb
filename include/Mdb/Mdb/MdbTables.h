@@ -6,7 +6,7 @@
 #include <Mdb/Mdb/MdbIndexes.h>
 #include <shared_mutex>
 #include <atomic>
-#include <list>
+#include <vector>
 
 
 namespace mdb
@@ -23,7 +23,7 @@ namespace mdb
 		void UnlockShared();
 		void InitDB();
 		bool Insert(TradingDay* record);
-		void BatchInsert(std::list<mdb::TradingDay*>* records);
+		void BatchInsert(std::vector<mdb::TradingDay*>* records);
 		void Erase(TradingDay* record);
 		bool Update(TradingDay* const oldRecord, TradingDay* const newRecord, bool updateDB = true);
 		void TruncateTables();
@@ -53,7 +53,7 @@ namespace mdb
 		void UnlockShared();
 		void InitDB();
 		bool Insert(Exchange* record);
-		void BatchInsert(std::list<mdb::Exchange*>* records);
+		void BatchInsert(std::vector<mdb::Exchange*>* records);
 		void Erase(Exchange* record);
 		bool Update(Exchange* const oldRecord, Exchange* const newRecord, bool updateDB = true);
 		void TruncateTables();
@@ -83,7 +83,7 @@ namespace mdb
 		void UnlockShared();
 		void InitDB();
 		bool Insert(Product* record);
-		void BatchInsert(std::list<mdb::Product*>* records);
+		void BatchInsert(std::vector<mdb::Product*>* records);
 		void Erase(Product* record);
 		bool Update(Product* const oldRecord, Product* const newRecord, bool updateDB = true);
 		void TruncateTables();
@@ -113,7 +113,7 @@ namespace mdb
 		void UnlockShared();
 		void InitDB();
 		bool Insert(Instrument* record);
-		void BatchInsert(std::list<mdb::Instrument*>* records);
+		void BatchInsert(std::vector<mdb::Instrument*>* records);
 		void Erase(Instrument* record);
 		bool Update(Instrument* const oldRecord, Instrument* const newRecord, bool updateDB = true);
 		void TruncateTables();
@@ -143,7 +143,7 @@ namespace mdb
 		void UnlockShared();
 		void InitDB();
 		bool Insert(PrimaryAccount* record);
-		void BatchInsert(std::list<mdb::PrimaryAccount*>* records);
+		void BatchInsert(std::vector<mdb::PrimaryAccount*>* records);
 		void Erase(PrimaryAccount* record);
 		int EraseByOfferIDIndex(const OfferIDType& OfferID);
 		bool Update(PrimaryAccount* const oldRecord, PrimaryAccount* const newRecord, bool updateDB = true);
@@ -175,7 +175,7 @@ namespace mdb
 		void UnlockShared();
 		void InitDB();
 		bool Insert(Account* record);
-		void BatchInsert(std::list<mdb::Account*>* records);
+		void BatchInsert(std::vector<mdb::Account*>* records);
 		void Erase(Account* record);
 		bool Update(Account* const oldRecord, Account* const newRecord, bool updateDB = true);
 		void TruncateTables();
@@ -205,7 +205,7 @@ namespace mdb
 		void UnlockShared();
 		void InitDB();
 		bool Insert(Capital* record);
-		void BatchInsert(std::list<mdb::Capital*>* records);
+		void BatchInsert(std::vector<mdb::Capital*>* records);
 		void Erase(Capital* record);
 		int EraseByTradingDayIndex(const DateType& TradingDay);
 		bool Update(Capital* const oldRecord, Capital* const newRecord, bool updateDB = true);
@@ -237,7 +237,7 @@ namespace mdb
 		void UnlockShared();
 		void InitDB();
 		bool Insert(Position* record);
-		void BatchInsert(std::list<mdb::Position*>* records);
+		void BatchInsert(std::vector<mdb::Position*>* records);
 		void Erase(Position* record);
 		int EraseByAccountIndex(const DateType& TradingDay, const AccountIDType& AccountID);
 		int EraseByTradingDayIndex(const DateType& TradingDay);
@@ -271,7 +271,7 @@ namespace mdb
 		void UnlockShared();
 		void InitDB();
 		bool Insert(PositionDetail* record);
-		void BatchInsert(std::list<mdb::PositionDetail*>* records);
+		void BatchInsert(std::vector<mdb::PositionDetail*>* records);
 		void Erase(PositionDetail* record);
 		int EraseByTradeMatchIndex(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection);
 		int EraseByTradingDayIndex(const DateType& TradingDay);
@@ -305,7 +305,7 @@ namespace mdb
 		void UnlockShared();
 		void InitDB();
 		bool Insert(Order* record);
-		void BatchInsert(std::list<mdb::Order*>* records);
+		void BatchInsert(std::vector<mdb::Order*>* records);
 		void Erase(Order* record);
 		bool Update(Order* const oldRecord, Order* const newRecord, bool updateDB = true);
 		void TruncateTables();
@@ -336,7 +336,7 @@ namespace mdb
 		void UnlockShared();
 		void InitDB();
 		bool Insert(Trade* record);
-		void BatchInsert(std::list<mdb::Trade*>* records);
+		void BatchInsert(std::vector<mdb::Trade*>* records);
 		void Erase(Trade* record);
 		bool Update(Trade* const oldRecord, Trade* const newRecord, bool updateDB = true);
 		void TruncateTables();
