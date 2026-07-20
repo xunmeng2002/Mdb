@@ -1,6 +1,6 @@
 #include "Mdb/Mdb/Mdb.h"
 #include "Mdb/SqliteWrapper/SqliteWrapper.h"
-#include <DBInterface/DB.h>
+#include <DBInterface/TypedTable.h>
 #include "Mdb/Mdb/DBWriter.h"
 #include "Mdb/Mdb/InitMdbFromDB.h"
 #include "PersonalLib/Core/Core.h"
@@ -101,28 +101,25 @@ void Print(Account* account)
 	WriteLog(LogLevel::Info, "%s", account->GetDebugString());
 }
 
-static void InitTradingDay(DB* db)
+static void InitTradingDay(TypedTable<TradingDay>& table)
 {
-	const auto* schema = &TradingDay::GetSchema();
 	auto tradingDay = PrepareTradingDay();
-	db->Insert(schema, tradingDay);
+	table.Insert(*tradingDay);
 }
-static void InitExchange(DB* db)
+static void InitExchange(TypedTable<Exchange>& table)
 {
-	const auto* schema = &Exchange::GetSchema();
 	auto exchanges = PrepareExchanges();
 	for (auto exchange : *exchanges)
 	{
-		db->Insert(schema, exchange);
+		table.Insert(*exchange);
 	}
 	exchanges->clear();
 	delete exchanges;
 }
-static void InitAccount(DB* db)
+static void InitAccount(TypedTable<Account>& table)
 {
-	const auto* schema = &Account::GetSchema();
 	Account* account = PrepareAccount("Xunmeng01", "Xunmeng01", "123456");
-	db->Insert(schema, account);
+	table.Insert(*account);
 }
 
 
@@ -182,20 +179,17 @@ static void TestDB(DB* db)
 	db->CreateTables(allSchemas, 11);
 	db->TruncateTables(allSchemas, 11);
 
-	InitTradingDay(db);
-	InitExchange(db);
-	InitAccount(db);
+	TypedTable<TradingDay>    t_tradingDay(db);
+	TypedTable<Exchange>      t_exchange(db);
+	TypedTable<Account>       t_account(db);
+
+	InitTradingDay(t_tradingDay);
+	InitExchange(t_exchange);
+	InitAccount(t_account);
 
 	{
-		const auto* schema = &Account::GetSchema();
-		std::list<Account*> accounts;
-		RecordFactory factory = {
-			[]() -> void* { return Account::Allocate(); },
-			[](void* records, void* record) {
-				((std::list<Account*>*)records)->push_back((Account*)record);
-			}
-		};
-		db->SelectAll(schema, &accounts, factory);
+		std::vector<Account*> accounts;
+		t_account.SelectAll(accounts);
 		for (auto account : accounts)
 		{
 			Print(account);
@@ -206,20 +200,13 @@ static void TestDB(DB* db)
 			Account newAccount;
 			memcpy(&newAccount, account, sizeof(Account));
 			strcpy(newAccount.AccountName, "Jack01");
-			db->Update(schema, &newAccount);
+			t_account.Update(newAccount);
 		}
 	}
 
 	{
-		const auto* schema = &Exchange::GetSchema();
-		std::list<Exchange*> exchanges;
-		RecordFactory factory = {
-			[]() -> void* { return Exchange::Allocate(); },
-			[](void* records, void* record) {
-				((std::list<Exchange*>*)records)->push_back((Exchange*)record);
-			}
-		};
-		db->SelectAll(schema, &exchanges, factory);
+		std::vector<Exchange*> exchanges;
+		t_exchange.SelectAll(exchanges);
 		for (auto exchange : exchanges)
 		{
 			Print(exchange);
@@ -227,7 +214,7 @@ static void TestDB(DB* db)
 		if (!exchanges.empty())
 		{
 			auto exchange = exchanges.front();
-			db->Delete(schema, exchange, schema->primaryKeyIndices, schema->primaryKeyCount);
+			t_exchange.Delete(*exchange);
 		}
 	}
 
