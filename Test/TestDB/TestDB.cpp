@@ -1,9 +1,11 @@
-#include "Mdb/Mdb/Mdb.h"
-#include "Mdb/SqliteWrapper/SqliteWrapper.h"
+#include <Mdb/Mdb/Mdb.h>
+#include <Mdb/SqliteWrapper/SqliteWrapper.h>
 #include <DBInterface/TypedTable.h>
-#include "Mdb/Mdb/DBWriter.h"
-#include "Mdb/Mdb/InitMdbFromDB.h"
-#include "PersonalLib/Core/Core.h"
+#include <DBInterface/SchemaRegistry.h>
+#include <Mdb/Mdb/DBWriter.h>
+#include <Mdb/Mdb/InitMdbFromDB.h>
+#include <Mdb/Mdb/MdbTableRegistry.h>
+#include <PersonalLib/Core/Core.h>
 #include <iostream>
 
 
@@ -126,7 +128,8 @@ static void InitAccount(TypedTable<Account>& table)
 static void TestMdb(DB* db)
 {
 	Mdb* mdb = new Mdb();
-	DBWriter* dbWriter = new DBWriter(db);
+	SchemaRegistry* schemaRegistry = &mdb::MdbTableRegistry::Instance();
+	DBWriter* dbWriter = new DBWriter(db, schemaRegistry);
 	mdb->Subscribe(dbWriter);
 	dbWriter->Subscribe(mdb);
 	dbWriter->Start();

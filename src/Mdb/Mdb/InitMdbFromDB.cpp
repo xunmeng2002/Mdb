@@ -1,43 +1,11 @@
 #include <Mdb/Mdb/InitMdbFromDB.h>
-#include <list>
+#include <DBInterface/TypedTable.h>
+#include <vector>
 
 using namespace std;
 
 namespace mdb
 {
-	static void* AllocTradingDay()        { return TradingDay::Allocate(); }
-	static void  PushTradingDay(void* records, void* record)
-		{ ((list<TradingDay*>*)records)->push_back((TradingDay*)record); }
-	static void* AllocExchange()          { return Exchange::Allocate(); }
-	static void  PushExchange(void* records, void* record)
-		{ ((list<Exchange*>*)records)->push_back((Exchange*)record); }
-	static void* AllocProduct()           { return Product::Allocate(); }
-	static void  PushProduct(void* records, void* record)
-		{ ((list<Product*>*)records)->push_back((Product*)record); }
-	static void* AllocInstrument()        { return Instrument::Allocate(); }
-	static void  PushInstrument(void* records, void* record)
-		{ ((list<Instrument*>*)records)->push_back((Instrument*)record); }
-	static void* AllocPrimaryAccount()    { return PrimaryAccount::Allocate(); }
-	static void  PushPrimaryAccount(void* records, void* record)
-		{ ((list<PrimaryAccount*>*)records)->push_back((PrimaryAccount*)record); }
-	static void* AllocAccount()           { return Account::Allocate(); }
-	static void  PushAccount(void* records, void* record)
-		{ ((list<Account*>*)records)->push_back((Account*)record); }
-	static void* AllocCapital()           { return Capital::Allocate(); }
-	static void  PushCapital(void* records, void* record)
-		{ ((list<Capital*>*)records)->push_back((Capital*)record); }
-	static void* AllocPosition()          { return Position::Allocate(); }
-	static void  PushPosition(void* records, void* record)
-		{ ((list<Position*>*)records)->push_back((Position*)record); }
-	static void* AllocPositionDetail()    { return PositionDetail::Allocate(); }
-	static void  PushPositionDetail(void* records, void* record)
-		{ ((list<PositionDetail*>*)records)->push_back((PositionDetail*)record); }
-	static void* AllocOrder()             { return Order::Allocate(); }
-	static void  PushOrder(void* records, void* record)
-		{ ((list<Order*>*)records)->push_back((Order*)record); }
-	static void* AllocTrade()             { return Trade::Allocate(); }
-	static void  PushTrade(void* records, void* record)
-		{ ((list<Trade*>*)records)->push_back((Trade*)record); }
 
 	void InitMdbFromDB::LoadTablesWithTradingDay(Mdb* mdb, DB* db, const DateType& tradingDay)
 	{
@@ -59,9 +27,9 @@ namespace mdb
 
 	void InitMdbFromDB::LoadTradingDayTable(Mdb* mdb, DB* db)
 	{
-		std::list<TradingDay*> records;
-		RecordFactory factory = { AllocTradingDay, PushTradingDay };
-		db->SelectAll(&TradingDay::GetSchema(), &records, factory);
+		TypedTable<TradingDay> table(db);
+		vector<TradingDay*> records;
+		table.SelectAll(records);
 		for (auto record : records)
 		{
 			mdb->t_TradingDay->Insert(record);
@@ -69,9 +37,9 @@ namespace mdb
 	}
 	void InitMdbFromDB::LoadExchangeTable(Mdb* mdb, DB* db)
 	{
-		std::list<Exchange*> records;
-		RecordFactory factory = { AllocExchange, PushExchange };
-		db->SelectAll(&Exchange::GetSchema(), &records, factory);
+		TypedTable<Exchange> table(db);
+		vector<Exchange*> records;
+		table.SelectAll(records);
 		for (auto record : records)
 		{
 			mdb->t_Exchange->Insert(record);
@@ -79,9 +47,9 @@ namespace mdb
 	}
 	void InitMdbFromDB::LoadProductTable(Mdb* mdb, DB* db)
 	{
-		std::list<Product*> records;
-		RecordFactory factory = { AllocProduct, PushProduct };
-		db->SelectAll(&Product::GetSchema(), &records, factory);
+		TypedTable<Product> table(db);
+		vector<Product*> records;
+		table.SelectAll(records);
 		for (auto record : records)
 		{
 			mdb->t_Product->Insert(record);
@@ -89,9 +57,9 @@ namespace mdb
 	}
 	void InitMdbFromDB::LoadInstrumentTable(Mdb* mdb, DB* db)
 	{
-		std::list<Instrument*> records;
-		RecordFactory factory = { AllocInstrument, PushInstrument };
-		db->SelectAll(&Instrument::GetSchema(), &records, factory);
+		TypedTable<Instrument> table(db);
+		vector<Instrument*> records;
+		table.SelectAll(records);
 		for (auto record : records)
 		{
 			mdb->t_Instrument->Insert(record);
@@ -99,9 +67,9 @@ namespace mdb
 	}
 	void InitMdbFromDB::LoadPrimaryAccountTable(Mdb* mdb, DB* db)
 	{
-		std::list<PrimaryAccount*> records;
-		RecordFactory factory = { AllocPrimaryAccount, PushPrimaryAccount };
-		db->SelectAll(&PrimaryAccount::GetSchema(), &records, factory);
+		TypedTable<PrimaryAccount> table(db);
+		vector<PrimaryAccount*> records;
+		table.SelectAll(records);
 		for (auto record : records)
 		{
 			mdb->t_PrimaryAccount->Insert(record);
@@ -109,9 +77,9 @@ namespace mdb
 	}
 	void InitMdbFromDB::LoadAccountTable(Mdb* mdb, DB* db)
 	{
-		std::list<Account*> records;
-		RecordFactory factory = { AllocAccount, PushAccount };
-		db->SelectAll(&Account::GetSchema(), &records, factory);
+		TypedTable<Account> table(db);
+		vector<Account*> records;
+		table.SelectAll(records);
 		for (auto record : records)
 		{
 			mdb->t_Account->Insert(record);
@@ -119,9 +87,9 @@ namespace mdb
 	}
 	void InitMdbFromDB::LoadCapitalTable(Mdb* mdb, DB* db)
 	{
-		std::list<Capital*> records;
-		RecordFactory factory = { AllocCapital, PushCapital };
-		db->SelectAll(&Capital::GetSchema(), &records, factory);
+		TypedTable<Capital> table(db);
+		vector<Capital*> records;
+		table.SelectAll(records);
 		for (auto record : records)
 		{
 			mdb->t_Capital->Insert(record);
@@ -129,9 +97,9 @@ namespace mdb
 	}
 	void InitMdbFromDB::LoadPositionTable(Mdb* mdb, DB* db)
 	{
-		std::list<Position*> records;
-		RecordFactory factory = { AllocPosition, PushPosition };
-		db->SelectAll(&Position::GetSchema(), &records, factory);
+		TypedTable<Position> table(db);
+		vector<Position*> records;
+		table.SelectAll(records);
 		for (auto record : records)
 		{
 			mdb->t_Position->Insert(record);
@@ -139,9 +107,9 @@ namespace mdb
 	}
 	void InitMdbFromDB::LoadPositionDetailTable(Mdb* mdb, DB* db)
 	{
-		std::list<PositionDetail*> records;
-		RecordFactory factory = { AllocPositionDetail, PushPositionDetail };
-		db->SelectAll(&PositionDetail::GetSchema(), &records, factory);
+		TypedTable<PositionDetail> table(db);
+		vector<PositionDetail*> records;
+		table.SelectAll(records);
 		for (auto record : records)
 		{
 			mdb->t_PositionDetail->Insert(record);
@@ -149,9 +117,9 @@ namespace mdb
 	}
 	void InitMdbFromDB::LoadOrderTable(Mdb* mdb, DB* db)
 	{
-		std::list<Order*> records;
-		RecordFactory factory = { AllocOrder, PushOrder };
-		db->SelectAll(&Order::GetSchema(), &records, factory);
+		TypedTable<Order> table(db);
+		vector<Order*> records;
+		table.SelectAll(records);
 		for (auto record : records)
 		{
 			mdb->t_Order->Insert(record);
@@ -159,9 +127,9 @@ namespace mdb
 	}
 	void InitMdbFromDB::LoadTradeTable(Mdb* mdb, DB* db)
 	{
-		std::list<Trade*> records;
-		RecordFactory factory = { AllocTrade, PushTrade };
-		db->SelectAll(&Trade::GetSchema(), &records, factory);
+		TypedTable<Trade> table(db);
+		vector<Trade*> records;
+		table.SelectAll(records);
 		for (auto record : records)
 		{
 			mdb->t_Trade->Insert(record);

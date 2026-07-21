@@ -3,18 +3,6 @@
 #include <vector>
 
 
-namespace detail
-{
-
-template<typename T>
-void FactoryPushBack(void* records, void* record)
-{
-    static_cast<std::vector<T*>*>(records)->push_back(static_cast<T*>(record));
-}
-
-} // namespace detail
-
-
 template<typename T>
 class TypedTable
 {
@@ -40,14 +28,12 @@ public:
 
     void SelectAll(std::vector<T*>& out)
     {
-        RecordFactory factory = { []() -> void* { return T::Allocate(); }, detail::FactoryPushBack<T> };
-        db_->SelectAll(&T::GetSchema(), &out, factory);
+        db_->SelectAll(&T::GetSchema(), &out, GetFactory());
     }
 
     void SelectWithSql(const char* sql, std::vector<T*>& out)
     {
-        RecordFactory factory = { []() -> void* { return T::Allocate(); }, detail::FactoryPushBack<T> };
-        db_->SelectWithSql(sql, &T::GetSchema(), &out, factory);
+        db_->SelectWithSql(sql, &T::GetSchema(), &out, GetFactory());
     }
 
     void BatchInsert(const std::vector<const T*>& records)
@@ -60,5 +46,16 @@ public:
     }
 
 private:
+    static const RecordFactory& GetFactory()
+    {
+        static const RecordFactory factory = {
+            []() -> void* { return T::Allocate(); },
+            [](void* records, void* record) {
+                static_cast<std::vector<T*>*>(records)->push_back(static_cast<T*>(record));
+            }
+        };
+        return factory;
+    }
+
     DB* db_;
 };

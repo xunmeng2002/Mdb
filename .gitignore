@@ -40,3 +40,4 @@ pumptemp.py
 *.sqlitedb*
 /bin
 /lib
+/build

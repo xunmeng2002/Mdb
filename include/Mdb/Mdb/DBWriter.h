@@ -3,6 +3,7 @@
 #include <Mdb/Mdb/MdbSubscriber.h>
 #include <Mdb/Mdb/MdbStructs.h>
 #include <DBInterface/DB.h>
+#include <DBInterface/SchemaRegistry.h>
 #include <PersonalLib/TemplateLib/TemplateLib.h>
 #include <PersonalLib/Core/Core.h>
 #include <list>
@@ -14,7 +15,7 @@
 class MDB_EXPORTS DBWriter : public ThreadBase, public MdbSubscriber
 {
 public:
-	DBWriter(DB* db);
+	DBWriter(DB* db, SchemaRegistry* schemaRegistry);
 	~DBWriter();
 	void Subscribe(DBSubscriber* dbSubscriber);
 	DB* GetDB();
@@ -52,6 +53,7 @@ private:
 
 private:
 	DB* m_DB;
+	SchemaRegistry* m_SchemaRegistry;
 	DBSubscriber* m_DBSubscriber;
 	std::list<DBOperate*> m_DBOperates;
 	std::mutex m_Mutex;

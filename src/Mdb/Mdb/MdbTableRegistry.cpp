@@ -1,11 +1,17 @@
-#include "MdbTableRegistry.h"
+#include <Mdb/Mdb/MdbTableRegistry.h>
 #include <Mdb/Mdb/MdbStructs.h>
 
 
 namespace mdb
 {
 
-const TableSchema* GetSchemaByTableID(unsigned int tableID)
+MdbTableRegistry& MdbTableRegistry::Instance()
+{
+    static MdbTableRegistry instance;
+    return instance;
+}
+
+const TableSchema* MdbTableRegistry::GetSchema(unsigned int tableID) const
 {
     switch (tableID)
     {
@@ -24,20 +30,28 @@ const TableSchema* GetSchemaByTableID(unsigned int tableID)
     }
 }
 
-const TableSchema* const kAllSchemas[] =
+const TableSchema* const* MdbTableRegistry::GetAllSchemas() const
 {
-    &TradingDay::GetSchema(),
-    &Exchange::GetSchema(),
-    &Product::GetSchema(),
-    &Instrument::GetSchema(),
-    &PrimaryAccount::GetSchema(),
-    &Account::GetSchema(),
-    &Capital::GetSchema(),
-    &Position::GetSchema(),
-    &PositionDetail::GetSchema(),
-    &Order::GetSchema(),
-    &Trade::GetSchema(),
-};
-const int kTableCount = 11;
+    static const TableSchema* const kAllSchemas[] =
+    {
+        &TradingDay::GetSchema(),
+        &Exchange::GetSchema(),
+        &Product::GetSchema(),
+        &Instrument::GetSchema(),
+        &PrimaryAccount::GetSchema(),
+        &Account::GetSchema(),
+        &Capital::GetSchema(),
+        &Position::GetSchema(),
+        &PositionDetail::GetSchema(),
+        &Order::GetSchema(),
+        &Trade::GetSchema(),
+    };
+    return kAllSchemas;
+}
+
+int MdbTableRegistry::GetTableCount() const
+{
+    return 11;
+}
 
 } // namespace mdb

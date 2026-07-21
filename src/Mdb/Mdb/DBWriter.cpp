@@ -1,6 +1,5 @@
 #include <Mdb/Mdb/DBWriter.h>
 #include "DBOperateImpl.h"
-#include "MdbTableRegistry.h"
 #include <PersonalLib/Core/Logger/Logger.h>
 #include <cstring>
 #include <vector>
@@ -9,8 +8,8 @@ using namespace std;
 using namespace mdb;
 
 
-DBWriter::DBWriter(DB* db)
-	:ThreadBase("DBWriter"), m_DB(db), m_DBSubscriber(nullptr)
+DBWriter::DBWriter(DB* db, SchemaRegistry* schemaRegistry)
+	:ThreadBase("DBWriter"), m_DB(db), m_SchemaRegistry(schemaRegistry), m_DBSubscriber(nullptr)
 {
 }
 DBWriter::~DBWriter()
@@ -209,19 +208,19 @@ void DBWriter::AddDBOperate(DBOperate* dbOperate)
 
 void DBWriter::CreateTables(DBOperate* dbOperate)
 {
-	m_DB->CreateTables(kAllSchemas, kTableCount);
+	m_DB->CreateTables(m_SchemaRegistry->GetAllSchemas(), m_SchemaRegistry->GetTableCount());
 }
 void DBWriter::DropTables(DBOperate* dbOperate)
 {
-	m_DB->DropTables(kAllSchemas, kTableCount);
+	m_DB->DropTables(m_SchemaRegistry->GetAllSchemas(), m_SchemaRegistry->GetTableCount());
 }
 void DBWriter::TruncateTables(DBOperate* dbOperate)
 {
-	m_DB->TruncateTables(kAllSchemas, kTableCount);
+	m_DB->TruncateTables(m_SchemaRegistry->GetAllSchemas(), m_SchemaRegistry->GetTableCount());
 }
 void DBWriter::InsertRecord(DBOperate* dbOperate)
 {
-	const TableSchema* schema = GetSchemaByTableID(dbOperate->TableID);
+	const TableSchema* schema = m_SchemaRegistry->GetSchema(dbOperate->TableID);
 	if (schema)
 	{
 		m_DB->Insert(schema, dbOperate->Record);
@@ -229,7 +228,7 @@ void DBWriter::InsertRecord(DBOperate* dbOperate)
 }
 void DBWriter::BatchInsertRecords(DBOperate* dbOperate)
 {
-	const TableSchema* schema = GetSchemaByTableID(dbOperate->TableID);
+	const TableSchema* schema = m_SchemaRegistry->GetSchema(dbOperate->TableID);
 	if (!schema) return;
 
 	auto& batch = static_cast<DBOperateImpl*>(dbOperate)->GetBatchData();
@@ -240,7 +239,7 @@ void DBWriter::BatchInsertRecords(DBOperate* dbOperate)
 }
 void DBWriter::DeleteRecord(DBOperate* dbOperate)
 {
-	const TableSchema* schema = GetSchemaByTableID(dbOperate->TableID);
+	const TableSchema* schema = m_SchemaRegistry->GetSchema(dbOperate->TableID);
 	if (schema)
 	{
 		m_DB->Delete(schema, dbOperate->Record, schema->primaryKeyIndices, schema->primaryKeyCount);
@@ -250,7 +249,7 @@ void DBWriter::DeleteRecord(DBOperate* dbOperate)
 
 void DBWriter::DeleteRecordByIndex(DBOperate* dbOperate)
 {
-	const TableSchema* schema = GetSchemaByTableID(dbOperate->TableID);
+	const TableSchema* schema = m_SchemaRegistry->GetSchema(dbOperate->TableID);
 	if (!schema) return;
 
 	for (int i = 0; i < schema->secondaryIndexCount; ++i)
@@ -269,7 +268,7 @@ void DBWriter::DeleteRecordByIndex(DBOperate* dbOperate)
 }
 void DBWriter::UpdateRecord(DBOperate* dbOperate)
 {
-	const TableSchema* schema = GetSchemaByTableID(dbOperate->TableID);
+	const TableSchema* schema = m_SchemaRegistry->GetSchema(dbOperate->TableID);
 	if (schema)
 	{
 		m_DB->Update(schema, dbOperate->Record);
@@ -278,7 +277,7 @@ void DBWriter::UpdateRecord(DBOperate* dbOperate)
 }
 void DBWriter::TruncateTable(DBOperate* dbOperate)
 {
-	const TableSchema* schema = GetSchemaByTableID(dbOperate->TableID);
+	const TableSchema* schema = m_SchemaRegistry->GetSchema(dbOperate->TableID);
 	if (schema)
 	{
 		m_DB->TruncateTable(schema->tableName);
