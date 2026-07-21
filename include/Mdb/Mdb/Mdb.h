@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 #include <Mdb/Mdb/MdbExport.h>
 #include <Mdb/Mdb/MdbTables.h>
 #include <DBInterface/MdbSubscriber.h>
-#include <PersonalLib/Core/DB/DBSubscriber.h>
+#include <DBInterface/DBSubscriber.h>
 
 
 namespace mdb

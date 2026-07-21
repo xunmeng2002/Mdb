@@ -1,6 +1,7 @@
 #pragma once
 #include <Mdb/DBWriter/DBWriterExport.h>
 #include <DBInterface/MdbSubscriber.h>
+#include <DBInterface/DBSubscriber.h>
 #include <DBInterface/DB.h>
 #include <DBInterface/SchemaRegistry.h>
 #include <PersonalLib/TemplateLib/TemplateLib.h>

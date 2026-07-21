@@ -1,6 +1,6 @@
 #pragma once
 #include <DBInterface/SchemaRegistry.h>
-#include <PersonalLib/Core/DB/DBOperate.h>
+#include <DBInterface/DBOperate.h>
 #include <vector>
 
 
