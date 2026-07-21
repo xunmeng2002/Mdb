@@ -2,6 +2,7 @@
 #include <Mdb/SqliteWrapper/SqliteWrapper.h>
 #include <Mdb/DuckdbWrapper/DuckdbWrapper.h>
 #include <Mdb/MysqlWrapper/MysqlWrapper.h>
+#include <Mdb/MariadbWrapper/MariadbWrapper.h>
 #include <DBInterface/TypedTable.h>
 #include <DBInterface/SchemaRegistry.h>
 #include <Mdb/DBWriter/DBWriter.h>
@@ -17,6 +18,9 @@ using namespace mdb;
 const char* sqliteDBName = "./Test.sqlitedb";
 const char* duckdbDBName = "./Test.duckdb";
 const char* mysqlHost = "mysqlx://sams:sams@localhost:33060/mdb";
+const char* mariadbHost = "tcp://localhost:3306/mdb";
+const char* mariadbUser = "sams";
+const char* mariadbPassword = "sams";
 
 TradingDay* PrepareTradingDay()
 {
@@ -247,6 +251,12 @@ static void TestMysql()
     WriteLog(LogLevel::Info, "TestDB with Mysql");
     TestMdb(mysql);
 }
+static void TestMariadb()
+{
+    MariadbWrapper* mariadb = new MariadbWrapper(mariadbHost, mariadbUser, mariadbPassword);
+    WriteLog(LogLevel::Info, "TestDB with Mariadb");
+    TestMdb(mariadb);
+}
 
 int main(int argc, char* argv[])
 {
@@ -256,7 +266,8 @@ int main(int argc, char* argv[])
 
     //TestSqlite();
     //TestDuckdb();
-    TestMysql();
+    //TestMysql();
+    TestMariadb();
 
 	Logger::GetInstance().Stop();
 	Logger::GetInstance().Join();

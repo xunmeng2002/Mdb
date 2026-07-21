@@ -56,7 +56,7 @@ add_template_library(DBInterface		${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_shared_module(Mdb				    ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Mdb)
 add_shared_module(DBWriter			    ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/DBWriter)
 add_shared_module(MysqlWrapper			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/MysqlWrapper)
-#add_shared_module(MariadbWrapper		${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/MariadbWrapper)
+add_shared_module(MariadbWrapper		${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/MariadbWrapper)
 add_shared_module(DuckdbWrapper			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/DuckdbWrapper)
 add_shared_module(SqliteWrapper			${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/SqliteWrapper)
 
@@ -64,7 +64,7 @@ find_package(PersonalLib REQUIRED PATHS "../Libs/PersonalLib")
 find_package(duckdb REQUIRED PATHS "../Libs/duckdb")
 find_package(unofficial-sqlite3 CONFIG REQUIRED)
 find_package(unofficial-mysql-connector-cpp CONFIG REQUIRED)
-#find_package(unofficial-mariadb-connector-cpp CONFIG REQUIRED)
+find_package(unofficial-mariadb-connector-cpp CONFIG REQUIRED)
 
 
 
@@ -73,6 +73,12 @@ target_link_libraries(Mdb PUBLIC DBWriter DBInterface PersonalLib::Core Personal
 target_link_libraries(DuckdbWrapper PUBLIC DBInterface duckdb)
 target_link_libraries(SqliteWrapper PUBLIC DBInterface unofficial::sqlite3::sqlite3)
 target_link_libraries(MysqlWrapper PUBLIC DBInterface unofficial::mysql-connector-cpp::connector)
-#target_link_libraries(MariadbWrapper PUBLIC Mdb unofficial::mariadb-connector-cpp::mariadbcpp)
+target_link_libraries(MariadbWrapper PUBLIC DBInterface unofficial::mariadb-connector-cpp::mariadbcpp)
+
+# libmariadb 运行时动态加载认证插件（非 PE 依赖，无法通过 vcpkg applocal 自动部署）
+# 编译时注入插件路径，Connect() 内设环境变量 MARIADB_PLUGIN_DIR 告知 libmariadb
+target_compile_definitions(MariadbWrapper PRIVATE
+  MARIADB_PLUGIN_DIR="${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/$<IF:$<CONFIG:Debug>,debug/,>plugins/libmariadb"
+)
 
 add_subdirectory(test)
