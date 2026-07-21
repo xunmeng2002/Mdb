@@ -5,7 +5,7 @@
 #include <Mdb/MariadbWrapper/MariadbWrapper.h>
 #include <DBInterface/TypedTable.h>
 #include <DBInterface/SchemaRegistry.h>
-#include <Mdb/DBWriter/DBWriter.h>
+#include <Mdb/AsyncDBWriter/AsyncDBWriter.h>
 #include <Mdb/Mdb/InitMdbFromDB.h>
 #include <Mdb/Mdb/MdbTableRegistry.h>
 #include <PersonalLib/Core/Core.h>
@@ -137,7 +137,7 @@ static void TestMdb(DB* db)
 {
 	Mdb* mdb = new Mdb();
 	SchemaRegistry* schemaRegistry = &mdb::MdbTableRegistry::Instance();
-	DBWriter* dbWriter = new DBWriter(db, schemaRegistry);
+	AsyncDBWriter* dbWriter = new AsyncDBWriter(db, schemaRegistry);
 	mdb->Subscribe(dbWriter);
 	dbWriter->Subscribe(mdb);
 	dbWriter->Start();

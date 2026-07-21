@@ -1,5 +1,5 @@
 #pragma once
-#include <Mdb/DBWriter/DBWriterExport.h>
+#include <Mdb/AsyncDBWriter/AsyncDBWriterExport.h>
 #include <DBInterface/MdbSubscriber.h>
 #include <DBInterface/DBSubscriber.h>
 #include <DBInterface/DB.h>
@@ -12,11 +12,11 @@
 #include <condition_variable>
 
 
-class DBWRITER_EXPORTS DBWriter : public ThreadBase, public MdbSubscriber
+class ASYNCDBWRITER_EXPORTS AsyncDBWriter : public ThreadBase, public MdbSubscriber
 {
 public:
-	DBWriter(DB* db, SchemaRegistry* schemaRegistry);
-	~DBWriter();
+	AsyncDBWriter(DB* db, SchemaRegistry* schemaRegistry);
+	~AsyncDBWriter();
 	void Subscribe(DBSubscriber* dbSubscriber);
 	DB* GetDB();
 	bool Connect();
