@@ -5,110 +5,103 @@
 #include <cstdio>
 
 
-namespace {
-
-class StatementGuard
+namespace
 {
-public:
-	StatementGuard(sqlite3* db, const char* sql)
-	{
-		sqlite3_prepare_v2(db, sql, -1, &stmt_, nullptr);
-	}
+    class StatementGuard
+    {
+    public:
+	    StatementGuard(sqlite3* db, const char* sql)
+	    {
+		    sqlite3_prepare_v2(db, sql, -1, &stmt_, nullptr);
+	    }
+	    ~StatementGuard()
+	    {
+		    if (stmt_)
+		    {
+			    sqlite3_finalize(stmt_);
+		    }
+	    }
+	    StatementGuard(const StatementGuard&) = delete;
+	    StatementGuard& operator=(const StatementGuard&) = delete;
 
-	~StatementGuard()
-	{
-		if (stmt_)
-		{
-			sqlite3_finalize(stmt_);
-		}
-	}
+	    bool IsValid() const { return stmt_ != nullptr; }
+	    int Step() const { return sqlite3_step(stmt_); }
+	    sqlite3_stmt* Get() const { return stmt_; }
 
-	StatementGuard(const StatementGuard&) = delete;
-	StatementGuard& operator=(const StatementGuard&) = delete;
+    private:
+	    sqlite3_stmt* stmt_ = nullptr;
+    };
 
-	bool IsValid() const { return stmt_ != nullptr; }
-	int Step() const { return sqlite3_step(stmt_); }
-	sqlite3_stmt* Get() const { return stmt_; }
-
-private:
-	sqlite3_stmt* stmt_ = nullptr;
-};
-
-void BindField(sqlite3_stmt* stmt, int index, const FieldDescriptor& field, const void* record)
-{
-	const char* data = static_cast<const char*>(record) + field.offset;
-	switch (field.type)
-	{
-	case FieldType::Int:
-		sqlite3_bind_int(stmt, index, *reinterpret_cast<const int*>(data));
-		break;
-	case FieldType::Int64:
-		sqlite3_bind_int64(stmt, index, *reinterpret_cast<const long long*>(data));
-		break;
-	case FieldType::Double:
-		sqlite3_bind_double(stmt, index, *reinterpret_cast<const double*>(data));
-		break;
-	case FieldType::Char:
-		sqlite3_bind_text(stmt, index, data, -1, nullptr);
-		break;
-	case FieldType::Bool:
-		sqlite3_bind_int(stmt, index, *reinterpret_cast<const bool*>(data) ? 1 : 0);
-		break;
-	}
+    void BindField(sqlite3_stmt* stmt, int index, const FieldDescriptor& field, const void* record)
+    {
+	    const char* data = static_cast<const char*>(record) + field.offset;
+	    switch (field.type)
+	    {
+	    case FieldType::Int:
+		    sqlite3_bind_int(stmt, index, *reinterpret_cast<const int*>(data));
+		    break;
+	    case FieldType::Int64:
+		    sqlite3_bind_int64(stmt, index, *reinterpret_cast<const long long*>(data));
+		    break;
+	    case FieldType::Double:
+		    sqlite3_bind_double(stmt, index, *reinterpret_cast<const double*>(data));
+		    break;
+	    case FieldType::Char:
+		    sqlite3_bind_text(stmt, index, data, -1, nullptr);
+		    break;
+	    case FieldType::Bool:
+		    sqlite3_bind_int(stmt, index, *reinterpret_cast<const bool*>(data) ? 1 : 0);
+		    break;
+	    }
+    }
+    void BindFields(sqlite3_stmt* stmt, const TableSchema* schema, const void* record)
+    {
+	    for (int i = 0; i < schema->fieldCount; ++i)
+	    {
+		    BindField(stmt, i + 1, schema->fields[i], record);
+	    }
+    }
+    void BindKeyFields(sqlite3_stmt* stmt, const TableSchema* schema, const void* record, const int* keyIndices, int keyCount)
+    {
+	    for (int i = 0; i < keyCount; ++i)
+	    {
+		    BindField(stmt, i + 1, schema->fields[keyIndices[i]], record);
+	    }
+    }
+    void ReadRow(sqlite3_stmt* stmt, const TableSchema* schema, void* record)
+    {
+	    char* data = static_cast<char*>(record);
+	    for (int i = 0; i < schema->fieldCount; ++i)
+	    {
+		    const auto& field = schema->fields[i];
+		    char* dest = data + field.offset;
+		    switch (field.type)
+		    {
+		    case FieldType::Int:
+			    *reinterpret_cast<int*>(dest) = sqlite3_column_int(stmt, i);
+			    break;
+		    case FieldType::Int64:
+			    *reinterpret_cast<long long*>(dest) = sqlite3_column_int64(stmt, i);
+			    break;
+		    case FieldType::Double:
+			    *reinterpret_cast<double*>(dest) = sqlite3_column_double(stmt, i);
+			    break;
+		    case FieldType::Char:
+		    {
+			    const unsigned char* text = sqlite3_column_text(stmt, i);
+			    if (text)
+			    {
+				    std::memcpy(dest, text, field.arraySize);
+			    }
+			    break;
+		    }
+		    case FieldType::Bool:
+			    *reinterpret_cast<bool*>(dest) = sqlite3_column_int(stmt, i) != 0;
+			    break;
+		    }
+	    }
+    }
 }
-
-void BindFields(sqlite3_stmt* stmt, const TableSchema* schema, const void* record)
-{
-	for (int i = 0; i < schema->fieldCount; ++i)
-	{
-		BindField(stmt, i + 1, schema->fields[i], record);
-	}
-}
-
-void BindKeyFields(sqlite3_stmt* stmt, const TableSchema* schema,
-                   const void* record, const int* keyIndices, int keyCount)
-{
-	for (int i = 0; i < keyCount; ++i)
-	{
-		BindField(stmt, i + 1, schema->fields[keyIndices[i]], record);
-	}
-}
-
-void ReadRow(sqlite3_stmt* stmt, const TableSchema* schema, void* record)
-{
-	char* data = static_cast<char*>(record);
-	for (int i = 0; i < schema->fieldCount; ++i)
-	{
-		const auto& field = schema->fields[i];
-		char* dest = data + field.offset;
-		switch (field.type)
-		{
-		case FieldType::Int:
-			*reinterpret_cast<int*>(dest) = sqlite3_column_int(stmt, i);
-			break;
-		case FieldType::Int64:
-			*reinterpret_cast<long long*>(dest) = sqlite3_column_int64(stmt, i);
-			break;
-		case FieldType::Double:
-			*reinterpret_cast<double*>(dest) = sqlite3_column_double(stmt, i);
-			break;
-		case FieldType::Char:
-		{
-			const unsigned char* text = sqlite3_column_text(stmt, i);
-			if (text)
-			{
-				std::memcpy(dest, text, field.arraySize);
-			}
-			break;
-		}
-		case FieldType::Bool:
-			*reinterpret_cast<bool*>(dest) = sqlite3_column_int(stmt, i) != 0;
-			break;
-		}
-	}
-}
-
-} // anonymous namespace
 
 
 struct SqliteWrapper::Impl
@@ -134,7 +127,6 @@ SqliteWrapper::SqliteWrapper(const std::string& dbName)
 		std::printf("[SqliteWrapper] Database encoding: %s\n", enc ? (const char*)enc : "NULL");
 	}
 }
-
 SqliteWrapper::~SqliteWrapper()
 {
 	DisConnect();
@@ -145,7 +137,6 @@ bool SqliteWrapper::Connect()
 {
 	return m_Impl->db != nullptr;
 }
-
 void SqliteWrapper::DisConnect()
 {
 	if (m_Impl->db)
@@ -154,11 +145,6 @@ void SqliteWrapper::DisConnect()
 		m_Impl->db = nullptr;
 	}
 }
-
-void SqliteWrapper::InitDB()
-{
-}
-
 void SqliteWrapper::Exec(const char* sql)
 {
 	if (!m_Impl->db) return;
@@ -201,7 +187,6 @@ void SqliteWrapper::CreateTable(const TableSchema* schema)
 	sql << ");";
 	Exec(sql.str().c_str());
 }
-
 void SqliteWrapper::DropTable(const char* tableName)
 {
 	std::string sql = "DROP TABLE IF EXISTS ";
@@ -209,7 +194,6 @@ void SqliteWrapper::DropTable(const char* tableName)
 	sql += ";";
 	Exec(sql.c_str());
 }
-
 void SqliteWrapper::TruncateTable(const char* tableName)
 {
 	std::string sql = "DELETE FROM ";
@@ -225,7 +209,6 @@ void SqliteWrapper::CreateTables(const TableSchema* const* schemas, int count)
 		CreateTable(schemas[i]);
 	}
 }
-
 void SqliteWrapper::DropTables(const TableSchema* const* schemas, int count)
 {
 	for (int i = 0; i < count; ++i)
@@ -233,7 +216,6 @@ void SqliteWrapper::DropTables(const TableSchema* const* schemas, int count)
 		DropTable(schemas[i]->tableName);
 	}
 }
-
 void SqliteWrapper::TruncateTables(const TableSchema* const* schemas, int count)
 {
 	for (int i = 0; i < count; ++i)
@@ -264,7 +246,6 @@ void SqliteWrapper::Insert(const TableSchema* schema, const void* record)
 	BindFields(stmt.Get(), schema, record);
 	stmt.Step();
 }
-
 void SqliteWrapper::BatchInsert(const TableSchema* schema, const void* const* records, int count)
 {
 	sqlite3_exec(m_Impl->db, "BEGIN;", nullptr, nullptr, nullptr);
@@ -274,7 +255,6 @@ void SqliteWrapper::BatchInsert(const TableSchema* schema, const void* const* re
 	}
 	sqlite3_exec(m_Impl->db, "COMMIT;", nullptr, nullptr, nullptr);
 }
-
 void SqliteWrapper::Update(const TableSchema* schema, const void* record)
 {
 	std::ostringstream sql;
@@ -308,9 +288,7 @@ void SqliteWrapper::Update(const TableSchema* schema, const void* record)
 	}
 	stmt.Step();
 }
-
-void SqliteWrapper::Delete(const TableSchema* schema, const void* record,
-                            const int* keyFieldIndices, int keyFieldCount)
+void SqliteWrapper::Delete(const TableSchema* schema, const void* record, const int* keyFieldIndices, int keyFieldCount)
 {
 	std::ostringstream sql;
 	sql << "DELETE FROM " << schema->tableName << " WHERE ";
@@ -327,8 +305,7 @@ void SqliteWrapper::Delete(const TableSchema* schema, const void* record,
 	stmt.Step();
 }
 
-void SqliteWrapper::SelectAll(const TableSchema* schema, void* recordsList,
-                               const RecordFactory& factory)
+void SqliteWrapper::SelectAll(const TableSchema* schema, void* recordsList, const RecordFactory& factory)
 {
 	std::string sql = "SELECT * FROM ";
 	sql += schema->tableName;
@@ -344,9 +321,7 @@ void SqliteWrapper::SelectAll(const TableSchema* schema, void* recordsList,
 		factory.PushBack(recordsList, record);
 	}
 }
-
-void SqliteWrapper::SelectWithSql(const char* sql, const TableSchema* schema,
-                                   void* recordsList, const RecordFactory& factory)
+void SqliteWrapper::SelectWithSql(const char* sql, const TableSchema* schema, void* recordsList, const RecordFactory& factory)
 {
 	StatementGuard stmt(m_Impl->db, sql);
 	if (!stmt.IsValid()) return;

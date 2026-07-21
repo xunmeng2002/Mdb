@@ -12,7 +12,6 @@ public:
 
     virtual bool Connect() = 0;
     virtual void DisConnect() = 0;
-    virtual void InitDB() = 0;
     virtual void Exec(const char* sql) = 0;
 
     virtual void CreateTable(const TableSchema* schema) = 0;

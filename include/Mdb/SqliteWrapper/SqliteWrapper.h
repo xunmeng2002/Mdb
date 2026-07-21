@@ -12,7 +12,6 @@ public:
 
 	bool Connect() override;
 	void DisConnect() override;
-	void InitDB() override;
 	void Exec(const char* sql) override;
 
 	void CreateTable(const TableSchema* schema) override;
@@ -26,13 +25,10 @@ public:
 	void Insert(const TableSchema* schema, const void* record) override;
 	void BatchInsert(const TableSchema* schema, const void* const* records, int count) override;
 	void Update(const TableSchema* schema, const void* record) override;
-	void Delete(const TableSchema* schema, const void* record,
-	            const int* keyFieldIndices, int keyFieldCount) override;
+	void Delete(const TableSchema* schema, const void* record, const int* keyFieldIndices, int keyFieldCount) override;
 
-	void SelectAll(const TableSchema* schema, void* recordsList,
-	               const RecordFactory& factory) override;
-	void SelectWithSql(const char* sql, const TableSchema* schema,
-	                   void* recordsList, const RecordFactory& factory) override;
+	void SelectAll(const TableSchema* schema, void* recordsList, const RecordFactory& factory) override;
+	void SelectWithSql(const char* sql, const TableSchema* schema, void* recordsList, const RecordFactory& factory) override;
 
 private:
 	struct Impl;
