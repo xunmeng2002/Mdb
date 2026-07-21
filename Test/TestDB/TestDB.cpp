@@ -1,5 +1,6 @@
 #include <Mdb/Mdb/Mdb.h>
 #include <Mdb/SqliteWrapper/SqliteWrapper.h>
+#include <Mdb/DuckdbWrapper/DuckdbWrapper.h>
 #include <DBInterface/TypedTable.h>
 #include <DBInterface/SchemaRegistry.h>
 #include <Mdb/DBWriter/DBWriter.h>
@@ -13,6 +14,7 @@ using namespace std;
 using namespace mdb;
 
 const char* sqliteDBName = "./Test.sqlitedb";
+const char* duckdbDBName = "./Test.duckdb";
 
 TradingDay* PrepareTradingDay()
 {
@@ -225,11 +227,17 @@ static void TestDB(DB* db)
 	db->DisConnect();
 }
 
-static void Test()
+static void TestSqlite()
 {
-	SqliteWrapper* sqlite = new SqliteWrapper(sqliteDBName);
+	SqliteWrapper* sqlitedb = new SqliteWrapper(sqliteDBName);
 	WriteLog(LogLevel::Info, "TestDB with Sqlite");
-	TestMdb(sqlite);
+	TestMdb(sqlitedb);
+}
+static void TestDuckdb()
+{
+    DuckdbWrapper* duckdb = new DuckdbWrapper(duckdbDBName);
+    WriteLog(LogLevel::Info, "TestDB with Duckdb");
+    TestMdb(duckdb);
 }
 
 int main(int argc, char* argv[])
@@ -238,7 +246,8 @@ int main(int argc, char* argv[])
 	Logger::GetInstance().SetLogLevel(LogLevel::Info, LogLevel::Info);
 	Logger::GetInstance().Start();
 
-	Test();
+    //TestSqlite();
+    TestDuckdb();
 
 	Logger::GetInstance().Stop();
 	Logger::GetInstance().Join();
