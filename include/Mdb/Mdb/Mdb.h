@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <Mdb/Mdb/MdbExport.h>
 #include <Mdb/Mdb/MdbTables.h>
-#include <Mdb/Mdb/MdbSubscriber.h>
+#include <DBInterface/MdbSubscriber.h>
 #include <PersonalLib/Core/DB/DBSubscriber.h>
 
 

@@ -1,10 +1,7 @@
 #include "DBOperateImpl.h"
-#include <Mdb/Mdb/MdbTableRegistry.h>
-#include <Mdb/Mdb/MdbStructs.h>
 #include <PersonalLib/TemplateLib/TemplateLib.h>
 #include <cstring>
 
-using namespace mdb;
 
 DBOperate* DBOperate::Allocate()
 {
@@ -21,10 +18,13 @@ void DBOperateImpl::DeallocateRecord()
 	{
 		return;
 	}
-	const TableSchema* schema = MdbTableRegistry::Instance().GetSchema(TableID);
-	if (schema && schema->DeallocateRecord && Record)
+	if (schema_registry_)
 	{
-		schema->DeallocateRecord(Record);
+		const TableSchema* schema = schema_registry_->GetSchema(TableID);
+		if (schema && schema->DeallocateRecord && Record)
+		{
+			schema->DeallocateRecord(Record);
+		}
 	}
 	Record = nullptr;
 }

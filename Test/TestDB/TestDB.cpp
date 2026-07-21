@@ -2,7 +2,7 @@
 #include <Mdb/SqliteWrapper/SqliteWrapper.h>
 #include <DBInterface/TypedTable.h>
 #include <DBInterface/SchemaRegistry.h>
-#include <Mdb/Mdb/DBWriter.h>
+#include <Mdb/DBWriter/DBWriter.h>
 #include <Mdb/Mdb/InitMdbFromDB.h>
 #include <Mdb/Mdb/MdbTableRegistry.h>
 #include <PersonalLib/Core/Core.h>
@@ -155,7 +155,7 @@ static void TestMdb(DB* db)
 	}
 
 	this_thread::sleep_for(chrono::seconds(1));
-	mdb->DropTables();
+    //mdb->DropTables();
 	this_thread::sleep_for(chrono::seconds(1));
 	dbWriter->Stop();
 	dbWriter->Join();
@@ -229,7 +229,7 @@ static void Test()
 {
 	SqliteWrapper* sqlite = new SqliteWrapper(sqliteDBName);
 	WriteLog(LogLevel::Info, "TestDB with Sqlite");
-	TestDB(sqlite);
+	TestMdb(sqlite);
 }
 
 int main(int argc, char* argv[])

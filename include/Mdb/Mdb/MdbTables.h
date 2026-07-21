@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <Mdb/Mdb/MdbExport.h>
 #include <Mdb/Mdb/MdbStructs.h>
-#include <Mdb/Mdb/MdbSubscriber.h>
+#include <DBInterface/MdbSubscriber.h>
 #include <Mdb/Mdb/MdbPrimaryKeys.h>
 #include <Mdb/Mdb/MdbIndexes.h>
 #include <shared_mutex>

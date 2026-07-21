@@ -1,11 +1,10 @@
-#include <Mdb/Mdb/DBWriter.h>
+#include <Mdb/DBWriter/DBWriter.h>
 #include "DBOperateImpl.h"
 #include <PersonalLib/Core/Logger/Logger.h>
 #include <cstring>
 #include <vector>
 
 using namespace std;
-using namespace mdb;
 
 
 DBWriter::DBWriter(DB* db, SchemaRegistry* schemaRegistry)
@@ -62,7 +61,7 @@ void DBWriter::DisConnect()
 
 void DBWriter::OnTableOp(DBOperateType op)
 {
-	DBOperate* dbOperate = DBOperate::Allocate();
+	DBOperate* dbOperate = AllocateDBOperate();
 	dbOperate->Operate = op;
 	dbOperate->TableID = 0;
 	dbOperate->Record = nullptr;
@@ -71,7 +70,7 @@ void DBWriter::OnTableOp(DBOperateType op)
 
 void DBWriter::OnRecordInsert(unsigned int tableID, void* record)
 {
-	DBOperate* dbOperate = DBOperate::Allocate();
+	DBOperate* dbOperate = AllocateDBOperate();
 	dbOperate->Operate = DBOperateType::Insert;
 	dbOperate->TableID = tableID;
 	dbOperate->Record = record;
@@ -80,7 +79,7 @@ void DBWriter::OnRecordInsert(unsigned int tableID, void* record)
 
 void DBWriter::OnRecordBatchInsert(unsigned int tableID, std::vector<const void*>* records)
 {
-	DBOperate* dbOperate = DBOperate::Allocate();
+	DBOperate* dbOperate = AllocateDBOperate();
 	dbOperate->Operate = DBOperateType::BatchInsert;
 	dbOperate->TableID = tableID;
 	dbOperate->Record = nullptr;
@@ -93,7 +92,7 @@ void DBWriter::OnRecordBatchInsert(unsigned int tableID, std::vector<const void*
 
 void DBWriter::OnRecordErase(unsigned int tableID, void* record)
 {
-	DBOperate* dbOperate = DBOperate::Allocate();
+	DBOperate* dbOperate = AllocateDBOperate();
 	dbOperate->Operate = DBOperateType::Delete;
 	dbOperate->TableID = tableID;
 	dbOperate->Record = record;
@@ -102,7 +101,7 @@ void DBWriter::OnRecordErase(unsigned int tableID, void* record)
 
 void DBWriter::OnRecordEraseByIndex(unsigned int tableID, unsigned int indexID, void* record)
 {
-	DBOperate* dbOperate = DBOperate::Allocate();
+	DBOperate* dbOperate = AllocateDBOperate();
 	dbOperate->Operate = DBOperateType::DeleteByIndex;
 	dbOperate->TableID = tableID;
 	dbOperate->IndexID = indexID;
@@ -112,7 +111,7 @@ void DBWriter::OnRecordEraseByIndex(unsigned int tableID, unsigned int indexID, 
 
 void DBWriter::OnRecordUpdate(unsigned int tableID, void* record)
 {
-	DBOperate* dbOperate = DBOperate::Allocate();
+	DBOperate* dbOperate = AllocateDBOperate();
 	dbOperate->Operate = DBOperateType::Update;
 	dbOperate->TableID = tableID;
 	dbOperate->Record = record;
@@ -121,7 +120,7 @@ void DBWriter::OnRecordUpdate(unsigned int tableID, void* record)
 
 void DBWriter::OnRecordTruncate(unsigned int tableID)
 {
-	DBOperate* dbOperate = DBOperate::Allocate();
+	DBOperate* dbOperate = AllocateDBOperate();
 	dbOperate->Operate = DBOperateType::Truncate;
 	dbOperate->TableID = tableID;
 	dbOperate->Record = nullptr;
@@ -203,6 +202,13 @@ void DBWriter::AddDBOperate(DBOperate* dbOperate)
 		m_DBOperates.push_back(dbOperate);
 	}
 	m_ConditionVariable.notify_one();
+}
+
+DBOperate* DBWriter::AllocateDBOperate()
+{
+	DBOperate* op = DBOperate::Allocate();
+	static_cast<DBOperateImpl*>(op)->SetSchemaRegistry(m_SchemaRegistry);
+	return op;
 }
 
 

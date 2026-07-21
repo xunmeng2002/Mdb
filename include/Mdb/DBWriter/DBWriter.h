@@ -1,7 +1,6 @@
 #pragma once
-#include <Mdb/Mdb/MdbExport.h>
-#include <Mdb/Mdb/MdbSubscriber.h>
-#include <Mdb/Mdb/MdbStructs.h>
+#include <Mdb/DBWriter/DBWriterExport.h>
+#include <DBInterface/MdbSubscriber.h>
 #include <DBInterface/DB.h>
 #include <DBInterface/SchemaRegistry.h>
 #include <PersonalLib/TemplateLib/TemplateLib.h>
@@ -12,7 +11,7 @@
 #include <condition_variable>
 
 
-class MDB_EXPORTS DBWriter : public ThreadBase, public MdbSubscriber
+class DBWRITER_EXPORTS DBWriter : public ThreadBase, public MdbSubscriber
 {
 public:
 	DBWriter(DB* db, SchemaRegistry* schemaRegistry);
@@ -39,6 +38,7 @@ protected:
 	DBOperate* GetDBOperate();
 
 private:
+	DBOperate* AllocateDBOperate();
 	void AddDBOperate(DBOperate* dbOperate);
 
 	void CreateTables(DBOperate* dbOperate);
