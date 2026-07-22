@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "MdbTables.h"
 #include <DBAdapters/DBInterface/MdbSubscriber.h>
 #include <DBAdapters/DBInterface/DBSubscriber.h>
