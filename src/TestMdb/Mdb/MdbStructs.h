@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <DBAdapters/DBInterface/Schema.h>
 #include <PersonalLib/Types.h>
 

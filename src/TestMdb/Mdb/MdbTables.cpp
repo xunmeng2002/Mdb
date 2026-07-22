@@ -1,4 +1,4 @@
-﻿#include "MdbTables.h"
+﻿﻿#include "MdbTables.h"
 #include "Mdb.h"
 #include <PersonalLib/Core/Logger/Logger.h>
 #include <string>
@@ -822,7 +822,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordEraseByIndex(PrimaryAccount::TableID, PrimaryAccountIndexOfferID::IndexID, record);
+			m_MdbSubscriber->OnRecordErase(PrimaryAccount::TableID, record);
 		}
 		else
 		{
@@ -1220,7 +1220,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordEraseByIndex(Capital::TableID, CapitalIndexTradingDay::IndexID, record);
+			m_MdbSubscriber->OnRecordErase(Capital::TableID, record);
 		}
 		else
 		{
@@ -1445,7 +1445,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordEraseByIndex(Position::TableID, PositionIndexAccount::IndexID, record);
+			m_MdbSubscriber->OnRecordErase(Position::TableID, record);
 		}
 		else
 		{
@@ -1472,7 +1472,7 @@ namespace mdb
 		{
 			auto record = Position::Allocate();
 			memcpy(record, &t_ComparePosition, sizeof(Position));
-			m_MdbSubscriber->OnRecordEraseByIndex(Position::TableID, PositionIndexTradingDay::IndexID, record);
+			m_MdbSubscriber->OnRecordEraseByIndex(Position::TableID, PositionIndexAccount::IndexID, record);
 		}
 		return (int)records.size();
 	}
@@ -1496,7 +1496,7 @@ namespace mdb
 		{
 			auto record = Position::Allocate();
 			memcpy(record, &t_ComparePosition, sizeof(Position));
-			m_MdbSubscriber->OnRecordErase(Position::TableID, record);
+			m_MdbSubscriber->OnRecordEraseByIndex(Position::TableID, PositionIndexTradingDay::IndexID, record);
 		}
 		return (int)records.size();
 	}
@@ -1707,7 +1707,7 @@ namespace mdb
 		EraseIndex(record);
 		if (m_MdbSubscriber != nullptr && m_DBInited)
 		{
-			m_MdbSubscriber->OnRecordEraseByIndex(PositionDetail::TableID, PositionDetailIndexTradeMatch::IndexID, record);
+			m_MdbSubscriber->OnRecordErase(PositionDetail::TableID, record);
 		}
 		else
 		{
@@ -1734,7 +1734,7 @@ namespace mdb
 		{
 			auto record = PositionDetail::Allocate();
 			memcpy(record, &t_ComparePositionDetail, sizeof(PositionDetail));
-			m_MdbSubscriber->OnRecordEraseByIndex(PositionDetail::TableID, PositionDetailIndexTradingDay::IndexID, record);
+			m_MdbSubscriber->OnRecordEraseByIndex(PositionDetail::TableID, PositionDetailIndexTradeMatch::IndexID, record);
 		}
 		return (int)records.size();
 	}
@@ -1758,7 +1758,7 @@ namespace mdb
 		{
 			auto record = PositionDetail::Allocate();
 			memcpy(record, &t_ComparePositionDetail, sizeof(PositionDetail));
-			m_MdbSubscriber->OnRecordErase(PositionDetail::TableID, record);
+			m_MdbSubscriber->OnRecordEraseByIndex(PositionDetail::TableID, PositionDetailIndexTradingDay::IndexID, record);
 		}
 		return (int)records.size();
 	}

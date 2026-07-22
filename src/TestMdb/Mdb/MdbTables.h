@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "MdbStructs.h"
 #include <DBAdapters/DBInterface/MdbSubscriber.h>
 #include "MdbPrimaryKeys.h"
