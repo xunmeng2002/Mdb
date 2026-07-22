@@ -56,10 +56,6 @@ add_shared_module(Mdb				    ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT
 
 find_package(PersonalLib REQUIRED PATHS "../Libs/PersonalLib")
 find_package(DBAdapters REQUIRED PATHS "../Libs/DBAdapters")
-#find_package(duckdb REQUIRED PATHS "../Libs/duckdb")
-#find_package(unofficial-sqlite3 CONFIG REQUIRED)
-#find_package(unofficial-mysql-connector-cpp CONFIG REQUIRED)
-#find_package(unofficial-mariadb-connector-cpp CONFIG REQUIRED)
 
 target_link_libraries(Mdb PUBLIC DBAdapters::DBInterface PersonalLib::Core PersonalLib::Serialization)
 
