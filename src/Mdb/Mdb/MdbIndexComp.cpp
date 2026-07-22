@@ -1,4 +1,4 @@
-﻿#include <Mdb/Mdb/MdbIndexComp.h>
+﻿#include "MdbIndexComp.h"
 #include <string.h>
 
 

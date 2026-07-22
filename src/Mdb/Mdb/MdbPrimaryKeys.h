@@ -1,13 +1,12 @@
 ﻿#pragma once
 #include <unordered_set>
-#include <Mdb/Mdb/MdbExport.h>
-#include <Mdb/Mdb/MdbStructs.h>
-#include <Mdb/Mdb/MdbPrimaryKeyComp.h>
+#include "MdbStructs.h"
+#include "MdbPrimaryKeyComp.h"
 
 namespace mdb
 {
 	class TradingDayTable;
-	class MDB_EXPORTS TradingDayPrimaryKey
+	class TradingDayPrimaryKey
 	{
 		using iterator = std::unordered_set<TradingDay*, TradingDayHashForTradingDayPrimaryKey, TradingDayEqualForTradingDayPrimaryKey>::iterator;
 		friend class TradingDayTable;
@@ -27,7 +26,7 @@ namespace mdb
 		std::unordered_set<TradingDay*, TradingDayHashForTradingDayPrimaryKey, TradingDayEqualForTradingDayPrimaryKey> m_Index;
 	};
 	class ExchangeTable;
-	class MDB_EXPORTS ExchangePrimaryKey
+	class ExchangePrimaryKey
 	{
 		using iterator = std::unordered_set<Exchange*, ExchangeHashForExchangePrimaryKey, ExchangeEqualForExchangePrimaryKey>::iterator;
 		friend class ExchangeTable;
@@ -47,7 +46,7 @@ namespace mdb
 		std::unordered_set<Exchange*, ExchangeHashForExchangePrimaryKey, ExchangeEqualForExchangePrimaryKey> m_Index;
 	};
 	class ProductTable;
-	class MDB_EXPORTS ProductPrimaryKey
+	class ProductPrimaryKey
 	{
 		using iterator = std::unordered_set<Product*, ProductHashForProductPrimaryKey, ProductEqualForProductPrimaryKey>::iterator;
 		friend class ProductTable;
@@ -67,7 +66,7 @@ namespace mdb
 		std::unordered_set<Product*, ProductHashForProductPrimaryKey, ProductEqualForProductPrimaryKey> m_Index;
 	};
 	class InstrumentTable;
-	class MDB_EXPORTS InstrumentPrimaryKey
+	class InstrumentPrimaryKey
 	{
 		using iterator = std::unordered_set<Instrument*, InstrumentHashForInstrumentPrimaryKey, InstrumentEqualForInstrumentPrimaryKey>::iterator;
 		friend class InstrumentTable;
@@ -87,7 +86,7 @@ namespace mdb
 		std::unordered_set<Instrument*, InstrumentHashForInstrumentPrimaryKey, InstrumentEqualForInstrumentPrimaryKey> m_Index;
 	};
 	class PrimaryAccountTable;
-	class MDB_EXPORTS PrimaryAccountPrimaryKey
+	class PrimaryAccountPrimaryKey
 	{
 		using iterator = std::unordered_set<PrimaryAccount*, PrimaryAccountHashForPrimaryAccountPrimaryKey, PrimaryAccountEqualForPrimaryAccountPrimaryKey>::iterator;
 		friend class PrimaryAccountTable;
@@ -107,7 +106,7 @@ namespace mdb
 		std::unordered_set<PrimaryAccount*, PrimaryAccountHashForPrimaryAccountPrimaryKey, PrimaryAccountEqualForPrimaryAccountPrimaryKey> m_Index;
 	};
 	class AccountTable;
-	class MDB_EXPORTS AccountPrimaryKey
+	class AccountPrimaryKey
 	{
 		using iterator = std::unordered_set<Account*, AccountHashForAccountPrimaryKey, AccountEqualForAccountPrimaryKey>::iterator;
 		friend class AccountTable;
@@ -127,7 +126,7 @@ namespace mdb
 		std::unordered_set<Account*, AccountHashForAccountPrimaryKey, AccountEqualForAccountPrimaryKey> m_Index;
 	};
 	class CapitalTable;
-	class MDB_EXPORTS CapitalPrimaryKey
+	class CapitalPrimaryKey
 	{
 		using iterator = std::unordered_set<Capital*, CapitalHashForCapitalPrimaryKey, CapitalEqualForCapitalPrimaryKey>::iterator;
 		friend class CapitalTable;
@@ -147,7 +146,7 @@ namespace mdb
 		std::unordered_set<Capital*, CapitalHashForCapitalPrimaryKey, CapitalEqualForCapitalPrimaryKey> m_Index;
 	};
 	class PositionTable;
-	class MDB_EXPORTS PositionPrimaryKey
+	class PositionPrimaryKey
 	{
 		using iterator = std::unordered_set<Position*, PositionHashForPositionPrimaryKey, PositionEqualForPositionPrimaryKey>::iterator;
 		friend class PositionTable;
@@ -167,7 +166,7 @@ namespace mdb
 		std::unordered_set<Position*, PositionHashForPositionPrimaryKey, PositionEqualForPositionPrimaryKey> m_Index;
 	};
 	class PositionDetailTable;
-	class MDB_EXPORTS PositionDetailPrimaryKey
+	class PositionDetailPrimaryKey
 	{
 		using iterator = std::unordered_set<PositionDetail*, PositionDetailHashForPositionDetailPrimaryKey, PositionDetailEqualForPositionDetailPrimaryKey>::iterator;
 		friend class PositionDetailTable;
@@ -187,7 +186,7 @@ namespace mdb
 		std::unordered_set<PositionDetail*, PositionDetailHashForPositionDetailPrimaryKey, PositionDetailEqualForPositionDetailPrimaryKey> m_Index;
 	};
 	class OrderTable;
-	class MDB_EXPORTS OrderPrimaryKey
+	class OrderPrimaryKey
 	{
 		using iterator = std::unordered_set<Order*, OrderHashForOrderPrimaryKey, OrderEqualForOrderPrimaryKey>::iterator;
 		friend class OrderTable;
@@ -225,7 +224,7 @@ namespace mdb
 	};
 	
 	class TradeTable;
-	class MDB_EXPORTS TradePrimaryKey
+	class TradePrimaryKey
 	{
 		using iterator = std::unordered_set<Trade*, TradeHashForTradePrimaryKey, TradeEqualForTradePrimaryKey>::iterator;
 		friend class TradeTable;

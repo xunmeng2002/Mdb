@@ -1,12 +1,11 @@
 #pragma once
-#include <Mdb/Mdb/MdbExport.h>
 #include <DBAdapters/DBInterface/SchemaRegistry.h>
 
 
 namespace mdb
 {
 
-class MDB_EXPORTS MdbTableRegistry : public SchemaRegistry
+class MdbTableRegistry : public SchemaRegistry
 {
 public:
     static MdbTableRegistry& Instance();

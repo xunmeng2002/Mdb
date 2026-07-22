@@ -1,10 +1,9 @@
 ﻿#pragma once
-#include <Mdb/Mdb/MdbExport.h>
-#include <Mdb/Mdb/Mdb.h>
+#include "Mdb.h"
 
 namespace mdb
 {
-	class MDB_EXPORTS InitMdbFromCsv
+	class InitMdbFromCsv
 	{
 	public:
 		static void LoadTables(Mdb* mdb, const char* dir);

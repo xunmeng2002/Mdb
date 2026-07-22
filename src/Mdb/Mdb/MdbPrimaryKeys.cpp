@@ -1,5 +1,5 @@
-﻿#include <Mdb/Mdb/MdbPrimaryKeys.h>
-#include <Mdb/Mdb/MdbTables.h>
+﻿#include "MdbPrimaryKeys.h"
+#include "MdbTables.h"
 #include <PersonalLib/Core/Utility/Utility.h>
 #include <string.h>
 

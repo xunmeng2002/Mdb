@@ -3,8 +3,6 @@ set(VcpkgPth "D:/Github/vcpkg")
 set(CMAKE_TOOLCHAIN_FILE "${VcpkgPth}/scripts/buildsystems/vcpkg.cmake")
 SET(PROJECT_NAME "Mdb")
 project(${PROJECT_NAME} VERSION 1.0.0 LANGUAGES CXX)
-include(GNUInstallDirs)
-include(GenerateExportHeader)
 include(submodules/CMakeCommon/CMakeCommon.cmake)
 
 
@@ -49,14 +47,43 @@ message("CMAKE_CXX_FLAGS_DEBUG:" ${CMAKE_CXX_FLAGS_DEBUG})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<CONFIG>)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib/$<CONFIG>)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib/$<CONFIG>)
- 
+
 message(STATUS "VCPKG_TARGET_TRIPLET = ${VCPKG_TARGET_TRIPLET}")
 message(STATUS "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}")
-add_shared_module(Mdb				    ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Mdb)
 
 find_package(PersonalLib REQUIRED PATHS "../Libs/PersonalLib")
 find_package(DBAdapters REQUIRED PATHS "../Libs/DBAdapters")
 
-target_link_libraries(Mdb PUBLIC DBAdapters::DBInterface PersonalLib::Core PersonalLib::Serialization)
 
-add_subdirectory(test)
+# 所有 Mdb 源文件和头文件都在 src/Mdb/Mdb/ 下
+set(MDB_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Mdb)
+file(GLOB MDB_SOURCES CONFIGURE_DEPENDS "${MDB_SRC_DIR}/*.cpp")
+
+# 测试可执行文件
+add_executable(TestDB
+    ${MDB_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TestDB.cpp
+)
+
+target_include_directories(TestDB
+    PRIVATE
+        ${MDB_SRC_DIR}
+)
+
+set_target_properties(TestDB PROPERTIES
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/$<CONFIG>"
+)
+
+target_link_libraries(TestDB PRIVATE
+    DBAdapters::DBInterface
+    DBAdapters::AsyncDBWriter
+    DBAdapters::SqliteWrapper
+    DBAdapters::DuckdbWrapper
+    DBAdapters::MysqlWrapper
+    DBAdapters::MariadbWrapper
+    PersonalLib::Core
+    PersonalLib::Serialization
+)
+
+copy_dll_file(TestDB)

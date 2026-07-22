@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <Mdb/Mdb/MdbStructs.h>
+#include "MdbStructs.h"
 #include <stddef.h>
 
 namespace mdb

@@ -1,5 +1,5 @@
-#include <Mdb/Mdb/MdbTableRegistry.h>
-#include <Mdb/Mdb/MdbStructs.h>
+#include "MdbTableRegistry.h"
+#include "MdbStructs.h"
 
 
 namespace mdb

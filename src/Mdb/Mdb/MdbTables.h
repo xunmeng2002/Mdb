@@ -1,9 +1,8 @@
 #pragma once
-#include <Mdb/Mdb/MdbExport.h>
-#include <Mdb/Mdb/MdbStructs.h>
+#include "MdbStructs.h"
 #include <DBAdapters/DBInterface/MdbSubscriber.h>
-#include <Mdb/Mdb/MdbPrimaryKeys.h>
-#include <Mdb/Mdb/MdbIndexes.h>
+#include "MdbPrimaryKeys.h"
+#include "MdbIndexes.h"
 #include <shared_mutex>
 #include <atomic>
 #include <vector>
@@ -12,7 +11,7 @@
 namespace mdb
 {
 	class Mdb;
-	class MDB_EXPORTS TradingDayTable
+	class TradingDayTable
 	{
 	public:
 		TradingDayTable(Mdb* mdb);
@@ -42,7 +41,7 @@ namespace mdb
 		TradingDayPrimaryKey* m_PrimaryKey;
 	};
 
-	class MDB_EXPORTS ExchangeTable
+	class ExchangeTable
 	{
 	public:
 		ExchangeTable(Mdb* mdb);
@@ -72,7 +71,7 @@ namespace mdb
 		ExchangePrimaryKey* m_PrimaryKey;
 	};
 
-	class MDB_EXPORTS ProductTable
+	class ProductTable
 	{
 	public:
 		ProductTable(Mdb* mdb);
@@ -102,7 +101,7 @@ namespace mdb
 		ProductPrimaryKey* m_PrimaryKey;
 	};
 
-	class MDB_EXPORTS InstrumentTable
+	class InstrumentTable
 	{
 	public:
 		InstrumentTable(Mdb* mdb);
@@ -132,7 +131,7 @@ namespace mdb
 		InstrumentPrimaryKey* m_PrimaryKey;
 	};
 
-	class MDB_EXPORTS PrimaryAccountTable
+	class PrimaryAccountTable
 	{
 	public:
 		PrimaryAccountTable(Mdb* mdb);
@@ -164,7 +163,7 @@ namespace mdb
 		PrimaryAccountIndexOfferID* m_OfferIDIndex;
 	};
 
-	class MDB_EXPORTS AccountTable
+	class AccountTable
 	{
 	public:
 		AccountTable(Mdb* mdb);
@@ -194,7 +193,7 @@ namespace mdb
 		AccountPrimaryKey* m_PrimaryKey;
 	};
 
-	class MDB_EXPORTS CapitalTable
+	class CapitalTable
 	{
 	public:
 		CapitalTable(Mdb* mdb);
@@ -226,7 +225,7 @@ namespace mdb
 		CapitalIndexTradingDay* m_TradingDayIndex;
 	};
 
-	class MDB_EXPORTS PositionTable
+	class PositionTable
 	{
 	public:
 		PositionTable(Mdb* mdb);
@@ -260,7 +259,7 @@ namespace mdb
 		PositionIndexTradingDay* m_TradingDayIndex;
 	};
 
-	class MDB_EXPORTS PositionDetailTable
+	class PositionDetailTable
 	{
 	public:
 		PositionDetailTable(Mdb* mdb);
@@ -294,7 +293,7 @@ namespace mdb
 		PositionDetailIndexTradingDay* m_TradingDayIndex;
 	};
 
-	class MDB_EXPORTS OrderTable
+	class OrderTable
 	{
 	public:
 		OrderTable(Mdb* mdb);
@@ -325,7 +324,7 @@ namespace mdb
 		OrderUniqueKeyClientOrderID* m_ClientOrderIDUniqueKey;
 	};
 
-	class MDB_EXPORTS TradeTable
+	class TradeTable
 	{
 	public:
 		TradeTable(Mdb* mdb);

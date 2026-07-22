@@ -1,4 +1,4 @@
-#include <Mdb/Mdb/Mdb.h>
+#include "Mdb.h"
 #include <DBAdapters/DBInterface/TypedTable.h>
 #include <DBAdapters/DBInterface/SchemaRegistry.h>
 #include <DBAdapters/AsyncDBWriter/AsyncDBWriter.h>
@@ -6,8 +6,8 @@
 #include <DBAdapters/DuckdbWrapper/DuckdbWrapper.h>
 #include <DBAdapters/MysqlWrapper/MysqlWrapper.h>
 #include <DBAdapters/MariadbWrapper/MariadbWrapper.h>
-#include <Mdb/Mdb/InitMdbFromDB.h>
-#include <Mdb/Mdb/MdbTableRegistry.h>
+#include "InitMdbFromDB.h"
+#include "MdbTableRegistry.h"
 #include <PersonalLib/Core/Core.h>
 #include <iostream>
 

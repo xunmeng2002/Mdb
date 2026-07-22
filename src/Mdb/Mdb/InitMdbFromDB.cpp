@@ -1,4 +1,4 @@
-#include <Mdb/Mdb/InitMdbFromDB.h>
+#include "InitMdbFromDB.h"
 #include <DBAdapters/DBInterface/TypedTable.h>
 #include <vector>
 
