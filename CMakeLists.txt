@@ -54,27 +54,8 @@ message(STATUS "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}")
 find_package(PersonalLib REQUIRED PATHS "../Libs/PersonalLib")
 find_package(DBAdapters REQUIRED PATHS "../Libs/DBAdapters")
 
-
-# 所有 Mdb 源文件和头文件都在 src/Mdb/Mdb/ 下
-set(MDB_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb/Mdb)
-file(GLOB MDB_SOURCES CONFIGURE_DEPENDS "${MDB_SRC_DIR}/*.cpp")
-
 # 测试可执行文件
-add_executable(TestDB
-    ${MDB_SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TestDB.cpp
-)
-
-target_include_directories(TestDB
-    PRIVATE
-        ${MDB_SRC_DIR}
-)
-
-set_target_properties(TestDB PROPERTIES
-    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
-    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/$<CONFIG>"
-)
-
+add_application(TestDB  ${CMAKE_CURRENT_SOURCE_DIR}/src/TestMdb ${CMAKE_CURRENT_SOURCE_DIR}/src/TestMdb)
 target_link_libraries(TestDB PRIVATE
     DBAdapters::DBInterface
     DBAdapters::AsyncDBWriter
@@ -85,5 +66,4 @@ target_link_libraries(TestDB PRIVATE
     PersonalLib::Core
     PersonalLib::Serialization
 )
-
 copy_dll_file(TestDB)
