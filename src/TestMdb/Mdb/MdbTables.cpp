@@ -1,4 +1,4 @@
-﻿﻿#include "MdbTables.h"
+﻿#include "MdbTables.h"
 #include "Mdb.h"
 #include <PersonalLib/Core/Logger/Logger.h>
 #include <string>

@@ -1,4 +1,4 @@
-﻿﻿#include "MdbStructs.h"
+﻿#include "MdbStructs.h"
 #include "MdbIndexes.h"
 #include <PersonalLib/TemplateLib/TemplateLib.h>
 #include <string>
