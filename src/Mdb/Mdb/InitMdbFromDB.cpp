@@ -1,5 +1,5 @@
 #include <Mdb/Mdb/InitMdbFromDB.h>
-#include <DBInterface/TypedTable.h>
+#include <DBAdapters/DBInterface/TypedTable.h>
 #include <vector>
 
 using namespace std;

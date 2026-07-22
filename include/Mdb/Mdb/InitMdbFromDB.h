@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 #include <Mdb/Mdb/MdbExport.h>
 #include <Mdb/Mdb/Mdb.h>
-#include <DBInterface/DB.h>
+#include <DBAdapters/DBInterface/DB.h>
 
 namespace mdb
 {

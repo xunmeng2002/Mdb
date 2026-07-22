@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 #include <Mdb/Mdb/MdbExport.h>
-#include <DBInterface/Schema.h>
+#include <DBAdapters/DBInterface/Schema.h>
 #include <PersonalLib/Types.h>
 
 namespace mdb
