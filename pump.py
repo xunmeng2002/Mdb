@@ -135,7 +135,7 @@ if __name__ == "__main__":
     #tpl文件中的python代码嵌入标记
     expr = "!!.*?!!"
     #临时python文件
-    pump_file = open("pumptemp.py", "w+", encoding="UTF-8-SIG", newline='\n')
+    pump_file = open("pumptemp.py", "w+", encoding="UTF-8-SIG", newline='\\n')
 
     #entry列表
     entry_list = []
