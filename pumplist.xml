@@ -1,6 +1,7 @@
 <pumplist>
 	<pump dest="./src/TestMdb/Mdb/InitMdbFromCsv.h" tpl="../Templates/Cpp/Mdb/InitMdbFromCsv.h.tpl" model="./model/Tables/Tables.xml ./model/Tables/TableNames.xml"/>
 	<pump dest="./src/TestMdb/Mdb/InitMdbFromDB.h" tpl="../Templates/Cpp/Mdb/InitMdbFromDB.h.tpl" model="./model/Tables/Tables.xml ./model/Tables/TableNames.xml"/>
+    <pump dest="./src/TestMdb/Mdb/MdbTableRegistry.h" tpl="../Templates/Cpp/Mdb/MdbTableRegistry.h.tpl" model="./model/Tables/Tables.xml ./model/Tables/TableNames.xml"/>
 	<pump dest="./src/TestMdb/Mdb/Mdb.h" tpl="../Templates/Cpp/Mdb/Mdb.h.tpl" model="./model/Tables/Tables.xml ./model/Tables/TableNames.xml"/>
 	<pump dest="./src/TestMdb/Mdb/MdbStructs.h" tpl="../Templates/Cpp/Mdb/MdbStructs.h.tpl" model="./model/Tables/Tables.xml ./model/Tables/TableNames.xml ../model/Types.xml"/>
 	<pump dest="./src/TestMdb/Mdb/MdbTables.h" tpl="../Templates/Cpp/Mdb/MdbTables.h.tpl" model="./model/Tables/Tables.xml ./model/Tables/TableNames.xml"/>
@@ -12,6 +13,7 @@
 
 	<pump dest="./src/TestMdb/Mdb/InitMdbFromCsv.cpp" tpl="../Templates/Cpp/Mdb/InitMdbFromCsv.cpp.tpl" model="./model/Tables/Tables.xml ./model/Tables/TableNames.xml ../model/Types.xml"/>
 	<pump dest="./src/TestMdb/Mdb/InitMdbFromDB.cpp" tpl="../Templates/Cpp/Mdb/InitMdbFromDB.cpp.tpl" model="./model/Tables/Tables.xml ./model/Tables/TableNames.xml ../model/Types.xml"/>
+    <pump dest="./src/TestMdb/Mdb/MdbTableRegistry.cpp" tpl="../Templates/Cpp/Mdb/MdbTableRegistry.cpp.tpl" model="./model/Tables/Tables.xml ./model/Tables/TableNames.xml"/>
 	<pump dest="./src/TestMdb/Mdb/Mdb.cpp" tpl="../Templates/Cpp/Mdb/Mdb.cpp.tpl" model="./model/Tables/Tables.xml ./model/Tables/TableNames.xml"/>
 	<pump dest="./src/TestMdb/Mdb/MdbStructs.cpp" tpl="../Templates/Cpp/Mdb/MdbStructs.cpp.tpl" model="./model/Tables/Tables.xml ./model/Tables/TableNames.xml ../model/Types.xml"/>
 	<pump dest="./src/TestMdb/Mdb/MdbTables.cpp" tpl="../Templates/Cpp/Mdb/MdbTables.cpp.tpl" model="./model/Tables/Tables.xml ./model/Tables/TableNames.xml"/>
