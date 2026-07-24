@@ -307,8 +307,7 @@ namespace mdb
 	thread_local Order t_CompareOrder;
 	thread_local Trade t_CompareTrade;
 
-// ====== Schema definitions ======
-// name, type, struct offset, array size (for Char)
+
 static const FieldDescriptor TradingDayFields[] = {
 	{"PK", FieldType::Int, offsetof(TradingDay, PK), 0},
 	{"CurrTradingDay", FieldType::Char, offsetof(TradingDay, CurrTradingDay), sizeof(TradingDay::CurrTradingDay)},
