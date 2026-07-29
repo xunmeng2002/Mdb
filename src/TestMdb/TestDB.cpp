@@ -8,7 +8,7 @@
 #include <DBAdapters/DuckdbWrapper/DuckdbWrapper.h>
 #include <DBAdapters/MysqlWrapper/MysqlWrapper.h>
 #include <DBAdapters/MariadbWrapper/MariadbWrapper.h>
-#include <PersonalLib/Core/Core.h>
+#include <Spark/Core/Core.h>
 #include <iostream>
 
 
@@ -264,10 +264,10 @@ int main(int argc, char* argv[])
 	Logger::GetInstance().SetLogLevel(LogLevel::Info, LogLevel::Info);
 	Logger::GetInstance().Start();
 
-    //TestSqlite();
-    //TestDuckdb();
-    //TestMysql();
-    TestMariadb();
+    TestSqlite();
+    TestDuckdb();
+    TestMysql();
+    //TestMariadb();
 
 	Logger::GetInstance().Stop();
 	Logger::GetInstance().Join();

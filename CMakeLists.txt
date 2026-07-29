@@ -1,8 +1,15 @@
 cmake_minimum_required(VERSION 3.20)
-set(VcpkgPth "D:/Github/vcpkg")
-set(CMAKE_TOOLCHAIN_FILE "${VcpkgPth}/scripts/buildsystems/vcpkg.cmake")
+include(submodules/CMakeCommon/CMakeCommon.cmake)
+restore_vcpkg_root()
+set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+message(STATUS "ENV{VCPKG_ROOT} = $ENV{VCPKG_ROOT}")
+message(STATUS "ENV{VCPKG_DOWNLOADS} = $ENV{VCPKG_DOWNLOADS}")
+message(STATUS "ENV{VCPKG_DEFAULT_BINARY_CACHE} = $ENV{VCPKG_DEFAULT_BINARY_CACHE}")
+message(STATUS "CMAKE_TOOLCHAIN_FILE = ${CMAKE_TOOLCHAIN_FILE}")
 SET(PROJECT_NAME "Mdb")
 project(${PROJECT_NAME} VERSION 1.0.0 LANGUAGES CXX)
+include(GNUInstallDirs)
+include(GenerateExportHeader)
 include(submodules/CMakeCommon/CMakeCommon.cmake)
 
 
@@ -26,9 +33,12 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Windows")
 ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	add_definitions("-DLINUX")
     add_compile_options(
-        $<$<CONFIG:Debug>:-O0 -g -ggdb>
+        $<$<CONFIG:Debug>:-O0>
+        $<$<CONFIG:Debug>:-g>
+        $<$<CONFIG:Debug>:-ggdb>
         $<$<CONFIG:Release>:-O3>
-        $<$<CONFIG:RelWithDebInfo>:-O2 -g>
+        $<$<CONFIG:RelWithDebInfo>:-O2>
+        $<$<CONFIG:RelWithDebInfo>:-g>
         $<$<CONFIG:MinSizeRel>:-Os>)
     add_compile_definitions(
         $<$<CONFIG:Debug>:_DEBUG>
@@ -51,8 +61,15 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib/$<CONFIG>)
 message(STATUS "VCPKG_TARGET_TRIPLET = ${VCPKG_TARGET_TRIPLET}")
 message(STATUS "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}")
 
-find_package(PersonalLib REQUIRED PATHS "../Libs/PersonalLib")
-find_package(DBAdapters REQUIRED PATHS "../Libs/DBAdapters")
+if(WIN32)
+    find_package(Spark REQUIRED PATHS "../Libs/Spark/x64-windows")
+    find_package(DBAdapters CONFIG REQUIRED PATHS "../Libs/DBAdapters/x64-windows")
+    find_package(duckdb CONFIG REQUIRED PATHS "../Libs/duckdb/x64-windows")
+else()
+    find_package(Spark REQUIRED PATHS "../Libs/Spark/x64-linux")
+    find_package(DBAdapters CONFIG REQUIRED PATHS "../Libs/DBAdapters/x64-linux")
+    find_package(duckdb CONFIG REQUIRED PATHS "../Libs/duckdb/x64-linux")
+endif()
 
 # 测试可执行文件
 add_application(TestDB  ${CMAKE_CURRENT_SOURCE_DIR}/src/TestMdb ${CMAKE_CURRENT_SOURCE_DIR}/src/TestMdb)
@@ -63,7 +80,7 @@ target_link_libraries(TestDB PRIVATE
     DBAdapters::DuckdbWrapper
     DBAdapters::MysqlWrapper
     DBAdapters::MariadbWrapper
-    PersonalLib::Core
-    PersonalLib::Serialization
+    Spark::Core
+    Spark::Serialization
 )
 copy_dll_file(TestDB)

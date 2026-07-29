@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <DBAdapters/DBInterface/Schema.h>
-#include <PersonalLib/Types.h>
+#include <Spark/Types.h>
 
 namespace mdb
 {

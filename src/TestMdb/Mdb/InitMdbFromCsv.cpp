@@ -1,6 +1,6 @@
 ﻿#include "InitMdbFromCsv.h"
-#include <PersonalLib/Serialization/Csv/CsvRecord.h>
-#include <PersonalLib/Core/Utility/Utility.h>
+#include <Spark/Serialization/Csv/CsvRecord.h>
+#include <Spark/Core/Utility/Utility.h>
 #include <fstream>
 #include <assert.h>
 

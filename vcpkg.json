@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "mdb",
+  "version": "1.0.0",
+  "builtin-baseline": "b1e15efef6758eaa0beb0a8732cfa66f6a68a81d",
+  "dependencies": [
+    "sqlite3",
+    "mysql-connector-cpp",
+    "mariadb-connector-cpp"
+  ]
+}

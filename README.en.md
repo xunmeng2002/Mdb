@@ -93,7 +93,7 @@ Install the corresponding development libraries based on your chosen database ba
 The project depends on the `CMakeCommon` submodule. You must pull submodules after cloning.
 
 ### 5.4 Project Dependency
-- **PersonalLib** ([https://gitee.com/xunmeng200/PersonalLib](https://gitee.com/xunmeng200/PersonalLib)): Personal common library providing Core, Serialization, and other general-purpose modules. Build it in advance and place it at `../Libs/PersonalLib` (CMake locates it via `find_package(PersonalLib REQUIRED PATHS "../Libs/PersonalLib")`).
+- **Spark** ([https://gitee.com/xunmeng2002/Spark](https://gitee.com/xunmeng2002/Spark)): Personal common library providing Core, Serialization, and other general-purpose modules. Build it in advance and place it at `../Libs/Spark` (CMake locates it via `find_package(Spark REQUIRED PATHS "../Libs/Spark/x64-windows")`).
 
 ## 6. Build & Deployment Steps
 ### 6.1 Clone Repository (Recommended: recursive clone to pull submodules automatically)
