@@ -7,22 +7,26 @@ using namespace std;
 namespace mdb
 {
 
-	void InitMdbFromDB::LoadTablesWithTradingDay(Mdb* mdb, DB* db, const DateType& tradingDay)
+	void InitMdbFromDB::LoadTables(Mdb* mdb, DB* db, const TableList& tableList)
 	{
-	}
-	void InitMdbFromDB::LoadTablesWithoutTradingDay(Mdb* mdb, DB* db)
-	{
-		LoadTradingDayTable(mdb, db);
-		LoadExchangeTable(mdb, db);
-		LoadProductTable(mdb, db);
-		LoadInstrumentTable(mdb, db);
-		LoadPrimaryAccountTable(mdb, db);
-		LoadAccountTable(mdb, db);
-		LoadCapitalTable(mdb, db);
-		LoadPositionTable(mdb, db);
-		LoadPositionDetailTable(mdb, db);
-		LoadOrderTable(mdb, db);
-		LoadTradeTable(mdb, db);
+		for (int i = 0; i < tableList.Count; ++i)
+		{
+			switch (tableList.TableIDs[i])
+			{
+			case TradingDay::TableID:  LoadTradingDayTable(mdb, db); break;
+			case Exchange::TableID:  LoadExchangeTable(mdb, db); break;
+			case Product::TableID:  LoadProductTable(mdb, db); break;
+			case Instrument::TableID:  LoadInstrumentTable(mdb, db); break;
+			case PrimaryAccount::TableID:  LoadPrimaryAccountTable(mdb, db); break;
+			case Account::TableID:  LoadAccountTable(mdb, db); break;
+			case Capital::TableID:  LoadCapitalTable(mdb, db); break;
+			case Position::TableID:  LoadPositionTable(mdb, db); break;
+			case PositionDetail::TableID:  LoadPositionDetailTable(mdb, db); break;
+			case Order::TableID:  LoadOrderTable(mdb, db); break;
+			case Trade::TableID:  LoadTradeTable(mdb, db); break;
+			default: break;
+			}
+		}
 	}
 
 	void InitMdbFromDB::LoadTradingDayTable(Mdb* mdb, DB* db)

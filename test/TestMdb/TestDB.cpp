@@ -1,6 +1,7 @@
-#include "Mdb/Mdb.h"
-#include "Mdb/InitMdbFromDB.h"
-#include "Mdb/MdbTableRegistry.h"
+#include "Mdb.h"
+#include "InitMdbFromDB.h"
+#include "MdbTableRegistry.h"
+#include "FullTableList.h"
 #include <DBAdapters/DBInterface/TypedTable.h>
 #include <DBAdapters/DBInterface/SchemaRegistry.h>
 #include <DBAdapters/AsyncDBWriter/AsyncDBWriter.h>
@@ -135,8 +136,8 @@ static void InitAccount(TypedTable<Account>& table)
 
 static void TestMdb(DB* db)
 {
-	Mdb* mdb = new Mdb();
-	SchemaRegistry* schemaRegistry = &mdb::MdbTableRegistry::Instance();
+	Mdb* mdb = new Mdb(FullTableList);
+    MdbTableRegistry* schemaRegistry = new MdbTableRegistry(FullTableList);
 	AsyncDBWriter* dbWriter = new AsyncDBWriter(db, schemaRegistry);
 	mdb->Subscribe(dbWriter);
 	dbWriter->Subscribe(mdb);
@@ -170,6 +171,7 @@ static void TestMdb(DB* db)
 	mdb->UnSubscribe();
 	delete mdb;
 	delete dbWriter;
+    delete schemaRegistry;
 	this_thread::sleep_for(chrono::seconds(1));
 }
 

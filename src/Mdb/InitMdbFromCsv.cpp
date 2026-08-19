@@ -12,20 +12,26 @@ namespace mdb
 	static char HeaderBuffer[1024] = { 0 };
 	static char ContentBuffer[64 * 1024] = { 0 };
 
-	void InitMdbFromCsv::LoadTables(Mdb* mdb, const char* dir)
+	void InitMdbFromCsv::LoadTables(Mdb* mdb, const char* dir, const TableList& tableList)
 	{
-
-		LoadTradingDayTable(mdb, dir);
-		LoadExchangeTable(mdb, dir);
-		LoadProductTable(mdb, dir);
-		LoadInstrumentTable(mdb, dir);
-		LoadPrimaryAccountTable(mdb, dir);
-		LoadAccountTable(mdb, dir);
-		LoadCapitalTable(mdb, dir);
-		LoadPositionTable(mdb, dir);
-		LoadPositionDetailTable(mdb, dir);
-		LoadOrderTable(mdb, dir);
-		LoadTradeTable(mdb, dir);
+		for (int i = 0; i < tableList.Count; ++i)
+		{
+			switch (tableList.TableIDs[i])
+			{
+			case TradingDay::TableID:  LoadTradingDayTable(mdb, dir); break;
+			case Exchange::TableID:  LoadExchangeTable(mdb, dir); break;
+			case Product::TableID:  LoadProductTable(mdb, dir); break;
+			case Instrument::TableID:  LoadInstrumentTable(mdb, dir); break;
+			case PrimaryAccount::TableID:  LoadPrimaryAccountTable(mdb, dir); break;
+			case Account::TableID:  LoadAccountTable(mdb, dir); break;
+			case Capital::TableID:  LoadCapitalTable(mdb, dir); break;
+			case Position::TableID:  LoadPositionTable(mdb, dir); break;
+			case PositionDetail::TableID:  LoadPositionDetailTable(mdb, dir); break;
+			case Order::TableID:  LoadOrderTable(mdb, dir); break;
+			case Trade::TableID:  LoadTradeTable(mdb, dir); break;
+			default: break;
+			}
+		}
 	}
 
 	void InitMdbFromCsv::LoadTradingDayTable(Mdb* mdb, const char* dir)

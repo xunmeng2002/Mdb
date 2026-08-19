@@ -1,12 +1,13 @@
 ﻿#pragma once
 #include "Mdb.h"
+#include "TableList.h"
 
 namespace mdb
 {
 	class InitMdbFromCsv
 	{
 	public:
-		static void LoadTables(Mdb* mdb, const char* dir);
+		static void LoadTables(Mdb* mdb, const char* dir, const TableList& tableList);
 	private:
 		static void LoadTradingDayTable(Mdb* mdb, const char* dir);
 		static void LoadExchangeTable(Mdb* mdb, const char* dir);

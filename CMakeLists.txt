@@ -73,9 +73,15 @@ else()
     find_package(duckdb CONFIG REQUIRED PATHS "../Libs/duckdb/x64-linux")
 endif()
 
+
+add_static_md_module(Mdb ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb)
+target_link_libraries(MdbStatic PUBLIC Spark::Core DBAdapters::DBInterface)
+target_link_libraries(MdbStatic PRIVATE Spark::TemplateLib)
+
 # 测试可执行文件
-add_application(TestDB  ${CMAKE_CURRENT_SOURCE_DIR}/src/TestMdb ${CMAKE_CURRENT_SOURCE_DIR}/src/TestMdb)
+add_application(TestDB  ${CMAKE_CURRENT_SOURCE_DIR}/test/TestMdb ${CMAKE_CURRENT_SOURCE_DIR}/test/TestMdb)
 target_link_libraries(TestDB PRIVATE
+    MdbStatic
     DBAdapters::DBInterface
     DBAdapters::AsyncDBWriter
     DBAdapters::SqliteWrapper
@@ -83,6 +89,5 @@ target_link_libraries(TestDB PRIVATE
     DBAdapters::MysqlWrapper
     DBAdapters::MariadbWrapper
     Spark::Core
-    Spark::Serialization
-)
+    Spark::Serialization)
 copy_dll_file(TestDB)

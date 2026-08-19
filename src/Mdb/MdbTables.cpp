@@ -1,5 +1,4 @@
 ﻿#include "MdbTables.h"
-#include "Mdb.h"
 #include <Spark/Core/Logger/Logger.h>
 #include <string>
 #include <cstring>
@@ -11,8 +10,7 @@ using std::set;
 
 namespace mdb
 {
-	TradingDayTable::TradingDayTable(Mdb* mdb)
-		:m_Mdb(mdb)
+	TradingDayTable::TradingDayTable()
 	{
 		m_MdbSubscriber = nullptr;
 		m_PrimaryKey = new TradingDayPrimaryKey(this);
@@ -189,8 +187,7 @@ namespace mdb
 	{
 	}
 
-	ExchangeTable::ExchangeTable(Mdb* mdb)
-		:m_Mdb(mdb)
+	ExchangeTable::ExchangeTable()
 	{
 		m_MdbSubscriber = nullptr;
 		m_PrimaryKey = new ExchangePrimaryKey(this);
@@ -367,8 +364,7 @@ namespace mdb
 	{
 	}
 
-	ProductTable::ProductTable(Mdb* mdb)
-		:m_Mdb(mdb)
+	ProductTable::ProductTable()
 	{
 		m_MdbSubscriber = nullptr;
 		m_PrimaryKey = new ProductPrimaryKey(this);
@@ -545,8 +541,7 @@ namespace mdb
 	{
 	}
 
-	InstrumentTable::InstrumentTable(Mdb* mdb)
-		:m_Mdb(mdb)
+	InstrumentTable::InstrumentTable()
 	{
 		m_MdbSubscriber = nullptr;
 		m_PrimaryKey = new InstrumentPrimaryKey(this);
@@ -723,8 +718,7 @@ namespace mdb
 	{
 	}
 
-	PrimaryAccountTable::PrimaryAccountTable(Mdb* mdb)
-		:m_Mdb(mdb)
+	PrimaryAccountTable::PrimaryAccountTable()
 	{
 		m_MdbSubscriber = nullptr;
 		m_PrimaryKey = new PrimaryAccountPrimaryKey(this);
@@ -943,8 +937,7 @@ namespace mdb
 		m_OfferIDIndex->Erase(record);
 	}
 
-	AccountTable::AccountTable(Mdb* mdb)
-		:m_Mdb(mdb)
+	AccountTable::AccountTable()
 	{
 		m_MdbSubscriber = nullptr;
 		m_PrimaryKey = new AccountPrimaryKey(this);
@@ -1121,8 +1114,7 @@ namespace mdb
 	{
 	}
 
-	CapitalTable::CapitalTable(Mdb* mdb)
-		:m_Mdb(mdb)
+	CapitalTable::CapitalTable()
 	{
 		m_MdbSubscriber = nullptr;
 		m_PrimaryKey = new CapitalPrimaryKey(this);
@@ -1341,8 +1333,7 @@ namespace mdb
 		m_TradingDayIndex->Erase(record);
 	}
 
-	PositionTable::PositionTable(Mdb* mdb)
-		:m_Mdb(mdb)
+	PositionTable::PositionTable()
 	{
 		m_MdbSubscriber = nullptr;
 		m_PrimaryKey = new PositionPrimaryKey(this);
@@ -1603,8 +1594,7 @@ namespace mdb
 		m_TradingDayIndex->Erase(record);
 	}
 
-	PositionDetailTable::PositionDetailTable(Mdb* mdb)
-		:m_Mdb(mdb)
+	PositionDetailTable::PositionDetailTable()
 	{
 		m_MdbSubscriber = nullptr;
 		m_PrimaryKey = new PositionDetailPrimaryKey(this);
@@ -1865,8 +1855,7 @@ namespace mdb
 		m_TradingDayIndex->Erase(record);
 	}
 
-	OrderTable::OrderTable(Mdb* mdb)
-		:m_Mdb(mdb)
+	OrderTable::OrderTable()
 	{
 		m_MdbSubscriber = nullptr;
 		m_PrimaryKey = new OrderPrimaryKey(this);
@@ -2051,8 +2040,7 @@ namespace mdb
 	{
 	}
 
-	TradeTable::TradeTable(Mdb* mdb)
-		:m_Mdb(mdb)
+	TradeTable::TradeTable()
 	{
 		m_MdbSubscriber = nullptr;
 		m_PrimaryKey = new TradePrimaryKey(this);

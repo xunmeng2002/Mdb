@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Mdb.h"
+#include "TableList.h"
 #include <DBAdapters/DBInterface/DB.h>
 
 namespace mdb
@@ -7,8 +8,7 @@ namespace mdb
 	class InitMdbFromDB
 	{
 	public:
-		static void LoadTablesWithTradingDay(Mdb* mdb, DB* db, const DateType& tradingDay);
-		static void LoadTablesWithoutTradingDay(Mdb* mdb, DB* db);
+		static void LoadTables(Mdb* mdb, DB* db, const TableList& tableList);
 
 		static void LoadTradingDayTable(Mdb* mdb, DB* db);
 		static void LoadExchangeTable(Mdb* mdb, DB* db);
