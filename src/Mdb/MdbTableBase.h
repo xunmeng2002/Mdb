@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <DBAdapters/DBInterface/MdbSubscriber.h>
 #include <atomic>
 

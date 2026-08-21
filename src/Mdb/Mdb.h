@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "MdbTables.h"
 #include "MdbTableBase.h"
 #include "TableList.h"

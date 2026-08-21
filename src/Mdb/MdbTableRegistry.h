@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "TableList.h"
 #include <DBAdapters/DBInterface/SchemaRegistry.h>
 #include <vector>
