@@ -1,4 +1,4 @@
-﻿#include "MdbTables.h"
+#include "MdbTables.h"
 #include <Spark/Core/Logger/Logger.h>
 #include <string>
 #include <cstring>
@@ -7,6 +7,7 @@
 
 using std::string;
 using std::set;
+using namespace spark::core;
 
 namespace mdb
 {

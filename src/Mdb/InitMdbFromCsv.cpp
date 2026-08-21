@@ -1,11 +1,12 @@
-﻿#include "InitMdbFromCsv.h"
+#include "InitMdbFromCsv.h"
 #include <Spark/Serialization/Csv/CsvRecord.h>
 #include <Spark/Core/Utility/Utility.h>
 #include <fstream>
 #include <assert.h>
 
 using namespace std;
-
+using namespace spark::core;
+using namespace spark::serialization;
 
 namespace mdb
 {

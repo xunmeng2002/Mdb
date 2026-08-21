@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "MdbTables.h"
 #include "MdbTableBase.h"
 #include "TableList.h"
@@ -9,7 +9,7 @@
 
 namespace mdb
 {
-	class Mdb : public DBSubscriber
+	class Mdb : public dbadapters::DBSubscriber
 	{
 	public:
 		explicit Mdb(const TableList& tableList);

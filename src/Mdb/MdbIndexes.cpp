@@ -1,9 +1,9 @@
-﻿#include "MdbIndexes.h"
+#include "MdbIndexes.h"
 #include "MdbTables.h"
 #include <Spark/Core/Utility/Utility.h>
 #include <string.h>
 
-
+using namespace spark::core;
 namespace mdb
 {
 	PrimaryAccountIndexOfferID::PrimaryAccountIndexOfferID(PrimaryAccountTable* table)

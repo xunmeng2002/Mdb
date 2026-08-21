@@ -1,8 +1,9 @@
-﻿#include "InitMdbFromDB.h"
+#include "InitMdbFromDB.h"
 #include <DBAdapters/DBInterface/TypedTable.h>
 #include <vector>
 
 using namespace std;
+using namespace dbadapters;
 
 namespace mdb
 {

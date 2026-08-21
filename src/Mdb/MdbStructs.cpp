@@ -1,9 +1,11 @@
-﻿#include "MdbStructs.h"
+#include "MdbStructs.h"
 #include "MdbIndexes.h"
 #include <Spark/TemplateLib/TemplateLib.h>
 #include <string>
 #include <cstring>
 
+using namespace spark;
+using namespace dbadapters;
 namespace mdb
 {
 	thread_local char t_MdbDataStringBuffer[10240];

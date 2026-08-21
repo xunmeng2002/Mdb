@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <DBAdapters/DBInterface/MdbSubscriber.h>
 #include <atomic>
 
@@ -10,7 +10,7 @@ namespace mdb
 	public:
 		virtual ~MdbTableBase() = default;
 
-		virtual void Subscribe(MdbSubscriber* mdbSubscriber) = 0;
+		virtual void Subscribe(dbadapters::MdbSubscriber* mdbSubscriber) = 0;
 		virtual void UnSubscribe() = 0;
 		virtual void InitDB() = 0;
 		virtual void TruncateTables() = 0;

@@ -1,12 +1,13 @@
-﻿#pragma once
+#pragma once
 #include "TableList.h"
 #include <DBAdapters/DBInterface/SchemaRegistry.h>
 #include <vector>
 
+using dbadapters::TableSchema;
 
 namespace mdb
 {
-	class MdbTableRegistry : public SchemaRegistry
+	class MdbTableRegistry : public dbadapters::SchemaRegistry
 	{
 	public:
 		explicit MdbTableRegistry(const TableList& tableList);
