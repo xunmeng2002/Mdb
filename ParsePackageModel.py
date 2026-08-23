@@ -58,6 +58,7 @@ def GetFields(fieldFile, items, fields):
 def GetPackages(packageFile, fields, packages, destFields):
     dom = xml.dom.minidom.parse(packageFile)
     root = dom.documentElement
+    projectName = root.getAttribute("project")
     lastID = 0
     for packageNode in root.getElementsByTagName("package"):
         package = Package()
@@ -75,6 +76,7 @@ def GetPackages(packageFile, fields, packages, destFields):
             package.Fields.append(fields[fieldName])
             destFields[fieldName] = fields[fieldName]
         packages.append(package)
+    return projectName
 	
 def AddItemNode(dom, parentNode, item):
     itemNode = dom.createElement('item')
@@ -109,13 +111,14 @@ def ReadXml(packageFile, fieldFile, itemFile):
     destFields = {}
     GetItems(itemFile, items)
     GetFields(fieldFile, items, fields)
-    GetPackages(packageFile, fields, packages, destFields)
-    return packages, destFields
+    projectName = GetPackages(packageFile, fields, packages, destFields)
+    return projectName, packages, destFields
 
-def WritePackagesFile(destPackageFile, packages):
+def WritePackagesFile(destPackageFile, projectName, packages):
     impl = xml.dom.minidom.getDOMImplementation()
     dom = impl.createDocument(None, 'packages', None)
     root = dom.documentElement
+    root.setAttribute("project", projectName)
     for package in packages:
         AddPackageNode(dom, root, package)
     f = open(destPackageFile, 'w', encoding="UTF-8")
@@ -156,7 +159,7 @@ if __name__ == "__main__":
     srcFieldFile = sys.argv[5]
     srcItemFile = sys.argv[6]
 
-    packages, fields = ReadXml(srcPackageFile, srcFieldFile, srcItemFile)
-    WritePackagesFile(destPackageFile, packages)
+    projectName, packages, fields = ReadXml(srcPackageFile, srcFieldFile, srcItemFile)
+    WritePackagesFile(destPackageFile, projectName, packages)
     WriteFullApiPackagesFile(fullApiPackageFile, packages)
     WriteFieldsFile(destFieldFile, fields)
