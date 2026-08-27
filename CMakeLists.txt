@@ -10,7 +10,6 @@ SET(PROJECT_NAME "Mdb")
 project(${PROJECT_NAME} VERSION 1.0.0 LANGUAGES CXX)
 include(GNUInstallDirs)
 include(GenerateExportHeader)
-include(submodules/CMakeCommon/CMakeCommon.cmake)
 
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
