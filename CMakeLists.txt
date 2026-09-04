@@ -16,35 +16,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_DEBUG_POSTFIX "d")
 set(CMAKE_VERBOSE_MAKEFILE ON)
-add_definitions(-DUNICODE -D_UNICODE)
-
-
-IF(CMAKE_SYSTEM_NAME MATCHES "Windows")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /bigobj /utf-8")
-    add_definitions(-DWINDOWS -D_CRT_SECURE_NO_WARNINGS -D_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
-	add_compile_options(
-        $<$<CONFIG:Debug>:/Od>
-        $<$<CONFIG:Debug>:/Zi>
-        $<$<CONFIG:Release>:/O2>
-        $<$<CONFIG:RelWithDebInfo>:/O2>
-        $<$<CONFIG:RelWithDebInfo>:/Zi>
-        $<$<CONFIG:MinSizeRel>:/O1>)
-ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	add_definitions("-DLINUX")
-    add_compile_options(
-        $<$<CONFIG:Debug>:-O0>
-        $<$<CONFIG:Debug>:-g>
-        $<$<CONFIG:Debug>:-ggdb>
-        $<$<CONFIG:Release>:-O3>
-        $<$<CONFIG:RelWithDebInfo>:-O2>
-        $<$<CONFIG:RelWithDebInfo>:-g>
-        $<$<CONFIG:MinSizeRel>:-Os>)
-    add_compile_definitions(
-        $<$<CONFIG:Debug>:_DEBUG>
-        $<$<CONFIG:Release>:NDEBUG>
-        $<$<CONFIG:RelWithDebInfo>:NDEBUG>
-        $<$<CONFIG:MinSizeRel>:NDEBUG>)
-ENDIF()
+# 平台/配置相关编译选项：MSVC 的 /EHsc 及各配置优化级别、Linux 的 -g/-O 系、
+# NDEBUG/_DEBUG 均为 CMake+编译器默认行为，不再显式重复；仅保留净增量项
+if(WIN32)
+    add_compile_definitions(UNICODE _UNICODE _CRT_SECURE_NO_WARNINGS _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
+    add_compile_options(/utf-8 /bigobj)
+endif()
 message("CMAKE_BUILD_TYPE:" ${CMAKE_BUILD_TYPE})
 message("CMAKE_SYSTEM_NAME:" ${CMAKE_SYSTEM_NAME})
 message("CMAKE_CL_64:" ${CMAKE_CL_64})
