@@ -2,12 +2,12 @@
 <tables>
 	<table name="TradingDay" id="0x0001" desc="交易日" batch="" session="">
 		<items>
-			<item name="PK" id="0x2901" type="Int" desc="主键"/>
+			<item name="PK" id="0x2901" type="Int32" desc="主键"/>
 			<item name="CurrTradingDay" id="0x300F" type="Date" desc="当前交易日"/>
 			<item name="PreTradingDay" id="0x3010" type="Date" desc="昨交易日"/>
 		</items>
 		<primarykey>
-			<item name="PK" id="0x2901" type="Int" desc="主键"/>
+			<item name="PK" id="0x2901" type="Int32" desc="主键"/>
 		</primarykey>
 		<uniquekeys/>
 		<indexes/>
@@ -53,7 +53,7 @@
 			<item name="ProductID" id="0x1015" type="ProductID" desc="品种代码"/>
 			<item name="ProductClass" id="0x901C" type="ProductClass" desc="品种类型"/>
 			<item name="InstrumentClass" id="0x9001" type="InstrumentClass" desc="合约类别"/>
-			<item name="Rank" id="0x2903" type="Int" desc="级别"/>
+			<item name="Rank" id="0x2903" type="Int32" desc="级别"/>
 			<item name="VolumeMultiple" id="0x8403" type="VolumeMultiple" desc="合约乘数"/>
 			<item name="PriceTick" id="0x6024" type="Price" desc="最小变动价位"/>
 			<item name="MaxMarketOrderVolume" id="0x401F" type="Volume" desc="市价最大下单量"/>
