@@ -1,23 +1,50 @@
+# 本项目编辑器统一配置
+#
+# 本文件是「机械格式」的唯一权威：缩进、行宽、换行符、编码、尾随空白。
+# 命名 / 结构 / 安全等语言规则见 rules/*-style.md，不在此文件表达。
+# 依据：cpp-style.md §3、csharp-style.md、python-style.md、
+#       web-style.md、database-style.md、markdown-style.md §12
+#
+# 行宽取全局 150：一处定义、全仓一致，与 markdown-style.md §12 的
+# 「纯文本 ≤ 150 字符」、cpp-style.md §3 的函数签名单行阈值一致。
 root = true
 
+# ============ 全体文件 ============
 [*]
-indent_style = space
-end_of_line = lf
 charset = utf-8
-trim_trailing_whitespace = true
+end_of_line = lf
+indent_style = space
 insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 150
 
-[*.{cpp,h,hpp}]
+# ============ C / C++（cpp-style.md §3：函数签名单行阈值 150） ============
+[*.{c,cc,cpp,cxx,h,hpp,hxx}]
 indent_size = 4
 
+# ============ C#（csharp-style.md） ============
 [*.cs]
 indent_size = 4
 
+# ============ Python（python-style.md） ============
 [*.{py,pyi}]
 indent_size = 4
 
-[*.{js,ts,vue,css,scss,html}]
+# ============ 前端（web-style.md） ============
+[*.{js,jsx,ts,tsx,vue,css,scss,less,html,htm}]
 indent_size = 2
 
+# ============ SQL（database-style.md） ============
+[*.sql]
+indent_size = 4
+
+# ============ 文档（markdown-style.md） ============
 [*.{md,markdown}]
 indent_size = 2
+
+# ============ 构建脚本（六仓实际写法均为 4 空格） ============
+[CMakeLists.txt]
+indent_size = 4
+
+[*.cmake]
+indent_size = 4
