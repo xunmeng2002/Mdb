@@ -12,7 +12,7 @@ namespace mdb
 		friend class TradingDayTable;
 	public:
 		TradingDayPrimaryKey(TradingDayTable* table, size_t buckets = 1000);
-		TradingDay* Select(const IntType& PK);
+		TradingDay* Select(const Int32Type& PK);
 		std::pair<iterator, iterator> SelectAll();
 		
 	protected:

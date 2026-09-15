@@ -22,7 +22,7 @@ namespace mdb
 	}
 	size_t TradingDayHashForTradingDayPrimaryKey::operator()(const TradingDay* const record) const
 	{
-		return std::hash<int>()(record->PK);
+		return std::hash<Int32Type>()(record->PK);
 	}
 	bool ExchangeEqualForExchangePrimaryKey::operator()(const Exchange* const left, const Exchange* const right) const
 	{
@@ -162,7 +162,7 @@ namespace mdb
 	}
 	size_t PositionHashForPositionPrimaryKey::operator()(const Position* const record) const
 	{
-		return std::hash<string>()(record->TradingDay) + std::hash<string>()(record->AccountID) + std::hash<string>()(record->ExchangeID) + std::hash<string>()(record->InstrumentID) + std::hash<char>()((char)record->PosiDirection);
+		return std::hash<string>()(record->TradingDay) + std::hash<string>()(record->AccountID) + std::hash<string>()(record->ExchangeID) + std::hash<string>()(record->InstrumentID) + std::hash<PosiDirectionType>()(record->PosiDirection);
 	}
 	bool PositionDetailEqualForPositionDetailPrimaryKey::operator()(const PositionDetail* const left, const PositionDetail* const right) const
 	{
@@ -202,7 +202,7 @@ namespace mdb
 	}
 	size_t PositionDetailHashForPositionDetailPrimaryKey::operator()(const PositionDetail* const record) const
 	{
-		return std::hash<string>()(record->TradingDay) + std::hash<string>()(record->AccountID) + std::hash<string>()(record->ExchangeID) + std::hash<string>()(record->InstrumentID) + std::hash<char>()((char)record->PosiDirection) + std::hash<string>()(record->OpenDate) + std::hash<string>()(record->TradeID);
+		return std::hash<string>()(record->TradingDay) + std::hash<string>()(record->AccountID) + std::hash<string>()(record->ExchangeID) + std::hash<string>()(record->InstrumentID) + std::hash<PosiDirectionType>()(record->PosiDirection) + std::hash<string>()(record->OpenDate) + std::hash<string>()(record->TradeID);
 	}
 	bool OrderEqualForOrderPrimaryKey::operator()(const Order* const left, const Order* const right) const
 	{
@@ -234,7 +234,7 @@ namespace mdb
 	}
 	size_t OrderHashForOrderPrimaryKey::operator()(const Order* const record) const
 	{
-		return std::hash<string>()(record->TradingDay) + std::hash<string>()(record->AccountID) + std::hash<string>()(record->ExchangeID) + std::hash<string>()(record->InstrumentID) + std::hash<int>()(record->OrderID);
+		return std::hash<string>()(record->TradingDay) + std::hash<string>()(record->AccountID) + std::hash<string>()(record->ExchangeID) + std::hash<string>()(record->InstrumentID) + std::hash<OrderIDType>()(record->OrderID);
 	}
 	bool OrderEqualForClientOrderIDUniqueKey::operator()(const Order* const left, const Order* const right) const
 	{
@@ -270,7 +270,7 @@ namespace mdb
 	}
 	size_t OrderHashForClientOrderIDUniqueKey::operator()(const Order* const record) const
 	{
-		return std::hash<string>()(record->TradingDay) + std::hash<string>()(record->AccountID) + std::hash<string>()(record->ExchangeID) + std::hash<string>()(record->InstrumentID) + std::hash<long long>()(record->SessionID) + std::hash<int>()(record->ClientOrderID);
+		return std::hash<string>()(record->TradingDay) + std::hash<string>()(record->AccountID) + std::hash<string>()(record->ExchangeID) + std::hash<string>()(record->InstrumentID) + std::hash<SessionIDType>()(record->SessionID) + std::hash<ClientOrderIDType>()(record->ClientOrderID);
 	}
 	
 	bool TradeEqualForTradePrimaryKey::operator()(const Trade* const left, const Trade* const right) const
@@ -299,6 +299,6 @@ namespace mdb
 	}
 	size_t TradeHashForTradePrimaryKey::operator()(const Trade* const record) const
 	{
-		return std::hash<string>()(record->TradingDay) + std::hash<string>()(record->ExchangeID) + std::hash<string>()(record->TradeID) + std::hash<char>()((char)record->Direction);
+		return std::hash<string>()(record->TradingDay) + std::hash<string>()(record->ExchangeID) + std::hash<string>()(record->TradeID) + std::hash<DirectionType>()(record->Direction);
 	}
 }

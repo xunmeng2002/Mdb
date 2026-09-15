@@ -11,7 +11,7 @@ namespace mdb
 	public:
 		static constexpr unsigned int TableID = 0x0001;
 		//主键
-		IntType PK;
+		Int32Type PK;
 		//当前交易日
 		DateType CurrTradingDay;
 		//昨交易日
@@ -93,7 +93,7 @@ namespace mdb
 		//合约类别
 		InstrumentClassType InstrumentClass;
 		//级别
-		IntType Rank;
+		Int32Type Rank;
 		//合约乘数
 		VolumeMultipleType VolumeMultiple;
 		//最小变动价位

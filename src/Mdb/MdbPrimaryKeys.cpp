@@ -13,7 +13,7 @@ namespace mdb
 		:m_Table(table), m_Index(buckets)
 	{
 	}
-	TradingDay* TradingDayPrimaryKey::Select(const IntType& PK)
+	TradingDay* TradingDayPrimaryKey::Select(const Int32Type& PK)
 	{
 		t_CompareTradingDay.PK = PK;
 		

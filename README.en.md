@@ -11,11 +11,11 @@ Created by [Fireseeker](https://fireseeker.cn/)
 
 Mdb is an **implementation example of an in-memory database**; the focus is on demonstrating *how to implement and use* an in-memory database, not on specific business data. It shows the complete implementation path:
 
-1. **Schema-driven**: table models are defined in `model/*.xml`, and Python scripts (`pump.py` + `pumplist.xml`) auto-generate all table-structure code (record structs, typed table containers, primary-key containers, secondary-index containers) — no manual code;
+1. **Schema-driven**: table models are defined in `Model/*.xml`, and Python scripts (`pump.py` + `pumplist.xml`) auto-generate all table-structure code (record structs, typed table containers, primary-key containers, secondary-index containers) — no manual code;
 2. **In-memory-first + asynchronous persistence**: reads/writes operate on memory first; changes are broadcast through a subscription interface (`MdbSubscriber`) and **asynchronously synced to physical databases** (SQLite / DuckDB / MySQL / MariaDB) via DBAdapters' `AsyncDBWriter`, balancing low latency with data reliability;
 3. **Retrieval & concurrency**: each table ships with primary-key and secondary-index containers (`Select` / `SelectAll` / `EqualRange`) and supports concurrent reads via `std::shared_mutex`.
 
-Therefore, the 11 built-in financial tables (trading days, accounts, orders, positions, etc.) are **example data only**, used to demonstrate how to describe, create, index, and query different field types (fixed-length strings, enums, dates, integers). To move to your own business, define your own `model/*.xml` and regenerate the code.
+Therefore, the 11 built-in financial tables (trading days, accounts, orders, positions, etc.) are **example data only**, used to demonstrate how to describe, create, index, and query different field types (fixed-length strings, enums, dates, integers). To move to your own business, define your own `Model/*.xml` and regenerate the code.
 
 Built with C++20, the project uses CMake for cross-platform builds and ships with built-in table creation scripts and integration tests. It serves both as a tutorial for learning in-memory database implementation and as a starting point for building your own in-memory data layer.
 
@@ -35,7 +35,7 @@ The features below illustrate the key problems to solve when implementing an in-
 
 ## 3. Example Data Table Models
 
-The framework ships with 11 financial trading example tables (table structures are defined in `model/Tables/Tables.xml` and auto-generated). **Note**: these tables and their business fields are for demonstration only — they are not the point of this project. They cover a variety of field types (fixed-length strings, enums, dates, integers) to show how an in-memory database describes, creates, indexes, and queries different fields.
+The framework ships with 11 financial trading example tables (table structures are defined in `Model/Tables/Tables.xml` and auto-generated). **Note**: these tables and their business fields are for demonstration only — they are not the point of this project. They cover a variety of field types (fixed-length strings, enums, dates, integers) to show how an in-memory database describes, creates, indexes, and queries different fields.
 
 | Table Name | Table ID | Description | Business Use |
 | ---- | ---- | ---- | ---- |
@@ -71,7 +71,7 @@ Mdb/
 ├── test/TestMdb/                  # Integration tests (TestDB: full flow across four DBs + async writes)
 │   ├── FullTableList.h            # TableList definition for all 11 tables
 │   └── TestDB.cpp
-├── model/                         # Data table model definitions (Tables.xml / TableNames.xml, etc.)
+├── Model/                         # Data table model definitions (Tables.xml / TableNames.xml, etc.)
 │   ├── TableNames/                # Table name lists (FullTableNames.xml)
 │   └── Tables/                    # Table structure definitions (Tables.xml / ShortTables.xml / TableNames.xml)
 ├── sql/                           # Per-database table creation scripts
@@ -189,23 +189,19 @@ The test program runs the "in-memory DB + async write" full flow against SQLite 
 ```cpp
 #include "Mdb.h"
 #include "MdbTableRegistry.h"
+#include "FullTableList.h"
 #include <DBAdapters/AsyncDBWriter/AsyncDBWriter.h>
 #include <DBAdapters/SqliteWrapper/SqliteWrapper.h>
 #include <Spark/Core/Core.h>
 #include <cstring>
 
 using namespace mdb;
+using namespace mdb::full;
 using namespace dbadapters;
 using namespace spark::core;
 
-// Define the financial table list contained in the in-memory DB (all 11 tables)
-inline const unsigned int kFullTableIDs[] = {
-    TradingDay::TableID,      Exchange::TableID,       Product::TableID,
-    Instrument::TableID,      PrimaryAccount::TableID, Account::TableID,
-    Capital::TableID,         Position::TableID,       PositionDetail::TableID,
-    Order::TableID,           Trade::TableID,
-};
-const TableList FullTableList = { "Full", kFullTableIDs, 11 };
+// The in-memory DB's table list (all 11 tables) is not hand-written: it is generated
+// from Model/TableNames/FullTableNames.xml into FullTableList.h by pumpall.py — do not edit
 
 int main(int argc, const char* argv[])
 {
@@ -214,11 +210,11 @@ int main(int argc, const char* argv[])
     Logger::GetInstance().Start();
 
     // 1. In-memory DB: create 11 typed tables from the table list
-    Mdb* mdb = new Mdb(FullTableList);
+    Mdb* mdb = new Mdb(fullTableList);
 
     // 2. Persistence chain: DB adapter + schema registry + async writer
     DB* db = new SqliteWrapper("./Test.sqlitedb");          // persist to SQLite
-    MdbTableRegistry* schemaRegistry = new MdbTableRegistry(FullTableList);
+    MdbTableRegistry* schemaRegistry = new MdbTableRegistry(fullTableList);
     AsyncDBWriter* dbWriter = new AsyncDBWriter(db, schemaRegistry);
 
     // 3. Bidirectional wiring
@@ -314,10 +310,10 @@ mdb->TruncateTables();
 #include "InitMdbFromCsv.h"
 
 // Bulk-load from a persistent database into memory (after tables are created)
-InitMdbFromDB::LoadTables(mdb, db, FullTableList);
+InitMdbFromDB::LoadTables(mdb, db, fullTableList);
 
 // Bulk-load from a CSV directory into memory
-InitMdbFromCsv::LoadTables(mdb, "./dump", FullTableList);
+InitMdbFromCsv::LoadTables(mdb, "./dump", fullTableList);
 
 // Dump all in-memory tables to a directory
 mdb->Dump("./dump");
@@ -325,11 +321,11 @@ mdb->Dump("./dump");
 
 ## 8. Python Scripts
 
-Table models are defined in `model/*.xml`; the Python scripts in the project root handle code generation and automation:
+Table models are defined in `Model/*.xml`; the Python scripts in the project root handle code generation and automation:
 
 | Script | Description |
 | ---- | ---- |
-| pump.py / pumpall.py / pumptemp.py | Template code generation engine (driven by pumplist.xml), generates Mdb table-structure code from `model/*.xml` |
+| pump.py / pumpall.py / pumptemp.py | Template code generation engine (driven by pumplist.xml), generates Mdb table-structure code from `Model/*.xml` |
 | pumplist.xml | Code generation manifest: template → target file mapping |
 | ParseTableModel.py | Data table model parsing |
 | ParsePackageModel.py | Network packet model parsing |
@@ -360,9 +356,9 @@ The `test/TestMdb/TestDB.cpp` integration test covers:
 
 ## 11. Additional Notes
 
-- **Project Positioning**: this project is an **implementation example** of an in-memory database — the focus is on "how to implement and use"; the built-in financial tables are for demonstration only, and new businesses can define their own tables via `model/*.xml` + code generation
+- **Project Positioning**: this project is an **implementation example** of an in-memory database — the focus is on "how to implement and use"; the built-in financial tables are for demonstration only, and new businesses can define their own tables via `Model/*.xml` + code generation
 - **Dependencies**: Mdb is built on [Spark](https://gitee.com/xunmeng2002/Spark.git) (foundational capabilities) and [DBAdapters](https://gitee.com/xunmeng2002/DBAdapters.git) (unified database access layer); both are prebuilt dependencies
 - **Include Paths**: Mdb headers live in `src/Mdb/`, referenced as `#include "Mdb.h"`
 - **Namespaces**: all interfaces are in the `mdb` namespace; database interfaces reuse the `dbadapters` namespace
 - **Concurrency**: in-memory tables are thread-safe by design; for reads, consider calling `LockShared()` before accessing primary-key / index containers to avoid contention with writer threads
-- **Code Generation**: after editing `model/*.xml`, run `python pumpall.py` to regenerate table-structure code without manual edits
+- **Code Generation**: after editing `Model/*.xml`, run `python pumpall.py` to regenerate table-structure code without manual edits

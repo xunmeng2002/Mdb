@@ -2,10 +2,10 @@
 #include "TableList.h"
 #include "MdbStructs.h"
 
-
-namespace mdb
+using namespace mdb;
+namespace mdb::full
 {
-	inline const unsigned int kFullTableIDs[] =
+	inline const unsigned int kfullTableIDs[] =
 	{
 		TradingDay::TableID,
 		Exchange::TableID,
@@ -19,5 +19,5 @@ namespace mdb
 		Order::TableID,
 		Trade::TableID,
 	};
-	inline const TableList FullTableList = { "Full", kFullTableIDs, (int)(sizeof(kFullTableIDs) / sizeof(kFullTableIDs[0])) };
+	inline const TableList fullTableList = { "full", kfullTableIDs, (int)(sizeof(kfullTableIDs) / sizeof(kfullTableIDs[0])) };
 }

@@ -11,11 +11,11 @@ Created by [Fireseeker](https://fireseeker.cn/)
 
 Mdb 是一个**内存数据库的实现示例**，重点是演示"如何实现并使用内存数据库"，而不是具体的业务数据。它展示了内存数据库的完整实现路径：
 
-1. **表结构驱动**：数据表模型由 `model/*.xml` 定义，通过 Python 脚本（`pump.py` + `pumplist.xml`）自动生成全部表结构代码（记录结构体、类型化表容器、主键容器、二级索引容器），无需手写；
+1. **表结构驱动**：数据表模型由 `Model/*.xml` 定义，通过 Python 脚本（`pump.py` + `pumplist.xml`）自动生成全部表结构代码（记录结构体、类型化表容器、主键容器、二级索引容器），无需手写；
 2. **内存优先 + 异步落库**：业务读写优先操作内存，变更通过订阅接口（`MdbSubscriber`）广播，由 DBAdapters 的 `AsyncDBWriter` **异步同步至物理数据库**（SQLite / DuckDB / MySQL / MariaDB），兼顾低时延与数据可靠；
 3. **检索与并发**：每张表内置主键容器与二级索引容器（`Select` / `SelectAll` / `EqualRange`），并以 `std::shared_mutex` 支持并发读。
 
-因此，内置的 11 张金融数据表（交易日、账户、订单、持仓等）**仅作为示例数据**，用于演示不同类型字段（定长字符串、枚举、日期、整数）的建表与检索方式；要迁移到自己的业务，只需照葫芦画瓢定义自己的 `model/*.xml` 并重新生成代码即可。
+因此，内置的 11 张金融数据表（交易日、账户、订单、持仓等）**仅作为示例数据**，用于演示不同类型字段（定长字符串、枚举、日期、整数）的建表与检索方式；要迁移到自己的业务，只需照葫芦画瓢定义自己的 `Model/*.xml` 并重新生成代码即可。
 
 本项目基于 C++20 开发，采用 CMake 跨平台构建，内置建表脚本与集成测试，既可作为学习内存数据库实现的教程，也可作为搭建自己内存数据层的起点。
 
@@ -35,7 +35,7 @@ Mdb 是一个**内存数据库的实现示例**，重点是演示"如何实现�
 
 ## 三、示例数据表模型
 
-框架内置 11 张金融交易示例数据表（表结构由 `model/Tables/Tables.xml` 定义，代码自动生成）。**注意**：这些表与业务字段仅用于演示，不是本项目的重点——它们覆盖了定长字符串、枚举、日期、整数等多种字段类型，用于展示内存数据库如何描述、建表、索引与检索不同类型的字段。
+框架内置 11 张金融交易示例数据表（表结构由 `Model/Tables/Tables.xml` 定义，代码自动生成）。**注意**：这些表与业务字段仅用于演示，不是本项目的重点——它们覆盖了定长字符串、枚举、日期、整数等多种字段类型，用于展示内存数据库如何描述、建表、索引与检索不同类型的字段。
 
 | 表名 | 表 ID | 中文说明 | 业务用途 |
 | ---- | ---- | ---- | ---- |
@@ -71,7 +71,7 @@ Mdb/
 ├── test/TestMdb/                  # 集成测试（TestDB：四库 + 异步写库全流程）
 │   ├── FullTableList.h            # 全量 11 表的 TableList 定义
 │   └── TestDB.cpp
-├── model/                         # 数据表模型定义（Tables.xml / TableNames.xml 等）
+├── Model/                         # 数据表模型定义（Tables.xml / TableNames.xml 等）
 │   ├── TableNames/                # 表名清单（FullTableNames.xml）
 │   └── Tables/                    # 表结构定义（Tables.xml / ShortTables.xml / TableNames.xml）
 ├── sql/                           # 各数据库建表脚本
@@ -189,23 +189,19 @@ cmake --build out/build/WSL-GCC-Release
 ```cpp
 #include "Mdb.h"
 #include "MdbTableRegistry.h"
+#include "FullTableList.h"
 #include <DBAdapters/AsyncDBWriter/AsyncDBWriter.h>
 #include <DBAdapters/SqliteWrapper/SqliteWrapper.h>
 #include <Spark/Core/Core.h>
 #include <cstring>
 
 using namespace mdb;
+using namespace mdb::full;
 using namespace dbadapters;
 using namespace spark::core;
 
-// 定义内存库包含的金融数据表清单（全量 11 表）
-inline const unsigned int kFullTableIDs[] = {
-    TradingDay::TableID,      Exchange::TableID,       Product::TableID,
-    Instrument::TableID,      PrimaryAccount::TableID, Account::TableID,
-    Capital::TableID,         Position::TableID,       PositionDetail::TableID,
-    Order::TableID,           Trade::TableID,
-};
-const TableList FullTableList = { "Full", kFullTableIDs, 11 };
+// 内存库包含的金融数据表清单（全量 11 表）不手写：由 Model/TableNames/FullTableNames.xml
+// 经 pumpall.py 生成到 FullTableList.h，勿手改
 
 int main(int argc, const char* argv[])
 {
@@ -214,11 +210,11 @@ int main(int argc, const char* argv[])
     Logger::GetInstance().Start();
 
     // 1. 内存数据库：按表清单创建 11 张类型化表
-    Mdb* mdb = new Mdb(FullTableList);
+    Mdb* mdb = new Mdb(fullTableList);
 
     // 2. 持久化链路：DB 适配器 + Schema 注册表 + 异步写库器
     DB* db = new SqliteWrapper("./Test.sqlitedb");          // 以 SQLite 落库
-    MdbTableRegistry* schemaRegistry = new MdbTableRegistry(FullTableList);
+    MdbTableRegistry* schemaRegistry = new MdbTableRegistry(fullTableList);
     AsyncDBWriter* dbWriter = new AsyncDBWriter(db, schemaRegistry);
 
     // 3. 双向接线
@@ -314,10 +310,10 @@ mdb->TruncateTables();
 #include "InitMdbFromCsv.h"
 
 // 从持久化数据库批量载入内存（建表后全表加载）
-InitMdbFromDB::LoadTables(mdb, db, FullTableList);
+InitMdbFromDB::LoadTables(mdb, db, fullTableList);
 
 // 从 CSV 目录批量载入内存
-InitMdbFromCsv::LoadTables(mdb, "./dump", FullTableList);
+InitMdbFromCsv::LoadTables(mdb, "./dump", fullTableList);
 
 // 内存全量导出到指定目录（Dump 各表数据）
 mdb->Dump("./dump");
@@ -325,11 +321,11 @@ mdb->Dump("./dump");
 
 ## 八、Python 脚本说明
 
-数据表模型由 `model/*.xml` 定义，根目录 Python 脚本用于代码生成与自动化处理：
+数据表模型由 `Model/*.xml` 定义，根目录 Python 脚本用于代码生成与自动化处理：
 
 | 脚本 | 说明 |
 | ---- | ---- |
-| pump.py / pumpall.py / pumptemp.py | 模板代码生成引擎（由 pumplist.xml 驱动），从 `model/*.xml` 生成 Mdb 表结构代码 |
+| pump.py / pumpall.py / pumptemp.py | 模板代码生成引擎（由 pumplist.xml 驱动），从 `Model/*.xml` 生成 Mdb 表结构代码 |
 | pumplist.xml | 代码生成清单：模板 → 目标文件的映射 |
 | ParseTableModel.py | 数据表模型解析 |
 | ParsePackageModel.py | 网络数据包模型解析 |
@@ -360,9 +356,9 @@ mdb->Dump("./dump");
 
 ## 十一、补充说明
 
-- **项目定位**：本项目是内存数据库的**实现示例**，重点在"如何实现与使用"；内置金融数据表仅作演示，新业务可基于 `model/*.xml` + 代码生成快速定义自己的表结构
+- **项目定位**：本项目是内存数据库的**实现示例**，重点在"如何实现与使用"；内置金融数据表仅作演示，新业务可基于 `Model/*.xml` + 代码生成快速定义自己的表结构
 - **依赖关系**：Mdb 构建在 [Spark](https://gitee.com/xunmeng2002/Spark.git)（基础能力）与 [DBAdapters](https://gitee.com/xunmeng2002/DBAdapters.git)（统一数据库访问层）之上，二者均为预编译依赖
 - **包含路径**：Mdb 头文件位于 `src/Mdb/`，以 `#include "Mdb.h"` 风格引用
 - **命名空间**：全部接口位于 `mdb` 命名空间；数据库接口复用 `dbadapters` 命名空间
 - **并发访问**：内存表为多线程安全设计，读操作建议先 `LockShared()` 再访问主键 / 索引容器，避免与写线程竞争
-- **代码生成**：修改 `model/*.xml` 后运行 `python pumpall.py` 可重新生成表结构代码，无需手写
+- **代码生成**：修改 `Model/*.xml` 后运行 `python pumpall.py` 可重新生成表结构代码，无需手写

@@ -15,6 +15,7 @@
 
 using namespace std;
 using namespace mdb;
+using namespace mdb::full;
 using namespace spark::core;
 using namespace dbadapters;
 
@@ -138,8 +139,8 @@ static void InitAccount(TypedTable<Account>& table)
 
 static void TestMdb(DB* db)
 {
-	Mdb* mdb = new Mdb(FullTableList);
-    MdbTableRegistry* schemaRegistry = new MdbTableRegistry(FullTableList);
+	Mdb* mdb = new Mdb(fullTableList);
+    MdbTableRegistry* schemaRegistry = new MdbTableRegistry(fullTableList);
 	AsyncDBWriter* dbWriter = new AsyncDBWriter(db, schemaRegistry);
 	mdb->Subscribe(dbWriter);
 	dbWriter->Subscribe(mdb);
