@@ -36,8 +36,11 @@
 **/.vs
 **/out
 pumptemp.py
+*.pumptmp
 *.duckdb*
 *.sqlitedb*
 /bin
 /lib
 /build
+/log
+__pycache__/

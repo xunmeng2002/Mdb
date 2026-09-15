@@ -13,6 +13,11 @@ class MyException(Exception):
         self.value = value
     def __str__(self):
         return repr(self.value)
+
+#删掉旁路产物。产物的正式落点在 <目标>.pumptmp，只有成功替换后才消失
+def discard_staged_output(staged_output_name):
+    if os.path.exists(staged_output_name):
+        os.remove(staged_output_name)
  
  
  #处理换行，换行时需要考虑缩进
@@ -123,12 +128,14 @@ if __name__ == "__main__":
         
     if len(sys.argv) < 5:
         print("usage: pump destFile templateFile target modelFile")
-        
+        sys.exit(2)
+
     #第一个参数：输出文件名
     #第二个参数：模板文件 
     #第三个参数：目标
     #第四个参数：xml文件
     out_file_name = sys.argv[1]
+    staged_output_name = out_file_name + ".pumptmp"
     tpl_file_name = sys.argv[2]
     target = sys.argv[3]
     
@@ -164,7 +171,16 @@ if __name__ == "__main__":
     out_content += "#coding:utf-8\n" 
     out_content += "import xml.etree.cElementTree as ET\n"
     out_content += "import sys\n\n"
-    out_content += "out_file = open('%s', 'w+', encoding='UTF-8-SIG', newline='\\n')\n\n" % out_file_name
+    out_content += "out_file = open('%s', 'w+', encoding='UTF-8-SIG', newline='\\n')\n\n" % staged_output_name
+    #每个生成物顶部写入「勿手改」头注释。注释符按扩展名白名单取；白名单外一律失败——
+    #写错前缀会让产物变成语法非法的文件，而且退出码还是 0，事后极难发现
+    comment_prefix_by_extension = {".c": "// ", ".cpp": "// ", ".h": "// ", ".hpp": "// ", ".cs": "// ", ".sql": "-- "}
+    extension = os.path.splitext(out_file_name)[1].lower()
+    if extension not in comment_prefix_by_extension:
+        raise MyException("Unknown extension for comment prefix:%s" % extension)
+    comment_prefix = comment_prefix_by_extension[extension]
+    header = "%s本文件由 %s 生成；请勿手改，改动请改模板后重跑 pumpall.py" % (comment_prefix, tpl_file_name)
+    out_content += "out_file.write(%s)\n" % repr(header + "\n")
     #xml文件可以大于1，如果有多个xml文件，添加一个根节点，把每个xml文件的根节点挂在新加的根节点下面，新加的根节点作为当前节点
     out_content += "curr_node = ET.Element(\"root\")\n"
     for i in range(4, len(sys.argv)):
@@ -318,10 +334,28 @@ if __name__ == "__main__":
     if len(entry_list) != 0:
         raise MyException("Tag Not Match:%s" % str(entry_list))
     
-    #执行临时文件
-    if os.system("python pumptemp.py"):
-        os.remove(out_file_name)
-        exit(-1)
+    #执行临时文件：产物先写旁路文件，成功才替换目标；失败保留原产物并响亮退出
+    if os.system("python pumptemp.py") != 0:
+        discard_staged_output(staged_output_name)
+        print("pump failed: %s <- %s" % (out_file_name, tpl_file_name))
+        sys.exit(1)
+
+    #替换目标：能原子替换就替换；替换被别的进程挡下（Windows 上目标被打开着时
+    #os.replace 需要 DELETE 权限，而旧的就地重写只需要写权限）则退回就地重写
+    try:
+        os.replace(staged_output_name, out_file_name)
+    except OSError as replace_error:
+        try:
+            with open(staged_output_name, "rb") as staged_file:
+                staged_bytes = staged_file.read()
+            with open(out_file_name, "wb") as out_file:
+                out_file.write(staged_bytes)
+        except OSError:
+            discard_staged_output(staged_output_name)
+            print("pump failed: %s <- %s: %s" % (out_file_name, tpl_file_name, replace_error))
+            sys.exit(1)
+        print("pump warning: %s replaced in place: %s" % (out_file_name, replace_error))
+    discard_staged_output(staged_output_name)
 
     #执行完毕后删除临时文件
     #os.remove("pumptemp.py")

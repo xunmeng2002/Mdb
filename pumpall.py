@@ -51,7 +51,8 @@ def DoPump(dest, tpl, target, model):
     if NeedPump(model, tpl, dest):
         print("pump.py %s %s %s %s" % (dest, tpl, target, model))
         if os.system("python pump.py %s %s %s %s" % (dest, tpl, target, model)) != 0:
-            exit()
+            print("pumpall aborted at: %s <- %s" % (dest, tpl))
+            sys.exit(1)
 
 if __name__ == "__main__":
     excludes = ['.sv', '.vs', 'build', 'out', "Branches"]
