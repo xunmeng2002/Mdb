@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿// 本文件由 ../Templates/Cpp/Mdb/MdbPrimaryKeys.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+#pragma once
 #include <unordered_set>
 #include "MdbStructs.h"
 #include "MdbPrimaryKeyComp.h"
@@ -11,7 +12,7 @@ namespace mdb
 		using iterator = std::unordered_set<TradingDay*, TradingDayHashForTradingDayPrimaryKey, TradingDayEqualForTradingDayPrimaryKey>::iterator;
 		friend class TradingDayTable;
 	public:
-		TradingDayPrimaryKey(TradingDayTable* table, size_t buckets = 1000);
+		TradingDayPrimaryKey(TradingDayTable* tableOwner, size_t buckets = 1000);
 		TradingDay* Select(const Int32Type& PK);
 		std::pair<iterator, iterator> SelectAll();
 		
@@ -22,8 +23,8 @@ namespace mdb
 		bool CheckUpdate(const TradingDay* const oldRecord, const TradingDay* const newRecord);
 
 	private:
-		TradingDayTable* m_Table;
-		std::unordered_set<TradingDay*, TradingDayHashForTradingDayPrimaryKey, TradingDayEqualForTradingDayPrimaryKey> m_Index;
+		TradingDayTable* table;
+		std::unordered_set<TradingDay*, TradingDayHashForTradingDayPrimaryKey, TradingDayEqualForTradingDayPrimaryKey> index;
 	};
 	class ExchangeTable;
 	class ExchangePrimaryKey
@@ -31,7 +32,7 @@ namespace mdb
 		using iterator = std::unordered_set<Exchange*, ExchangeHashForExchangePrimaryKey, ExchangeEqualForExchangePrimaryKey>::iterator;
 		friend class ExchangeTable;
 	public:
-		ExchangePrimaryKey(ExchangeTable* table, size_t buckets = 1000);
+		ExchangePrimaryKey(ExchangeTable* tableOwner, size_t buckets = 1000);
 		Exchange* Select(const ExchangeIDType& ExchangeID);
 		std::pair<iterator, iterator> SelectAll();
 		
@@ -42,8 +43,8 @@ namespace mdb
 		bool CheckUpdate(const Exchange* const oldRecord, const Exchange* const newRecord);
 
 	private:
-		ExchangeTable* m_Table;
-		std::unordered_set<Exchange*, ExchangeHashForExchangePrimaryKey, ExchangeEqualForExchangePrimaryKey> m_Index;
+		ExchangeTable* table;
+		std::unordered_set<Exchange*, ExchangeHashForExchangePrimaryKey, ExchangeEqualForExchangePrimaryKey> index;
 	};
 	class ProductTable;
 	class ProductPrimaryKey
@@ -51,7 +52,7 @@ namespace mdb
 		using iterator = std::unordered_set<Product*, ProductHashForProductPrimaryKey, ProductEqualForProductPrimaryKey>::iterator;
 		friend class ProductTable;
 	public:
-		ProductPrimaryKey(ProductTable* table, size_t buckets = 1000);
+		ProductPrimaryKey(ProductTable* tableOwner, size_t buckets = 1000);
 		Product* Select(const ExchangeIDType& ExchangeID, const ProductIDType& ProductID);
 		std::pair<iterator, iterator> SelectAll();
 		
@@ -62,8 +63,8 @@ namespace mdb
 		bool CheckUpdate(const Product* const oldRecord, const Product* const newRecord);
 
 	private:
-		ProductTable* m_Table;
-		std::unordered_set<Product*, ProductHashForProductPrimaryKey, ProductEqualForProductPrimaryKey> m_Index;
+		ProductTable* table;
+		std::unordered_set<Product*, ProductHashForProductPrimaryKey, ProductEqualForProductPrimaryKey> index;
 	};
 	class InstrumentTable;
 	class InstrumentPrimaryKey
@@ -71,7 +72,7 @@ namespace mdb
 		using iterator = std::unordered_set<Instrument*, InstrumentHashForInstrumentPrimaryKey, InstrumentEqualForInstrumentPrimaryKey>::iterator;
 		friend class InstrumentTable;
 	public:
-		InstrumentPrimaryKey(InstrumentTable* table, size_t buckets = 1000);
+		InstrumentPrimaryKey(InstrumentTable* tableOwner, size_t buckets = 1000);
 		Instrument* Select(const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID);
 		std::pair<iterator, iterator> SelectAll();
 		
@@ -82,8 +83,8 @@ namespace mdb
 		bool CheckUpdate(const Instrument* const oldRecord, const Instrument* const newRecord);
 
 	private:
-		InstrumentTable* m_Table;
-		std::unordered_set<Instrument*, InstrumentHashForInstrumentPrimaryKey, InstrumentEqualForInstrumentPrimaryKey> m_Index;
+		InstrumentTable* table;
+		std::unordered_set<Instrument*, InstrumentHashForInstrumentPrimaryKey, InstrumentEqualForInstrumentPrimaryKey> index;
 	};
 	class PrimaryAccountTable;
 	class PrimaryAccountPrimaryKey
@@ -91,7 +92,7 @@ namespace mdb
 		using iterator = std::unordered_set<PrimaryAccount*, PrimaryAccountHashForPrimaryAccountPrimaryKey, PrimaryAccountEqualForPrimaryAccountPrimaryKey>::iterator;
 		friend class PrimaryAccountTable;
 	public:
-		PrimaryAccountPrimaryKey(PrimaryAccountTable* table, size_t buckets = 1000);
+		PrimaryAccountPrimaryKey(PrimaryAccountTable* tableOwner, size_t buckets = 1000);
 		PrimaryAccount* Select(const AccountIDType& PrimaryAccountID);
 		std::pair<iterator, iterator> SelectAll();
 		
@@ -102,8 +103,8 @@ namespace mdb
 		bool CheckUpdate(const PrimaryAccount* const oldRecord, const PrimaryAccount* const newRecord);
 
 	private:
-		PrimaryAccountTable* m_Table;
-		std::unordered_set<PrimaryAccount*, PrimaryAccountHashForPrimaryAccountPrimaryKey, PrimaryAccountEqualForPrimaryAccountPrimaryKey> m_Index;
+		PrimaryAccountTable* table;
+		std::unordered_set<PrimaryAccount*, PrimaryAccountHashForPrimaryAccountPrimaryKey, PrimaryAccountEqualForPrimaryAccountPrimaryKey> index;
 	};
 	class AccountTable;
 	class AccountPrimaryKey
@@ -111,7 +112,7 @@ namespace mdb
 		using iterator = std::unordered_set<Account*, AccountHashForAccountPrimaryKey, AccountEqualForAccountPrimaryKey>::iterator;
 		friend class AccountTable;
 	public:
-		AccountPrimaryKey(AccountTable* table, size_t buckets = 1000);
+		AccountPrimaryKey(AccountTable* tableOwner, size_t buckets = 1000);
 		Account* Select(const AccountIDType& AccountID);
 		std::pair<iterator, iterator> SelectAll();
 		
@@ -122,8 +123,8 @@ namespace mdb
 		bool CheckUpdate(const Account* const oldRecord, const Account* const newRecord);
 
 	private:
-		AccountTable* m_Table;
-		std::unordered_set<Account*, AccountHashForAccountPrimaryKey, AccountEqualForAccountPrimaryKey> m_Index;
+		AccountTable* table;
+		std::unordered_set<Account*, AccountHashForAccountPrimaryKey, AccountEqualForAccountPrimaryKey> index;
 	};
 	class CapitalTable;
 	class CapitalPrimaryKey
@@ -131,7 +132,7 @@ namespace mdb
 		using iterator = std::unordered_set<Capital*, CapitalHashForCapitalPrimaryKey, CapitalEqualForCapitalPrimaryKey>::iterator;
 		friend class CapitalTable;
 	public:
-		CapitalPrimaryKey(CapitalTable* table, size_t buckets = 1000);
+		CapitalPrimaryKey(CapitalTable* tableOwner, size_t buckets = 1000);
 		Capital* Select(const DateType& TradingDay, const AccountIDType& AccountID);
 		std::pair<iterator, iterator> SelectAll();
 		
@@ -142,8 +143,8 @@ namespace mdb
 		bool CheckUpdate(const Capital* const oldRecord, const Capital* const newRecord);
 
 	private:
-		CapitalTable* m_Table;
-		std::unordered_set<Capital*, CapitalHashForCapitalPrimaryKey, CapitalEqualForCapitalPrimaryKey> m_Index;
+		CapitalTable* table;
+		std::unordered_set<Capital*, CapitalHashForCapitalPrimaryKey, CapitalEqualForCapitalPrimaryKey> index;
 	};
 	class PositionTable;
 	class PositionPrimaryKey
@@ -151,7 +152,7 @@ namespace mdb
 		using iterator = std::unordered_set<Position*, PositionHashForPositionPrimaryKey, PositionEqualForPositionPrimaryKey>::iterator;
 		friend class PositionTable;
 	public:
-		PositionPrimaryKey(PositionTable* table, size_t buckets = 1000);
+		PositionPrimaryKey(PositionTable* tableOwner, size_t buckets = 1000);
 		Position* Select(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection);
 		std::pair<iterator, iterator> SelectAll();
 		
@@ -162,8 +163,8 @@ namespace mdb
 		bool CheckUpdate(const Position* const oldRecord, const Position* const newRecord);
 
 	private:
-		PositionTable* m_Table;
-		std::unordered_set<Position*, PositionHashForPositionPrimaryKey, PositionEqualForPositionPrimaryKey> m_Index;
+		PositionTable* table;
+		std::unordered_set<Position*, PositionHashForPositionPrimaryKey, PositionEqualForPositionPrimaryKey> index;
 	};
 	class PositionDetailTable;
 	class PositionDetailPrimaryKey
@@ -171,7 +172,7 @@ namespace mdb
 		using iterator = std::unordered_set<PositionDetail*, PositionDetailHashForPositionDetailPrimaryKey, PositionDetailEqualForPositionDetailPrimaryKey>::iterator;
 		friend class PositionDetailTable;
 	public:
-		PositionDetailPrimaryKey(PositionDetailTable* table, size_t buckets = 1000);
+		PositionDetailPrimaryKey(PositionDetailTable* tableOwner, size_t buckets = 1000);
 		PositionDetail* Select(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIDType& TradeID);
 		std::pair<iterator, iterator> SelectAll();
 		
@@ -182,8 +183,8 @@ namespace mdb
 		bool CheckUpdate(const PositionDetail* const oldRecord, const PositionDetail* const newRecord);
 
 	private:
-		PositionDetailTable* m_Table;
-		std::unordered_set<PositionDetail*, PositionDetailHashForPositionDetailPrimaryKey, PositionDetailEqualForPositionDetailPrimaryKey> m_Index;
+		PositionDetailTable* table;
+		std::unordered_set<PositionDetail*, PositionDetailHashForPositionDetailPrimaryKey, PositionDetailEqualForPositionDetailPrimaryKey> index;
 	};
 	class OrderTable;
 	class OrderPrimaryKey
@@ -191,7 +192,7 @@ namespace mdb
 		using iterator = std::unordered_set<Order*, OrderHashForOrderPrimaryKey, OrderEqualForOrderPrimaryKey>::iterator;
 		friend class OrderTable;
 	public:
-		OrderPrimaryKey(OrderTable* table, size_t buckets = 1000);
+		OrderPrimaryKey(OrderTable* tableOwner, size_t buckets = 1000);
 		Order* Select(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const OrderIDType& OrderID);
 		std::pair<iterator, iterator> SelectAll();
 		
@@ -202,14 +203,14 @@ namespace mdb
 		bool CheckUpdate(const Order* const oldRecord, const Order* const newRecord);
 
 	private:
-		OrderTable* m_Table;
-		std::unordered_set<Order*, OrderHashForOrderPrimaryKey, OrderEqualForOrderPrimaryKey> m_Index;
+		OrderTable* table;
+		std::unordered_set<Order*, OrderHashForOrderPrimaryKey, OrderEqualForOrderPrimaryKey> index;
 	};
 	class OrderUniqueKeyClientOrderID
 	{
 		friend class OrderTable;
 	public:
-		OrderUniqueKeyClientOrderID(OrderTable* table, size_t buckets = 1000);
+		OrderUniqueKeyClientOrderID(OrderTable* tableOwner, size_t buckets = 1000);
 		Order* Select(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const SessionIDType& SessionID, const ClientOrderIDType& ClientOrderID);
 		
 	protected:
@@ -219,8 +220,8 @@ namespace mdb
 		bool CheckUpdate(const Order* const oldRecord, const Order* const newRecord);
 
 	private:
-		OrderTable* m_Table;
-		std::unordered_set<Order*, OrderHashForClientOrderIDUniqueKey, OrderEqualForClientOrderIDUniqueKey> m_Index;
+		OrderTable* table;
+		std::unordered_set<Order*, OrderHashForClientOrderIDUniqueKey, OrderEqualForClientOrderIDUniqueKey> index;
 	};
 	
 	class TradeTable;
@@ -229,7 +230,7 @@ namespace mdb
 		using iterator = std::unordered_set<Trade*, TradeHashForTradePrimaryKey, TradeEqualForTradePrimaryKey>::iterator;
 		friend class TradeTable;
 	public:
-		TradePrimaryKey(TradeTable* table, size_t buckets = 1000);
+		TradePrimaryKey(TradeTable* tableOwner, size_t buckets = 1000);
 		Trade* Select(const DateType& TradingDay, const ExchangeIDType& ExchangeID, const TradeIDType& TradeID, const DirectionType& Direction);
 		std::pair<iterator, iterator> SelectAll();
 		
@@ -240,7 +241,7 @@ namespace mdb
 		bool CheckUpdate(const Trade* const oldRecord, const Trade* const newRecord);
 
 	private:
-		TradeTable* m_Table;
-		std::unordered_set<Trade*, TradeHashForTradePrimaryKey, TradeEqualForTradePrimaryKey> m_Index;
+		TradeTable* table;
+		std::unordered_set<Trade*, TradeHashForTradePrimaryKey, TradeEqualForTradePrimaryKey> index;
 	};
 }

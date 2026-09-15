@@ -1,4 +1,5 @@
-﻿DROP TABLE IF EXISTS `t_TradingDay`;
+﻿-- 本文件由 ../Templates/Sql/Mysql/DropTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+DROP TABLE IF EXISTS `t_TradingDay`;
 DROP TABLE IF EXISTS `t_Exchange`;
 DROP TABLE IF EXISTS `t_Product`;
 DROP TABLE IF EXISTS `t_Instrument`;

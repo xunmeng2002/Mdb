@@ -1,4 +1,5 @@
-﻿#include "MdbTableRegistry.h"
+﻿// 本文件由 ../Templates/Cpp/Mdb/MdbTableRegistry.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+#include "MdbTableRegistry.h"
 #include "MdbStructs.h"
 
 
@@ -9,8 +10,8 @@ namespace mdb
 		for (int i = 0; i < tableList.Count; ++i)
 		{
 			unsigned int tableID = tableList.TableIDs[i];
-			m_TableIDs.push_back(tableID);
-			m_Schemas.push_back(GetSchemaByID(tableID));
+			tableIDs.push_back(tableID);
+			schemas.push_back(GetSchemaByID(tableID));
 		}
 	}
 	const TableSchema* MdbTableRegistry::GetSchemaByID(unsigned int tableID)
@@ -33,21 +34,21 @@ namespace mdb
 	}
 	const TableSchema* MdbTableRegistry::GetSchema(unsigned int tableID) const
 	{
-		for (size_t i = 0; i < m_TableIDs.size(); ++i)
+		for (size_t i = 0; i < tableIDs.size(); ++i)
 		{
-			if (m_TableIDs[i] == tableID)
+			if (tableIDs[i] == tableID)
 			{
-				return m_Schemas[i];
+				return schemas[i];
 			}
 		}
 		return nullptr;
 	}
 	const TableSchema* const* MdbTableRegistry::GetAllSchemas() const
 	{
-		return m_Schemas.data();
+		return schemas.data();
 	}
 	int MdbTableRegistry::GetTableCount() const
 	{
-		return (int)m_TableIDs.size();
+		return static_cast<int>(tableIDs.size());
 	}
 }

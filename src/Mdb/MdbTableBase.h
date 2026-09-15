@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿// 本文件由 ../Templates/Cpp/Mdb/MdbTableBase.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+#pragma once
 #include <DBAdapters/DBInterface/MdbSubscriber.h>
 #include <atomic>
 
@@ -10,13 +11,13 @@ namespace mdb
 	public:
 		virtual ~MdbTableBase() = default;
 
-		virtual void Subscribe(dbadapters::MdbSubscriber* mdbSubscriber) = 0;
+		virtual void Subscribe(dbadapters::MdbSubscriber* subscriber) = 0;
 		virtual void UnSubscribe() = 0;
 		virtual void InitDB() = 0;
 		virtual void TruncateTables() = 0;
 		virtual void Dump(const char* dir) = 0;
 
 	public:
-		std::atomic<bool> m_DBInited{ false };
+		std::atomic<bool> dbInited{ false };
 	};
 }

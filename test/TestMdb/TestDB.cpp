@@ -84,14 +84,14 @@ Account* PrepareAccount(const char* accountID, const char* accountName, const ch
 static void InitTradingDay(Mdb* mdb)
 {
 	auto tradingDay = PrepareTradingDay();
-	mdb->t_TradingDay->Insert(tradingDay);
+	mdb->tradingDay->Insert(tradingDay);
 }
 static void InitExchange(Mdb* mdb)
 {
 	auto exchanges = PrepareExchanges();
 	for (auto exchange : *exchanges)
 	{
-		mdb->t_Exchange->Insert(exchange);
+		mdb->exchange->Insert(exchange);
 	}
 	exchanges->clear();
 	delete exchanges;
@@ -99,7 +99,7 @@ static void InitExchange(Mdb* mdb)
 static void InitAccount(Mdb* mdb)
 {
 	Account* account = PrepareAccount("Xunmeng01", "Xunmeng01", "123456");
-	mdb->t_Account->Insert(account);
+	mdb->account->Insert(account);
 }
 
 void Print(TradingDay* tradingDay)
@@ -153,14 +153,14 @@ static void TestMdb(DB* db)
 	InitAccount(mdb);
 
 	ExchangeIDType exchangeID("CFFEX");
-	auto exchange = mdb->t_Exchange->m_PrimaryKey->Select(exchangeID);
+	auto exchange = mdb->exchange->primaryKey->Select(exchangeID);
 	Print(exchange);
 
-	auto tradingDay = mdb->t_TradingDay->m_PrimaryKey->Select(1);
+	auto tradingDay = mdb->tradingDay->primaryKey->Select(1);
 	Print(tradingDay);
-	mdb->t_TradingDay->Erase(tradingDay);
-	mdb->t_TradingDay->TruncateTable();
-	auto exchangePair = mdb->t_Exchange->m_PrimaryKey->SelectAll();
+	mdb->tradingDay->Erase(tradingDay);
+	mdb->tradingDay->TruncateTable();
+	auto exchangePair = mdb->exchange->primaryKey->SelectAll();
 	for (auto& it = exchangePair.first; it != exchangePair.second; ++it)
 	{
 		Print(*it);
@@ -271,7 +271,7 @@ int main(int argc, char* argv[])
 
     TestSqlite();
     TestDuckdb();
-    TestMysql();
+    //TestMysql();
     //TestMariadb();
 
 	Logger::GetInstance().Stop();

@@ -1,4 +1,5 @@
-﻿#include "MdbStructs.h"
+﻿// 本文件由 ../Templates/Cpp/Mdb/MdbStructs.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+#include "MdbStructs.h"
 #include "MdbIndexes.h"
 #include <Spark/TemplateLib/TemplateLib.h>
 #include <string>
@@ -8,7 +9,7 @@ using namespace spark;
 using namespace dbadapters;
 namespace mdb
 {
-	thread_local char t_MdbDataStringBuffer[10240];
+	thread_local char MdbDataStringBuffer[10240];
 
 	static const FieldDescriptor TradingDayFields[] = {
 		{"PK", FieldType::Int32, offsetof(TradingDay, PK), 0},
@@ -26,20 +27,15 @@ namespace mdb
 	}
 	const char* TradingDay::GetString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "%d,%s,%s",
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "%d,%s,%s",
 			PK, CurrTradingDay, PreTradingDay);
-		return t_MdbDataStringBuffer;
-	}
-	int TradingDay::GetSqlString(char* buff) const
-	{
-		return sprintf(buff, "\n('%d','%s','%s'),",
-			PK, CurrTradingDay, PreTradingDay);
+		return MdbDataStringBuffer;
 	}
 	const char* TradingDay::GetDebugString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "TradingDay:PK:[%d], CurrTradingDay:[%s], PreTradingDay:[%s]",
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "TradingDay:PK:[%d], CurrTradingDay:[%s], PreTradingDay:[%s]",
 			PK, CurrTradingDay, PreTradingDay);
-		return t_MdbDataStringBuffer;
+		return MdbDataStringBuffer;
 	}
 	static void DeallocateTradingDay(void* r) { static_cast<TradingDay*>(r)->Deallocate(); }
 	const TableSchema& TradingDay::GetSchema()
@@ -62,20 +58,15 @@ namespace mdb
 	}
 	const char* Exchange::GetString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "%s,%s",
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "%s,%s",
 			ExchangeID, ExchangeName);
-		return t_MdbDataStringBuffer;
-	}
-	int Exchange::GetSqlString(char* buff) const
-	{
-		return sprintf(buff, "\n('%s','%s'),",
-			ExchangeID, ExchangeName);
+		return MdbDataStringBuffer;
 	}
 	const char* Exchange::GetDebugString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "Exchange:ExchangeID:[%s], ExchangeName:[%s]",
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "Exchange:ExchangeID:[%s], ExchangeName:[%s]",
 			ExchangeID, ExchangeName);
-		return t_MdbDataStringBuffer;
+		return MdbDataStringBuffer;
 	}
 	static void DeallocateExchange(void* r) { static_cast<Exchange*>(r)->Deallocate(); }
 	const TableSchema& Exchange::GetSchema()
@@ -107,20 +98,15 @@ namespace mdb
 	}
 	const char* Product::GetString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "%s,%s,%s,%d,%d,%f,%lld,%lld,%lld,%lld,%s",
-			ExchangeID, ProductID, ProductName, (int)ProductClass, VolumeMultiple, PriceTick, MaxMarketOrderVolume, MinMarketOrderVolume, MaxLimitOrderVolume, MinLimitOrderVolume, SessionName);
-		return t_MdbDataStringBuffer;
-	}
-	int Product::GetSqlString(char* buff) const
-	{
-		return sprintf(buff, "\n('%s','%s','%s','%d','%d','%f','%lld','%lld','%lld','%lld','%s'),",
-			ExchangeID, ProductID, ProductName, (int)ProductClass, VolumeMultiple, PriceTick, MaxMarketOrderVolume, MinMarketOrderVolume, MaxLimitOrderVolume, MinLimitOrderVolume, SessionName);
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "%s,%s,%s,%d,%d,%f,%lld,%lld,%lld,%lld,%s",
+			ExchangeID, ProductID, ProductName, static_cast<int>(ProductClass), VolumeMultiple, PriceTick, MaxMarketOrderVolume, MinMarketOrderVolume, MaxLimitOrderVolume, MinLimitOrderVolume, SessionName);
+		return MdbDataStringBuffer;
 	}
 	const char* Product::GetDebugString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "Product:ExchangeID:[%s], ProductID:[%s], ProductName:[%s], ProductClass:[%d], VolumeMultiple:[%d], PriceTick:[%f], MaxMarketOrderVolume:[%lld], MinMarketOrderVolume:[%lld], MaxLimitOrderVolume:[%lld], MinLimitOrderVolume:[%lld], SessionName:[%s]",
-			ExchangeID, ProductID, ProductName, (int)ProductClass, VolumeMultiple, PriceTick, MaxMarketOrderVolume, MinMarketOrderVolume, MaxLimitOrderVolume, MinLimitOrderVolume, SessionName);
-		return t_MdbDataStringBuffer;
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "Product:ExchangeID:[%s], ProductID:[%s], ProductName:[%s], ProductClass:[%d], VolumeMultiple:[%d], PriceTick:[%f], MaxMarketOrderVolume:[%lld], MinMarketOrderVolume:[%lld], MaxLimitOrderVolume:[%lld], MinLimitOrderVolume:[%lld], SessionName:[%s]",
+			ExchangeID, ProductID, ProductName, static_cast<int>(ProductClass), VolumeMultiple, PriceTick, MaxMarketOrderVolume, MinMarketOrderVolume, MaxLimitOrderVolume, MinLimitOrderVolume, SessionName);
+		return MdbDataStringBuffer;
 	}
 	static void DeallocateProduct(void* r) { static_cast<Product*>(r)->Deallocate(); }
 	const TableSchema& Product::GetSchema()
@@ -156,20 +142,15 @@ namespace mdb
 	}
 	const char* Instrument::GetString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "%s,%s,%s,%s,%s,%d,%d,%d,%d,%f,%lld,%lld,%lld,%lld,%s",
-			ExchangeID, InstrumentID, ExchangeInstID, InstrumentName, ProductID, (int)ProductClass, (int)InstrumentClass, Rank, VolumeMultiple, PriceTick, MaxMarketOrderVolume, MinMarketOrderVolume, MaxLimitOrderVolume, MinLimitOrderVolume, SessionName);
-		return t_MdbDataStringBuffer;
-	}
-	int Instrument::GetSqlString(char* buff) const
-	{
-		return sprintf(buff, "\n('%s','%s','%s','%s','%s','%d','%d','%d','%d','%f','%lld','%lld','%lld','%lld','%s'),",
-			ExchangeID, InstrumentID, ExchangeInstID, InstrumentName, ProductID, (int)ProductClass, (int)InstrumentClass, Rank, VolumeMultiple, PriceTick, MaxMarketOrderVolume, MinMarketOrderVolume, MaxLimitOrderVolume, MinLimitOrderVolume, SessionName);
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "%s,%s,%s,%s,%s,%d,%d,%d,%d,%f,%lld,%lld,%lld,%lld,%s",
+			ExchangeID, InstrumentID, ExchangeInstID, InstrumentName, ProductID, static_cast<int>(ProductClass), static_cast<int>(InstrumentClass), Rank, VolumeMultiple, PriceTick, MaxMarketOrderVolume, MinMarketOrderVolume, MaxLimitOrderVolume, MinLimitOrderVolume, SessionName);
+		return MdbDataStringBuffer;
 	}
 	const char* Instrument::GetDebugString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "Instrument:ExchangeID:[%s], InstrumentID:[%s], ExchangeInstID:[%s], InstrumentName:[%s], ProductID:[%s], ProductClass:[%d], InstrumentClass:[%d], Rank:[%d], VolumeMultiple:[%d], PriceTick:[%f], MaxMarketOrderVolume:[%lld], MinMarketOrderVolume:[%lld], MaxLimitOrderVolume:[%lld], MinLimitOrderVolume:[%lld], SessionName:[%s]",
-			ExchangeID, InstrumentID, ExchangeInstID, InstrumentName, ProductID, (int)ProductClass, (int)InstrumentClass, Rank, VolumeMultiple, PriceTick, MaxMarketOrderVolume, MinMarketOrderVolume, MaxLimitOrderVolume, MinLimitOrderVolume, SessionName);
-		return t_MdbDataStringBuffer;
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "Instrument:ExchangeID:[%s], InstrumentID:[%s], ExchangeInstID:[%s], InstrumentName:[%s], ProductID:[%s], ProductClass:[%d], InstrumentClass:[%d], Rank:[%d], VolumeMultiple:[%d], PriceTick:[%f], MaxMarketOrderVolume:[%lld], MinMarketOrderVolume:[%lld], MaxLimitOrderVolume:[%lld], MinLimitOrderVolume:[%lld], SessionName:[%s]",
+			ExchangeID, InstrumentID, ExchangeInstID, InstrumentName, ProductID, static_cast<int>(ProductClass), static_cast<int>(InstrumentClass), Rank, VolumeMultiple, PriceTick, MaxMarketOrderVolume, MinMarketOrderVolume, MaxLimitOrderVolume, MinLimitOrderVolume, SessionName);
+		return MdbDataStringBuffer;
 	}
 	static void DeallocateInstrument(void* r) { static_cast<Instrument*>(r)->Deallocate(); }
 	const TableSchema& Instrument::GetSchema()
@@ -203,20 +184,15 @@ namespace mdb
 	}
 	const char* PrimaryAccount::GetString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "%s,%s,%d,%s,%d,%d,%d,%d,%d",
-			PrimaryAccountID, PrimaryAccountName, (int)AccountClass, BrokerPassword, OfferID, IsAllowLogin, IsSimulateAccount, (int)LoginStatus, (int)InitStatus);
-		return t_MdbDataStringBuffer;
-	}
-	int PrimaryAccount::GetSqlString(char* buff) const
-	{
-		return sprintf(buff, "\n('%s','%s','%d','%s','%d','%d','%d','%d','%d'),",
-			PrimaryAccountID, PrimaryAccountName, (int)AccountClass, BrokerPassword, OfferID, IsAllowLogin, IsSimulateAccount, (int)LoginStatus, (int)InitStatus);
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "%s,%s,%d,%s,%d,%d,%d,%d,%d",
+			PrimaryAccountID, PrimaryAccountName, static_cast<int>(AccountClass), BrokerPassword, OfferID, IsAllowLogin, IsSimulateAccount, static_cast<int>(LoginStatus), static_cast<int>(InitStatus));
+		return MdbDataStringBuffer;
 	}
 	const char* PrimaryAccount::GetDebugString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "PrimaryAccount:PrimaryAccountID:[%s], PrimaryAccountName:[%s], AccountClass:[%d], BrokerPassword:[%s], OfferID:[%d], IsAllowLogin:[%d], IsSimulateAccount:[%d], LoginStatus:[%d], InitStatus:[%d]",
-			PrimaryAccountID, PrimaryAccountName, (int)AccountClass, BrokerPassword, OfferID, IsAllowLogin, IsSimulateAccount, (int)LoginStatus, (int)InitStatus);
-		return t_MdbDataStringBuffer;
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "PrimaryAccount:PrimaryAccountID:[%s], PrimaryAccountName:[%s], AccountClass:[%d], BrokerPassword:[%s], OfferID:[%d], IsAllowLogin:[%d], IsSimulateAccount:[%d], LoginStatus:[%d], InitStatus:[%d]",
+			PrimaryAccountID, PrimaryAccountName, static_cast<int>(AccountClass), BrokerPassword, OfferID, IsAllowLogin, IsSimulateAccount, static_cast<int>(LoginStatus), static_cast<int>(InitStatus));
+		return MdbDataStringBuffer;
 	}
 	static void DeallocatePrimaryAccount(void* r) { static_cast<PrimaryAccount*>(r)->Deallocate(); }
 	const TableSchema& PrimaryAccount::GetSchema()
@@ -245,20 +221,15 @@ namespace mdb
 	}
 	const char* Account::GetString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "%s,%s,%d,%d,%s,%d,%d,%d",
-			AccountID, AccountName, (int)AccountType, (int)AccountStatus, Password, TradeGroupID, RiskGroupID, CommissionGroupID);
-		return t_MdbDataStringBuffer;
-	}
-	int Account::GetSqlString(char* buff) const
-	{
-		return sprintf(buff, "\n('%s','%s','%d','%d','%s','%d','%d','%d'),",
-			AccountID, AccountName, (int)AccountType, (int)AccountStatus, Password, TradeGroupID, RiskGroupID, CommissionGroupID);
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "%s,%s,%d,%d,%s,%d,%d,%d",
+			AccountID, AccountName, static_cast<int>(AccountType), static_cast<int>(AccountStatus), Password, TradeGroupID, RiskGroupID, CommissionGroupID);
+		return MdbDataStringBuffer;
 	}
 	const char* Account::GetDebugString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "Account:AccountID:[%s], AccountName:[%s], AccountType:[%d], AccountStatus:[%d], Password:[%s], TradeGroupID:[%d], RiskGroupID:[%d], CommissionGroupID:[%d]",
-			AccountID, AccountName, (int)AccountType, (int)AccountStatus, Password, TradeGroupID, RiskGroupID, CommissionGroupID);
-		return t_MdbDataStringBuffer;
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "Account:AccountID:[%s], AccountName:[%s], AccountType:[%d], AccountStatus:[%d], Password:[%s], TradeGroupID:[%d], RiskGroupID:[%d], CommissionGroupID:[%d]",
+			AccountID, AccountName, static_cast<int>(AccountType), static_cast<int>(AccountStatus), Password, TradeGroupID, RiskGroupID, CommissionGroupID);
+		return MdbDataStringBuffer;
 	}
 	static void DeallocateAccount(void* r) { static_cast<Account*>(r)->Deallocate(); }
 	const TableSchema& Account::GetSchema()
@@ -303,20 +274,15 @@ namespace mdb
 	}
 	const char* Capital::GetString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "%s,%s,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
-			TradingDay, AccountID, (int)AccountType, Balance, PreBalance, Available, MarketValue, CashIn, CashOut, Margin, Commission, FrozenCash, FrozenMargin, FrozenCommission, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, Deposit, Withdraw);
-		return t_MdbDataStringBuffer;
-	}
-	int Capital::GetSqlString(char* buff) const
-	{
-		return sprintf(buff, "\n('%s','%s','%d','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f'),",
-			TradingDay, AccountID, (int)AccountType, Balance, PreBalance, Available, MarketValue, CashIn, CashOut, Margin, Commission, FrozenCash, FrozenMargin, FrozenCommission, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, Deposit, Withdraw);
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "%s,%s,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
+			TradingDay, AccountID, static_cast<int>(AccountType), Balance, PreBalance, Available, MarketValue, CashIn, CashOut, Margin, Commission, FrozenCash, FrozenMargin, FrozenCommission, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, Deposit, Withdraw);
+		return MdbDataStringBuffer;
 	}
 	const char* Capital::GetDebugString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "Capital:TradingDay:[%s], AccountID:[%s], AccountType:[%d], Balance:[%f], PreBalance:[%f], Available:[%f], MarketValue:[%f], CashIn:[%f], CashOut:[%f], Margin:[%f], Commission:[%f], FrozenCash:[%f], FrozenMargin:[%f], FrozenCommission:[%f], CloseProfitByDate:[%f], CloseProfitByTrade:[%f], PositionProfitByDate:[%f], PositionProfitByTrade:[%f], Deposit:[%f], Withdraw:[%f]",
-			TradingDay, AccountID, (int)AccountType, Balance, PreBalance, Available, MarketValue, CashIn, CashOut, Margin, Commission, FrozenCash, FrozenMargin, FrozenCommission, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, Deposit, Withdraw);
-		return t_MdbDataStringBuffer;
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "Capital:TradingDay:[%s], AccountID:[%s], AccountType:[%d], Balance:[%f], PreBalance:[%f], Available:[%f], MarketValue:[%f], CashIn:[%f], CashOut:[%f], Margin:[%f], Commission:[%f], FrozenCash:[%f], FrozenMargin:[%f], FrozenCommission:[%f], CloseProfitByDate:[%f], CloseProfitByTrade:[%f], PositionProfitByDate:[%f], PositionProfitByTrade:[%f], Deposit:[%f], Withdraw:[%f]",
+			TradingDay, AccountID, static_cast<int>(AccountType), Balance, PreBalance, Available, MarketValue, CashIn, CashOut, Margin, Commission, FrozenCash, FrozenMargin, FrozenCommission, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, Deposit, Withdraw);
+		return MdbDataStringBuffer;
 	}
 	static void DeallocateCapital(void* r) { static_cast<Capital*>(r)->Deallocate(); }
 	const TableSchema& Capital::GetSchema()
@@ -368,20 +334,15 @@ namespace mdb
 	}
 	const char* Position::GetString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "%s,%s,%d,%s,%s,%d,%d,%lld,%lld,%lld,%f,%f,%f,%f,%f,%f,%f,%f,%d,%f,%f,%f,%f,%f,%f",
-			TradingDay, AccountID, (int)AccountType, ExchangeID, InstrumentID, (int)ProductClass, (int)PosiDirection, TotalPosition, PositionFrozen, TodayPosition, MarketValue, CashIn, CashOut, Margin, Commission, FrozenCash, FrozenMargin, FrozenCommission, VolumeMultiple, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, SettlementPrice, PreSettlementPrice);
-		return t_MdbDataStringBuffer;
-	}
-	int Position::GetSqlString(char* buff) const
-	{
-		return sprintf(buff, "\n('%s','%s','%d','%s','%s','%d','%d','%lld','%lld','%lld','%f','%f','%f','%f','%f','%f','%f','%f','%d','%f','%f','%f','%f','%f','%f'),",
-			TradingDay, AccountID, (int)AccountType, ExchangeID, InstrumentID, (int)ProductClass, (int)PosiDirection, TotalPosition, PositionFrozen, TodayPosition, MarketValue, CashIn, CashOut, Margin, Commission, FrozenCash, FrozenMargin, FrozenCommission, VolumeMultiple, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, SettlementPrice, PreSettlementPrice);
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "%s,%s,%d,%s,%s,%d,%d,%lld,%lld,%lld,%f,%f,%f,%f,%f,%f,%f,%f,%d,%f,%f,%f,%f,%f,%f",
+			TradingDay, AccountID, static_cast<int>(AccountType), ExchangeID, InstrumentID, static_cast<int>(ProductClass), static_cast<int>(PosiDirection), TotalPosition, PositionFrozen, TodayPosition, MarketValue, CashIn, CashOut, Margin, Commission, FrozenCash, FrozenMargin, FrozenCommission, VolumeMultiple, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, SettlementPrice, PreSettlementPrice);
+		return MdbDataStringBuffer;
 	}
 	const char* Position::GetDebugString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "Position:TradingDay:[%s], AccountID:[%s], AccountType:[%d], ExchangeID:[%s], InstrumentID:[%s], ProductClass:[%d], PosiDirection:[%d], TotalPosition:[%lld], PositionFrozen:[%lld], TodayPosition:[%lld], MarketValue:[%f], CashIn:[%f], CashOut:[%f], Margin:[%f], Commission:[%f], FrozenCash:[%f], FrozenMargin:[%f], FrozenCommission:[%f], VolumeMultiple:[%d], CloseProfitByDate:[%f], CloseProfitByTrade:[%f], PositionProfitByDate:[%f], PositionProfitByTrade:[%f], SettlementPrice:[%f], PreSettlementPrice:[%f]",
-			TradingDay, AccountID, (int)AccountType, ExchangeID, InstrumentID, (int)ProductClass, (int)PosiDirection, TotalPosition, PositionFrozen, TodayPosition, MarketValue, CashIn, CashOut, Margin, Commission, FrozenCash, FrozenMargin, FrozenCommission, VolumeMultiple, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, SettlementPrice, PreSettlementPrice);
-		return t_MdbDataStringBuffer;
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "Position:TradingDay:[%s], AccountID:[%s], AccountType:[%d], ExchangeID:[%s], InstrumentID:[%s], ProductClass:[%d], PosiDirection:[%d], TotalPosition:[%lld], PositionFrozen:[%lld], TodayPosition:[%lld], MarketValue:[%f], CashIn:[%f], CashOut:[%f], Margin:[%f], Commission:[%f], FrozenCash:[%f], FrozenMargin:[%f], FrozenCommission:[%f], VolumeMultiple:[%d], CloseProfitByDate:[%f], CloseProfitByTrade:[%f], PositionProfitByDate:[%f], PositionProfitByTrade:[%f], SettlementPrice:[%f], PreSettlementPrice:[%f]",
+			TradingDay, AccountID, static_cast<int>(AccountType), ExchangeID, InstrumentID, static_cast<int>(ProductClass), static_cast<int>(PosiDirection), TotalPosition, PositionFrozen, TodayPosition, MarketValue, CashIn, CashOut, Margin, Commission, FrozenCash, FrozenMargin, FrozenCommission, VolumeMultiple, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, SettlementPrice, PreSettlementPrice);
+		return MdbDataStringBuffer;
 	}
 	static void DeallocatePosition(void* r) { static_cast<Position*>(r)->Deallocate(); }
 	const TableSchema& Position::GetSchema()
@@ -433,20 +394,15 @@ namespace mdb
 	}
 	const char* PositionDetail::GetString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "%s,%s,%d,%s,%s,%d,%d,%s,%s,%lld,%f,%f,%f,%f,%f,%f,%d,%f,%f,%f,%f,%f,%f,%lld,%f",
-			TradingDay, AccountID, (int)AccountType, ExchangeID, InstrumentID, (int)ProductClass, (int)PosiDirection, OpenDate, TradeID, Volume, OpenPrice, MarketValue, CashIn, CashOut, Margin, Commission, VolumeMultiple, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, SettlementPrice, PreSettlementPrice, CloseVolume, CloseAmount);
-		return t_MdbDataStringBuffer;
-	}
-	int PositionDetail::GetSqlString(char* buff) const
-	{
-		return sprintf(buff, "\n('%s','%s','%d','%s','%s','%d','%d','%s','%s','%lld','%f','%f','%f','%f','%f','%f','%d','%f','%f','%f','%f','%f','%f','%lld','%f'),",
-			TradingDay, AccountID, (int)AccountType, ExchangeID, InstrumentID, (int)ProductClass, (int)PosiDirection, OpenDate, TradeID, Volume, OpenPrice, MarketValue, CashIn, CashOut, Margin, Commission, VolumeMultiple, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, SettlementPrice, PreSettlementPrice, CloseVolume, CloseAmount);
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "%s,%s,%d,%s,%s,%d,%d,%s,%s,%lld,%f,%f,%f,%f,%f,%f,%d,%f,%f,%f,%f,%f,%f,%lld,%f",
+			TradingDay, AccountID, static_cast<int>(AccountType), ExchangeID, InstrumentID, static_cast<int>(ProductClass), static_cast<int>(PosiDirection), OpenDate, TradeID, Volume, OpenPrice, MarketValue, CashIn, CashOut, Margin, Commission, VolumeMultiple, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, SettlementPrice, PreSettlementPrice, CloseVolume, CloseAmount);
+		return MdbDataStringBuffer;
 	}
 	const char* PositionDetail::GetDebugString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "PositionDetail:TradingDay:[%s], AccountID:[%s], AccountType:[%d], ExchangeID:[%s], InstrumentID:[%s], ProductClass:[%d], PosiDirection:[%d], OpenDate:[%s], TradeID:[%s], Volume:[%lld], OpenPrice:[%f], MarketValue:[%f], CashIn:[%f], CashOut:[%f], Margin:[%f], Commission:[%f], VolumeMultiple:[%d], CloseProfitByDate:[%f], CloseProfitByTrade:[%f], PositionProfitByDate:[%f], PositionProfitByTrade:[%f], SettlementPrice:[%f], PreSettlementPrice:[%f], CloseVolume:[%lld], CloseAmount:[%f]",
-			TradingDay, AccountID, (int)AccountType, ExchangeID, InstrumentID, (int)ProductClass, (int)PosiDirection, OpenDate, TradeID, Volume, OpenPrice, MarketValue, CashIn, CashOut, Margin, Commission, VolumeMultiple, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, SettlementPrice, PreSettlementPrice, CloseVolume, CloseAmount);
-		return t_MdbDataStringBuffer;
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "PositionDetail:TradingDay:[%s], AccountID:[%s], AccountType:[%d], ExchangeID:[%s], InstrumentID:[%s], ProductClass:[%d], PosiDirection:[%d], OpenDate:[%s], TradeID:[%s], Volume:[%lld], OpenPrice:[%f], MarketValue:[%f], CashIn:[%f], CashOut:[%f], Margin:[%f], Commission:[%f], VolumeMultiple:[%d], CloseProfitByDate:[%f], CloseProfitByTrade:[%f], PositionProfitByDate:[%f], PositionProfitByTrade:[%f], SettlementPrice:[%f], PreSettlementPrice:[%f], CloseVolume:[%lld], CloseAmount:[%f]",
+			TradingDay, AccountID, static_cast<int>(AccountType), ExchangeID, InstrumentID, static_cast<int>(ProductClass), static_cast<int>(PosiDirection), OpenDate, TradeID, Volume, OpenPrice, MarketValue, CashIn, CashOut, Margin, Commission, VolumeMultiple, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, SettlementPrice, PreSettlementPrice, CloseVolume, CloseAmount);
+		return MdbDataStringBuffer;
 	}
 	static void DeallocatePositionDetail(void* r) { static_cast<PositionDetail*>(r)->Deallocate(); }
 	const TableSchema& PositionDetail::GetSchema()
@@ -500,20 +456,15 @@ namespace mdb
 	}
 	const char* Order::GetString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "%s,%s,%d,%s,%s,%d,%d,%s,%d,%d,%d,%f,%lld,%lld,%lld,%d,%d,%s,%s,%s,%s,%lld,%d,%d,%d,%d,%d,%d,%f,%f,%f,%d,%d",
-			TradingDay, AccountID, (int)AccountType, ExchangeID, InstrumentID, (int)ProductClass, OrderID, OrderSysID, (int)Direction, (int)OffsetFlag, (int)OrderPriceType, Price, Volume, VolumeTotal, VolumeTraded, VolumeMultiple, (int)OrderStatus, OrderDate, OrderTime, CancelDate, CancelTime, SessionID, ClientOrderID, RequestID, OfferID, TradeGroupID, RiskGroupID, CommissionGroupID, FrozenCash, FrozenMargin, FrozenCommission, RebuildMark, IsForceClose);
-		return t_MdbDataStringBuffer;
-	}
-	int Order::GetSqlString(char* buff) const
-	{
-		return sprintf(buff, "\n('%s','%s','%d','%s','%s','%d','%d','%s','%d','%d','%d','%f','%lld','%lld','%lld','%d','%d','%s','%s','%s','%s','%lld','%d','%d','%d','%d','%d','%d','%f','%f','%f','%d','%d'),",
-			TradingDay, AccountID, (int)AccountType, ExchangeID, InstrumentID, (int)ProductClass, OrderID, OrderSysID, (int)Direction, (int)OffsetFlag, (int)OrderPriceType, Price, Volume, VolumeTotal, VolumeTraded, VolumeMultiple, (int)OrderStatus, OrderDate, OrderTime, CancelDate, CancelTime, SessionID, ClientOrderID, RequestID, OfferID, TradeGroupID, RiskGroupID, CommissionGroupID, FrozenCash, FrozenMargin, FrozenCommission, RebuildMark, IsForceClose);
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "%s,%s,%d,%s,%s,%d,%d,%s,%d,%d,%d,%f,%lld,%lld,%lld,%d,%d,%s,%s,%s,%s,%lld,%d,%d,%d,%d,%d,%d,%f,%f,%f,%d,%d",
+			TradingDay, AccountID, static_cast<int>(AccountType), ExchangeID, InstrumentID, static_cast<int>(ProductClass), OrderID, OrderSysID, static_cast<int>(Direction), static_cast<int>(OffsetFlag), static_cast<int>(OrderPriceType), Price, Volume, VolumeTotal, VolumeTraded, VolumeMultiple, static_cast<int>(OrderStatus), OrderDate, OrderTime, CancelDate, CancelTime, SessionID, ClientOrderID, RequestID, OfferID, TradeGroupID, RiskGroupID, CommissionGroupID, FrozenCash, FrozenMargin, FrozenCommission, RebuildMark, IsForceClose);
+		return MdbDataStringBuffer;
 	}
 	const char* Order::GetDebugString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "Order:TradingDay:[%s], AccountID:[%s], AccountType:[%d], ExchangeID:[%s], InstrumentID:[%s], ProductClass:[%d], OrderID:[%d], OrderSysID:[%s], Direction:[%d], OffsetFlag:[%d], OrderPriceType:[%d], Price:[%f], Volume:[%lld], VolumeTotal:[%lld], VolumeTraded:[%lld], VolumeMultiple:[%d], OrderStatus:[%d], OrderDate:[%s], OrderTime:[%s], CancelDate:[%s], CancelTime:[%s], SessionID:[%lld], ClientOrderID:[%d], RequestID:[%d], OfferID:[%d], TradeGroupID:[%d], RiskGroupID:[%d], CommissionGroupID:[%d], FrozenCash:[%f], FrozenMargin:[%f], FrozenCommission:[%f], RebuildMark:[%d], IsForceClose:[%d]",
-			TradingDay, AccountID, (int)AccountType, ExchangeID, InstrumentID, (int)ProductClass, OrderID, OrderSysID, (int)Direction, (int)OffsetFlag, (int)OrderPriceType, Price, Volume, VolumeTotal, VolumeTraded, VolumeMultiple, (int)OrderStatus, OrderDate, OrderTime, CancelDate, CancelTime, SessionID, ClientOrderID, RequestID, OfferID, TradeGroupID, RiskGroupID, CommissionGroupID, FrozenCash, FrozenMargin, FrozenCommission, RebuildMark, IsForceClose);
-		return t_MdbDataStringBuffer;
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "Order:TradingDay:[%s], AccountID:[%s], AccountType:[%d], ExchangeID:[%s], InstrumentID:[%s], ProductClass:[%d], OrderID:[%d], OrderSysID:[%s], Direction:[%d], OffsetFlag:[%d], OrderPriceType:[%d], Price:[%f], Volume:[%lld], VolumeTotal:[%lld], VolumeTraded:[%lld], VolumeMultiple:[%d], OrderStatus:[%d], OrderDate:[%s], OrderTime:[%s], CancelDate:[%s], CancelTime:[%s], SessionID:[%lld], ClientOrderID:[%d], RequestID:[%d], OfferID:[%d], TradeGroupID:[%d], RiskGroupID:[%d], CommissionGroupID:[%d], FrozenCash:[%f], FrozenMargin:[%f], FrozenCommission:[%f], RebuildMark:[%d], IsForceClose:[%d]",
+			TradingDay, AccountID, static_cast<int>(AccountType), ExchangeID, InstrumentID, static_cast<int>(ProductClass), OrderID, OrderSysID, static_cast<int>(Direction), static_cast<int>(OffsetFlag), static_cast<int>(OrderPriceType), Price, Volume, VolumeTotal, VolumeTraded, VolumeMultiple, static_cast<int>(OrderStatus), OrderDate, OrderTime, CancelDate, CancelTime, SessionID, ClientOrderID, RequestID, OfferID, TradeGroupID, RiskGroupID, CommissionGroupID, FrozenCash, FrozenMargin, FrozenCommission, RebuildMark, IsForceClose);
+		return MdbDataStringBuffer;
 	}
 	static void DeallocateOrder(void* r) { static_cast<Order*>(r)->Deallocate(); }
 	const TableSchema& Order::GetSchema()
@@ -552,20 +503,15 @@ namespace mdb
 	}
 	const char* Trade::GetString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "%s,%s,%d,%s,%s,%d,%d,%s,%s,%d,%d,%f,%lld,%d,%f,%f,%s,%s",
-			TradingDay, AccountID, (int)AccountType, ExchangeID, InstrumentID, (int)ProductClass, OrderID, OrderSysID, TradeID, (int)Direction, (int)OffsetFlag, Price, Volume, VolumeMultiple, TradeAmount, Commission, TradeDate, TradeTime);
-		return t_MdbDataStringBuffer;
-	}
-	int Trade::GetSqlString(char* buff) const
-	{
-		return sprintf(buff, "\n('%s','%s','%d','%s','%s','%d','%d','%s','%s','%d','%d','%f','%lld','%d','%f','%f','%s','%s'),",
-			TradingDay, AccountID, (int)AccountType, ExchangeID, InstrumentID, (int)ProductClass, OrderID, OrderSysID, TradeID, (int)Direction, (int)OffsetFlag, Price, Volume, VolumeMultiple, TradeAmount, Commission, TradeDate, TradeTime);
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "%s,%s,%d,%s,%s,%d,%d,%s,%s,%d,%d,%f,%lld,%d,%f,%f,%s,%s",
+			TradingDay, AccountID, static_cast<int>(AccountType), ExchangeID, InstrumentID, static_cast<int>(ProductClass), OrderID, OrderSysID, TradeID, static_cast<int>(Direction), static_cast<int>(OffsetFlag), Price, Volume, VolumeMultiple, TradeAmount, Commission, TradeDate, TradeTime);
+		return MdbDataStringBuffer;
 	}
 	const char* Trade::GetDebugString() const
 	{
-		sprintf(t_MdbDataStringBuffer, "Trade:TradingDay:[%s], AccountID:[%s], AccountType:[%d], ExchangeID:[%s], InstrumentID:[%s], ProductClass:[%d], OrderID:[%d], OrderSysID:[%s], TradeID:[%s], Direction:[%d], OffsetFlag:[%d], Price:[%f], Volume:[%lld], VolumeMultiple:[%d], TradeAmount:[%f], Commission:[%f], TradeDate:[%s], TradeTime:[%s]",
-			TradingDay, AccountID, (int)AccountType, ExchangeID, InstrumentID, (int)ProductClass, OrderID, OrderSysID, TradeID, (int)Direction, (int)OffsetFlag, Price, Volume, VolumeMultiple, TradeAmount, Commission, TradeDate, TradeTime);
-		return t_MdbDataStringBuffer;
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "Trade:TradingDay:[%s], AccountID:[%s], AccountType:[%d], ExchangeID:[%s], InstrumentID:[%s], ProductClass:[%d], OrderID:[%d], OrderSysID:[%s], TradeID:[%s], Direction:[%d], OffsetFlag:[%d], Price:[%f], Volume:[%lld], VolumeMultiple:[%d], TradeAmount:[%f], Commission:[%f], TradeDate:[%s], TradeTime:[%s]",
+			TradingDay, AccountID, static_cast<int>(AccountType), ExchangeID, InstrumentID, static_cast<int>(ProductClass), OrderID, OrderSysID, TradeID, static_cast<int>(Direction), static_cast<int>(OffsetFlag), Price, Volume, VolumeMultiple, TradeAmount, Commission, TradeDate, TradeTime);
+		return MdbDataStringBuffer;
 	}
 	static void DeallocateTrade(void* r) { static_cast<Trade*>(r)->Deallocate(); }
 	const TableSchema& Trade::GetSchema()
@@ -574,16 +520,16 @@ namespace mdb
 		return schema;
 	}
 
-	thread_local TradingDay t_CompareTradingDay;
-	thread_local Exchange t_CompareExchange;
-	thread_local Product t_CompareProduct;
-	thread_local Instrument t_CompareInstrument;
-	thread_local PrimaryAccount t_ComparePrimaryAccount;
-	thread_local Account t_CompareAccount;
-	thread_local Capital t_CompareCapital;
-	thread_local Position t_ComparePosition;
-	thread_local PositionDetail t_ComparePositionDetail;
-	thread_local Order t_CompareOrder;
-	thread_local Trade t_CompareTrade;
+	thread_local TradingDay CompareTradingDay;
+	thread_local Exchange CompareExchange;
+	thread_local Product CompareProduct;
+	thread_local Instrument CompareInstrument;
+	thread_local PrimaryAccount ComparePrimaryAccount;
+	thread_local Account CompareAccount;
+	thread_local Capital CompareCapital;
+	thread_local Position ComparePosition;
+	thread_local PositionDetail ComparePositionDetail;
+	thread_local Order CompareOrder;
+	thread_local Trade CompareTrade;
 
 }

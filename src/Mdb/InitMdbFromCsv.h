@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿// 本文件由 ../Templates/Cpp/Mdb/InitMdbFromCsv.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+#pragma once
 #include "Mdb.h"
 #include "TableList.h"
 

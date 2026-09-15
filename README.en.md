@@ -230,7 +230,7 @@ int main(int argc, const char* argv[])
     std::memset(exchange, 0, sizeof(Exchange));
     std::strcpy(exchange->ExchangeID, "SHFE");
     std::strcpy(exchange->ExchangeName, "Shanghai Futures Exchange");
-    mdb->t_Exchange->Insert(exchange);                      // returns false on primary-key conflict
+    mdb->exchange->Insert(exchange);                      // returns false on primary-key conflict
 
     Account* account = new Account();
     std::memset(account, 0, sizeof(Account));
@@ -238,7 +238,7 @@ int main(int argc, const char* argv[])
     std::strcpy(account->AccountName, "Alice");
     account->AccountType = AccountTypeType::Primary;
     account->AccountStatus = AccountStatusType::Normal;
-    mdb->t_Account->Insert(account);
+    mdb->account->Insert(account);
 
     // 5. Cleanup: stop the writer thread, unsubscribe
     dbWriter->Stop();
@@ -259,11 +259,11 @@ int main(int argc, const char* argv[])
 ```cpp
 // Primary-key lookup: locate a single record by unique primary key
 ExchangeIDType exchangeID("CFFEX");
-Exchange* exchange = mdb->t_Exchange->m_PrimaryKey->Select(exchangeID);
+Exchange* exchange = mdb->exchange->primaryKey->Select(exchangeID);
 WriteLog(LogLevel::Info, "%s", exchange->GetDebugString());
 
 // Full scan over primary key: returns an iterator pair [begin, end)
-auto all = mdb->t_Exchange->m_PrimaryKey->SelectAll();
+auto all = mdb->exchange->primaryKey->SelectAll();
 for (auto it = all.first; it != all.second; ++it)
 {
     WriteLog(LogLevel::Info, "%s", (*it)->GetDebugString());
@@ -271,14 +271,14 @@ for (auto it = all.first; it != all.second; ++it)
 
 // Secondary-index equality range query (e.g. primary accounts by OfferID)
 OfferIDType offerID = 10001;
-auto range = mdb->t_PrimaryAccount->m_OfferIDIndex->EqualRange(offerID);
+auto range = mdb->primaryAccount->offerIDIndex->EqualRange(offerID);
 for (auto it = range.first; it != range.second; ++it)
 {
     WriteLog(LogLevel::Info, "%s", (*it)->GetDebugString());
 }
 
 // Batch delete by secondary index (e.g. clear capital records for a trading day)
-mdb->t_Capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
+mdb->capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
 ```
 
 ### Example 3: Update / Delete / Clear Tables
@@ -287,17 +287,17 @@ mdb->t_Capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
 // Update: sync to memory and broadcast to AsyncDBWriter via MdbSubscriber for async persistence
 AccountIDType accountID;
 std::strcpy(accountID, "A001");
-Account* oldAccount = mdb->t_Account->m_PrimaryKey->Select(accountID);
+Account* oldAccount = mdb->account->primaryKey->Select(accountID);
 Account* newAccount = new Account();
 *newAccount = *oldAccount;                              // copy then modify
 std::strcpy(newAccount->AccountName, "Bob");
-mdb->t_Account->Update(oldAccount, newAccount);
+mdb->account->Update(oldAccount, newAccount);
 
 // Delete a single record (removes from memory and broadcasts the delete for persistence)
-mdb->t_Account->Erase(oldAccount);
+mdb->account->Erase(oldAccount);
 
 // Clear a single table
-mdb->t_Account->TruncateTable();
+mdb->account->TruncateTable();
 
 // Clear all tables (broadcast TruncateTables + locally clear each table)
 mdb->TruncateTables();
@@ -345,7 +345,7 @@ The `test/TestMdb/TestDB.cpp` integration test covers:
 | `TestDuckdb` | DuckDB backend: full in-memory + async write flow |
 | `TestMysql` | MySQL backend full flow (requires local MySQL X Plugin; commented out by default) |
 | `TestMariadb` | MariaDB backend full flow (requires local MariaDB; commented out by default) |
-| Primary key / index | `m_PrimaryKey->Select` / `SelectAll`, `m_OfferIDIndex->EqualRange`, etc. |
+| Primary key / index | `primaryKey->Select` / `SelectAll`, `offerIDIndex->EqualRange`, etc. |
 | In-memory ops | Insert / Update / Erase / TruncateTable with broadcast persistence verification |
 
 ## 10. License & Disclaimer

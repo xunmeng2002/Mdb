@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿// 本文件由 ../Templates/Cpp/Mdb/MdbTables.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+#pragma once
 #include "MdbStructs.h"
 #include "MdbTableBase.h"
 #include <DBAdapters/DBInterface/MdbSubscriber.h>
@@ -17,7 +18,7 @@ namespace mdb
 	public:
 		TradingDayTable();
 		~TradingDayTable() override;
-		virtual void Subscribe(MdbSubscriber* mdbSubscriber) override;
+		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -35,9 +36,9 @@ namespace mdb
 		void EraseIndex(TradingDay* record);
 
 	public:
-		MdbSubscriber* m_MdbSubscriber;
-		std::shared_mutex m_SharedMutex;
-		TradingDayPrimaryKey* m_PrimaryKey;
+		MdbSubscriber* mdbSubscriber;
+		std::shared_mutex sharedMutex;
+		TradingDayPrimaryKey* primaryKey;
 	};
 
 	class ExchangeTable : public MdbTableBase
@@ -45,7 +46,7 @@ namespace mdb
 	public:
 		ExchangeTable();
 		~ExchangeTable() override;
-		virtual void Subscribe(MdbSubscriber* mdbSubscriber) override;
+		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -63,9 +64,9 @@ namespace mdb
 		void EraseIndex(Exchange* record);
 
 	public:
-		MdbSubscriber* m_MdbSubscriber;
-		std::shared_mutex m_SharedMutex;
-		ExchangePrimaryKey* m_PrimaryKey;
+		MdbSubscriber* mdbSubscriber;
+		std::shared_mutex sharedMutex;
+		ExchangePrimaryKey* primaryKey;
 	};
 
 	class ProductTable : public MdbTableBase
@@ -73,7 +74,7 @@ namespace mdb
 	public:
 		ProductTable();
 		~ProductTable() override;
-		virtual void Subscribe(MdbSubscriber* mdbSubscriber) override;
+		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -91,9 +92,9 @@ namespace mdb
 		void EraseIndex(Product* record);
 
 	public:
-		MdbSubscriber* m_MdbSubscriber;
-		std::shared_mutex m_SharedMutex;
-		ProductPrimaryKey* m_PrimaryKey;
+		MdbSubscriber* mdbSubscriber;
+		std::shared_mutex sharedMutex;
+		ProductPrimaryKey* primaryKey;
 	};
 
 	class InstrumentTable : public MdbTableBase
@@ -101,7 +102,7 @@ namespace mdb
 	public:
 		InstrumentTable();
 		~InstrumentTable() override;
-		virtual void Subscribe(MdbSubscriber* mdbSubscriber) override;
+		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -119,9 +120,9 @@ namespace mdb
 		void EraseIndex(Instrument* record);
 
 	public:
-		MdbSubscriber* m_MdbSubscriber;
-		std::shared_mutex m_SharedMutex;
-		InstrumentPrimaryKey* m_PrimaryKey;
+		MdbSubscriber* mdbSubscriber;
+		std::shared_mutex sharedMutex;
+		InstrumentPrimaryKey* primaryKey;
 	};
 
 	class PrimaryAccountTable : public MdbTableBase
@@ -129,7 +130,7 @@ namespace mdb
 	public:
 		PrimaryAccountTable();
 		~PrimaryAccountTable() override;
-		virtual void Subscribe(MdbSubscriber* mdbSubscriber) override;
+		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -148,10 +149,10 @@ namespace mdb
 		void EraseIndex(PrimaryAccount* record);
 
 	public:
-		MdbSubscriber* m_MdbSubscriber;
-		std::shared_mutex m_SharedMutex;
-		PrimaryAccountPrimaryKey* m_PrimaryKey;
-		PrimaryAccountIndexOfferID* m_OfferIDIndex;
+		MdbSubscriber* mdbSubscriber;
+		std::shared_mutex sharedMutex;
+		PrimaryAccountPrimaryKey* primaryKey;
+		PrimaryAccountIndexOfferID* offerIDIndex;
 	};
 
 	class AccountTable : public MdbTableBase
@@ -159,7 +160,7 @@ namespace mdb
 	public:
 		AccountTable();
 		~AccountTable() override;
-		virtual void Subscribe(MdbSubscriber* mdbSubscriber) override;
+		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -177,9 +178,9 @@ namespace mdb
 		void EraseIndex(Account* record);
 
 	public:
-		MdbSubscriber* m_MdbSubscriber;
-		std::shared_mutex m_SharedMutex;
-		AccountPrimaryKey* m_PrimaryKey;
+		MdbSubscriber* mdbSubscriber;
+		std::shared_mutex sharedMutex;
+		AccountPrimaryKey* primaryKey;
 	};
 
 	class CapitalTable : public MdbTableBase
@@ -187,7 +188,7 @@ namespace mdb
 	public:
 		CapitalTable();
 		~CapitalTable() override;
-		virtual void Subscribe(MdbSubscriber* mdbSubscriber) override;
+		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -206,10 +207,10 @@ namespace mdb
 		void EraseIndex(Capital* record);
 
 	public:
-		MdbSubscriber* m_MdbSubscriber;
-		std::shared_mutex m_SharedMutex;
-		CapitalPrimaryKey* m_PrimaryKey;
-		CapitalIndexTradingDay* m_TradingDayIndex;
+		MdbSubscriber* mdbSubscriber;
+		std::shared_mutex sharedMutex;
+		CapitalPrimaryKey* primaryKey;
+		CapitalIndexTradingDay* tradingDayIndex;
 	};
 
 	class PositionTable : public MdbTableBase
@@ -217,7 +218,7 @@ namespace mdb
 	public:
 		PositionTable();
 		~PositionTable() override;
-		virtual void Subscribe(MdbSubscriber* mdbSubscriber) override;
+		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -237,11 +238,11 @@ namespace mdb
 		void EraseIndex(Position* record);
 
 	public:
-		MdbSubscriber* m_MdbSubscriber;
-		std::shared_mutex m_SharedMutex;
-		PositionPrimaryKey* m_PrimaryKey;
-		PositionIndexAccount* m_AccountIndex;
-		PositionIndexTradingDay* m_TradingDayIndex;
+		MdbSubscriber* mdbSubscriber;
+		std::shared_mutex sharedMutex;
+		PositionPrimaryKey* primaryKey;
+		PositionIndexAccount* accountIndex;
+		PositionIndexTradingDay* tradingDayIndex;
 	};
 
 	class PositionDetailTable : public MdbTableBase
@@ -249,7 +250,7 @@ namespace mdb
 	public:
 		PositionDetailTable();
 		~PositionDetailTable() override;
-		virtual void Subscribe(MdbSubscriber* mdbSubscriber) override;
+		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -269,11 +270,11 @@ namespace mdb
 		void EraseIndex(PositionDetail* record);
 
 	public:
-		MdbSubscriber* m_MdbSubscriber;
-		std::shared_mutex m_SharedMutex;
-		PositionDetailPrimaryKey* m_PrimaryKey;
-		PositionDetailIndexTradeMatch* m_TradeMatchIndex;
-		PositionDetailIndexTradingDay* m_TradingDayIndex;
+		MdbSubscriber* mdbSubscriber;
+		std::shared_mutex sharedMutex;
+		PositionDetailPrimaryKey* primaryKey;
+		PositionDetailIndexTradeMatch* tradeMatchIndex;
+		PositionDetailIndexTradingDay* tradingDayIndex;
 	};
 
 	class OrderTable : public MdbTableBase
@@ -281,7 +282,7 @@ namespace mdb
 	public:
 		OrderTable();
 		~OrderTable() override;
-		virtual void Subscribe(MdbSubscriber* mdbSubscriber) override;
+		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -299,10 +300,10 @@ namespace mdb
 		void EraseIndex(Order* record);
 
 	public:
-		MdbSubscriber* m_MdbSubscriber;
-		std::shared_mutex m_SharedMutex;
-		OrderPrimaryKey* m_PrimaryKey;
-		OrderUniqueKeyClientOrderID* m_ClientOrderIDUniqueKey;
+		MdbSubscriber* mdbSubscriber;
+		std::shared_mutex sharedMutex;
+		OrderPrimaryKey* primaryKey;
+		OrderUniqueKeyClientOrderID* clientOrderIDUniqueKey;
 	};
 
 	class TradeTable : public MdbTableBase
@@ -310,7 +311,7 @@ namespace mdb
 	public:
 		TradeTable();
 		~TradeTable() override;
-		virtual void Subscribe(MdbSubscriber* mdbSubscriber) override;
+		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -328,9 +329,9 @@ namespace mdb
 		void EraseIndex(Trade* record);
 
 	public:
-		MdbSubscriber* m_MdbSubscriber;
-		std::shared_mutex m_SharedMutex;
-		TradePrimaryKey* m_PrimaryKey;
+		MdbSubscriber* mdbSubscriber;
+		std::shared_mutex sharedMutex;
+		TradePrimaryKey* primaryKey;
 	};
 
 }

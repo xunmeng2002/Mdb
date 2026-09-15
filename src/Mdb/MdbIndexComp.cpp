@@ -1,4 +1,5 @@
-﻿#include "MdbIndexComp.h"
+﻿// 本文件由 ../Templates/Cpp/Mdb/MdbIndexComp.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+#include "MdbIndexComp.h"
 #include <string.h>
 
 

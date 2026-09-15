@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿// 本文件由 ../Templates/Cpp/Mdb/Mdb.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+#pragma once
 #include "MdbTables.h"
 #include "MdbTableBase.h"
 #include "TableList.h"
@@ -13,7 +14,7 @@ namespace mdb
 	{
 	public:
 		explicit Mdb(const TableList& tableList);
-		void Subscribe(MdbSubscriber* mdbSubscriber);
+		void Subscribe(MdbSubscriber* subscriber);
 		void UnSubscribe();
 		void InitDB();
 		void SetInitStatus(bool initStatus);
@@ -26,19 +27,19 @@ namespace mdb
 		virtual void OnDBDisConnected() override;
 
 	public:
-		TradingDayTable* t_TradingDay = nullptr;
-		ExchangeTable* t_Exchange = nullptr;
-		ProductTable* t_Product = nullptr;
-		InstrumentTable* t_Instrument = nullptr;
-		PrimaryAccountTable* t_PrimaryAccount = nullptr;
-		AccountTable* t_Account = nullptr;
-		CapitalTable* t_Capital = nullptr;
-		PositionTable* t_Position = nullptr;
-		PositionDetailTable* t_PositionDetail = nullptr;
-		OrderTable* t_Order = nullptr;
-		TradeTable* t_Trade = nullptr;
+		TradingDayTable* tradingDay = nullptr;
+		ExchangeTable* exchange = nullptr;
+		ProductTable* product = nullptr;
+		InstrumentTable* instrument = nullptr;
+		PrimaryAccountTable* primaryAccount = nullptr;
+		AccountTable* account = nullptr;
+		CapitalTable* capital = nullptr;
+		PositionTable* position = nullptr;
+		PositionDetailTable* positionDetail = nullptr;
+		OrderTable* order = nullptr;
+		TradeTable* trade = nullptr;
 	private:
-		MdbSubscriber* m_MdbSubscriber;
-		std::vector<MdbTableBase*> m_Tables;
+		MdbSubscriber* mdbSubscriber;
+		std::vector<MdbTableBase*> tables;
 	};
 }

@@ -1,8 +1,8 @@
-﻿#include "InitMdbFromDB.h"
+﻿// 本文件由 ../Templates/Cpp/Mdb/InitMdbFromDB.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+#include "InitMdbFromDB.h"
 #include <DBAdapters/DBInterface/TypedTable.h>
 #include <vector>
 
-using namespace std;
 using namespace dbadapters;
 
 namespace mdb
@@ -33,111 +33,111 @@ namespace mdb
 	void InitMdbFromDB::LoadTradingDayTable(Mdb* mdb, DB* db)
 	{
 		TypedTable<TradingDay> table(db);
-		vector<TradingDay*> records;
+		std::vector<TradingDay*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->t_TradingDay->Insert(record);
+			mdb->tradingDay->Insert(record);
 		}
 	}
 	void InitMdbFromDB::LoadExchangeTable(Mdb* mdb, DB* db)
 	{
 		TypedTable<Exchange> table(db);
-		vector<Exchange*> records;
+		std::vector<Exchange*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->t_Exchange->Insert(record);
+			mdb->exchange->Insert(record);
 		}
 	}
 	void InitMdbFromDB::LoadProductTable(Mdb* mdb, DB* db)
 	{
 		TypedTable<Product> table(db);
-		vector<Product*> records;
+		std::vector<Product*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->t_Product->Insert(record);
+			mdb->product->Insert(record);
 		}
 	}
 	void InitMdbFromDB::LoadInstrumentTable(Mdb* mdb, DB* db)
 	{
 		TypedTable<Instrument> table(db);
-		vector<Instrument*> records;
+		std::vector<Instrument*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->t_Instrument->Insert(record);
+			mdb->instrument->Insert(record);
 		}
 	}
 	void InitMdbFromDB::LoadPrimaryAccountTable(Mdb* mdb, DB* db)
 	{
 		TypedTable<PrimaryAccount> table(db);
-		vector<PrimaryAccount*> records;
+		std::vector<PrimaryAccount*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->t_PrimaryAccount->Insert(record);
+			mdb->primaryAccount->Insert(record);
 		}
 	}
 	void InitMdbFromDB::LoadAccountTable(Mdb* mdb, DB* db)
 	{
 		TypedTable<Account> table(db);
-		vector<Account*> records;
+		std::vector<Account*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->t_Account->Insert(record);
+			mdb->account->Insert(record);
 		}
 	}
 	void InitMdbFromDB::LoadCapitalTable(Mdb* mdb, DB* db)
 	{
 		TypedTable<Capital> table(db);
-		vector<Capital*> records;
+		std::vector<Capital*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->t_Capital->Insert(record);
+			mdb->capital->Insert(record);
 		}
 	}
 	void InitMdbFromDB::LoadPositionTable(Mdb* mdb, DB* db)
 	{
 		TypedTable<Position> table(db);
-		vector<Position*> records;
+		std::vector<Position*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->t_Position->Insert(record);
+			mdb->position->Insert(record);
 		}
 	}
 	void InitMdbFromDB::LoadPositionDetailTable(Mdb* mdb, DB* db)
 	{
 		TypedTable<PositionDetail> table(db);
-		vector<PositionDetail*> records;
+		std::vector<PositionDetail*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->t_PositionDetail->Insert(record);
+			mdb->positionDetail->Insert(record);
 		}
 	}
 	void InitMdbFromDB::LoadOrderTable(Mdb* mdb, DB* db)
 	{
 		TypedTable<Order> table(db);
-		vector<Order*> records;
+		std::vector<Order*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->t_Order->Insert(record);
+			mdb->order->Insert(record);
 		}
 	}
 	void InitMdbFromDB::LoadTradeTable(Mdb* mdb, DB* db)
 	{
 		TypedTable<Trade> table(db);
-		vector<Trade*> records;
+		std::vector<Trade*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->t_Trade->Insert(record);
+			mdb->trade->Insert(record);
 		}
 	}
 }

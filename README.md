@@ -230,7 +230,7 @@ int main(int argc, const char* argv[])
     std::memset(exchange, 0, sizeof(Exchange));
     std::strcpy(exchange->ExchangeID, "SHFE");
     std::strcpy(exchange->ExchangeName, u8"上海期货交易所");
-    mdb->t_Exchange->Insert(exchange);                      // 返回 false 表示主键冲突
+    mdb->exchange->Insert(exchange);                      // 返回 false 表示主键冲突
 
     Account* account = new Account();
     std::memset(account, 0, sizeof(Account));
@@ -238,7 +238,7 @@ int main(int argc, const char* argv[])
     std::strcpy(account->AccountName, u8"张三");
     account->AccountType = AccountTypeType::Primary;
     account->AccountStatus = AccountStatusType::Normal;
-    mdb->t_Account->Insert(account);
+    mdb->account->Insert(account);
 
     // 5. 收尾：停止写库线程，解除订阅
     dbWriter->Stop();
@@ -259,11 +259,11 @@ int main(int argc, const char* argv[])
 ```cpp
 // 主键查询：按唯一主键定位单条记录
 ExchangeIDType exchangeID("CFFEX");
-Exchange* exchange = mdb->t_Exchange->m_PrimaryKey->Select(exchangeID);
+Exchange* exchange = mdb->exchange->primaryKey->Select(exchangeID);
 WriteLog(LogLevel::Info, "%s", exchange->GetDebugString());
 
 // 主键全量遍历：返回 [begin, end) 迭代器对
-auto all = mdb->t_Exchange->m_PrimaryKey->SelectAll();
+auto all = mdb->exchange->primaryKey->SelectAll();
 for (auto it = all.first; it != all.second; ++it)
 {
     WriteLog(LogLevel::Info, "%s", (*it)->GetDebugString());
@@ -271,14 +271,14 @@ for (auto it = all.first; it != all.second; ++it)
 
 // 二级索引等值区间查询（如按报盘代码 OfferID 查主账户）
 OfferIDType offerID = 10001;
-auto range = mdb->t_PrimaryAccount->m_OfferIDIndex->EqualRange(offerID);
+auto range = mdb->primaryAccount->offerIDIndex->EqualRange(offerID);
 for (auto it = range.first; it != range.second; ++it)
 {
     WriteLog(LogLevel::Info, "%s", (*it)->GetDebugString());
 }
 
 // 按二级索引批量删除（如清空某交易日的资金记录）
-mdb->t_Capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
+mdb->capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
 ```
 
 ### 示例 3：更新 / 删除 / 清表
@@ -287,17 +287,17 @@ mdb->t_Capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
 // 更新：内存同步更新，并通过 MdbSubscriber 广播到 AsyncDBWriter 异步落库
 AccountIDType accountID;
 std::strcpy(accountID, "A001");
-Account* oldAccount = mdb->t_Account->m_PrimaryKey->Select(accountID);
+Account* oldAccount = mdb->account->primaryKey->Select(accountID);
 Account* newAccount = new Account();
 *newAccount = *oldAccount;                              // 拷贝后修改
 std::strcpy(newAccount->AccountName, u8"李四");
-mdb->t_Account->Update(oldAccount, newAccount);
+mdb->account->Update(oldAccount, newAccount);
 
 // 删除单条记录（同步删除内存并广播落库删除）
-mdb->t_Account->Erase(oldAccount);
+mdb->account->Erase(oldAccount);
 
 // 清空单表
-mdb->t_Account->TruncateTable();
+mdb->account->TruncateTable();
 
 // 清空全部表（广播 TruncateTables + 各表本地清空）
 mdb->TruncateTables();
@@ -345,7 +345,7 @@ mdb->Dump("./dump");
 | `TestDuckdb` | DuckDB 后端：内存库 + 异步写库全流程 |
 | `TestMysql` | MySQL 后端全流程（需本机 MySQL X Plugin，默认注释关闭） |
 | `TestMariadb` | MariaDB 后端全流程（需本机 MariaDB，默认注释关闭） |
-| 主键 / 索引 | `m_PrimaryKey->Select` / `SelectAll`、`m_OfferIDIndex->EqualRange` 等检索验证 |
+| 主键 / 索引 | `primaryKey->Select` / `SelectAll`、`offerIDIndex->EqualRange` 等检索验证 |
 | 内存操作 | Insert / Update / Erase / TruncateTable 与广播落库验证 |
 
 ## 十、许可证 & 声明

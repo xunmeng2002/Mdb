@@ -1,4 +1,5 @@
-﻿
+﻿-- 本文件由 ../Templates/Sql/Mysql/CreateTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+
 CREATE TABLE IF NOT EXISTS `t_TradingDay` (
   `PK` int COMMENT '主键',
   `CurrTradingDay` char(16) COMMENT '当前交易日',

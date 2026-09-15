@@ -1,10 +1,10 @@
-﻿#include "InitMdbFromCsv.h"
+﻿// 本文件由 ../Templates/Cpp/Mdb/InitMdbFromCsv.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+#include "InitMdbFromCsv.h"
 #include <Spark/Serialization/Csv/CsvRecord.h>
 #include <Spark/Core/Utility/Utility.h>
 #include <fstream>
 #include <assert.h>
 
-using namespace std;
 using namespace spark::core;
 using namespace spark::serialization;
 
@@ -39,8 +39,8 @@ namespace mdb
 	void InitMdbFromCsv::LoadTradingDayTable(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		sprintf(fullPath, "%s/t_TradingDay.csv", dir);
-		fstream file(fullPath, fstream::in);
+		snprintf(fullPath, sizeof(fullPath), "%s/t_TradingDay.csv", dir);
+		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
 			throw std::string(fullPath) + " Open Failed.";
@@ -67,15 +67,15 @@ namespace mdb
 			record->PK = csv_record.GetFieldAsInt("PK");
 			Utility::Strcpy(record->CurrTradingDay, csv_record.GetFieldAsString("CurrTradingDay"));
 			Utility::Strcpy(record->PreTradingDay, csv_record.GetFieldAsString("PreTradingDay"));
-			mdb->t_TradingDay->Insert(record);
+			mdb->tradingDay->Insert(record);
 		}
 		file.close();
 	}
 	void InitMdbFromCsv::LoadExchangeTable(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		sprintf(fullPath, "%s/t_Exchange.csv", dir);
-		fstream file(fullPath, fstream::in);
+		snprintf(fullPath, sizeof(fullPath), "%s/t_Exchange.csv", dir);
+		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
 			throw std::string(fullPath) + " Open Failed.";
@@ -101,15 +101,15 @@ namespace mdb
 			auto record = Exchange::Allocate();
 			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
 			Utility::Strcpy(record->ExchangeName, csv_record.GetFieldAsString("ExchangeName"));
-			mdb->t_Exchange->Insert(record);
+			mdb->exchange->Insert(record);
 		}
 		file.close();
 	}
 	void InitMdbFromCsv::LoadProductTable(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		sprintf(fullPath, "%s/t_Product.csv", dir);
-		fstream file(fullPath, fstream::in);
+		snprintf(fullPath, sizeof(fullPath), "%s/t_Product.csv", dir);
+		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
 			throw std::string(fullPath) + " Open Failed.";
@@ -136,7 +136,7 @@ namespace mdb
 			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
 			Utility::Strcpy(record->ProductID, csv_record.GetFieldAsString("ProductID"));
 			Utility::Strcpy(record->ProductName, csv_record.GetFieldAsString("ProductName"));
-			record->ProductClass = (ProductClassType)csv_record.GetFieldAsInt("ProductClass");
+			record->ProductClass = static_cast<ProductClassType>(csv_record.GetFieldAsInt("ProductClass"));
 			record->VolumeMultiple = csv_record.GetFieldAsInt("VolumeMultiple");
 			record->PriceTick = csv_record.GetFieldAsDouble("PriceTick");
 			record->MaxMarketOrderVolume = csv_record.GetFieldAsInt64("MaxMarketOrderVolume");
@@ -144,15 +144,15 @@ namespace mdb
 			record->MaxLimitOrderVolume = csv_record.GetFieldAsInt64("MaxLimitOrderVolume");
 			record->MinLimitOrderVolume = csv_record.GetFieldAsInt64("MinLimitOrderVolume");
 			Utility::Strcpy(record->SessionName, csv_record.GetFieldAsString("SessionName"));
-			mdb->t_Product->Insert(record);
+			mdb->product->Insert(record);
 		}
 		file.close();
 	}
 	void InitMdbFromCsv::LoadInstrumentTable(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		sprintf(fullPath, "%s/t_Instrument.csv", dir);
-		fstream file(fullPath, fstream::in);
+		snprintf(fullPath, sizeof(fullPath), "%s/t_Instrument.csv", dir);
+		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
 			throw std::string(fullPath) + " Open Failed.";
@@ -181,8 +181,8 @@ namespace mdb
 			Utility::Strcpy(record->ExchangeInstID, csv_record.GetFieldAsString("ExchangeInstID"));
 			Utility::Strcpy(record->InstrumentName, csv_record.GetFieldAsString("InstrumentName"));
 			Utility::Strcpy(record->ProductID, csv_record.GetFieldAsString("ProductID"));
-			record->ProductClass = (ProductClassType)csv_record.GetFieldAsInt("ProductClass");
-			record->InstrumentClass = (InstrumentClassType)csv_record.GetFieldAsInt("InstrumentClass");
+			record->ProductClass = static_cast<ProductClassType>(csv_record.GetFieldAsInt("ProductClass"));
+			record->InstrumentClass = static_cast<InstrumentClassType>(csv_record.GetFieldAsInt("InstrumentClass"));
 			record->Rank = csv_record.GetFieldAsInt("Rank");
 			record->VolumeMultiple = csv_record.GetFieldAsInt("VolumeMultiple");
 			record->PriceTick = csv_record.GetFieldAsDouble("PriceTick");
@@ -191,15 +191,15 @@ namespace mdb
 			record->MaxLimitOrderVolume = csv_record.GetFieldAsInt64("MaxLimitOrderVolume");
 			record->MinLimitOrderVolume = csv_record.GetFieldAsInt64("MinLimitOrderVolume");
 			Utility::Strcpy(record->SessionName, csv_record.GetFieldAsString("SessionName"));
-			mdb->t_Instrument->Insert(record);
+			mdb->instrument->Insert(record);
 		}
 		file.close();
 	}
 	void InitMdbFromCsv::LoadPrimaryAccountTable(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		sprintf(fullPath, "%s/t_PrimaryAccount.csv", dir);
-		fstream file(fullPath, fstream::in);
+		snprintf(fullPath, sizeof(fullPath), "%s/t_PrimaryAccount.csv", dir);
+		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
 			throw std::string(fullPath) + " Open Failed.";
@@ -225,22 +225,22 @@ namespace mdb
 			auto record = PrimaryAccount::Allocate();
 			Utility::Strcpy(record->PrimaryAccountID, csv_record.GetFieldAsString("PrimaryAccountID"));
 			Utility::Strcpy(record->PrimaryAccountName, csv_record.GetFieldAsString("PrimaryAccountName"));
-			record->AccountClass = (AccountClassType)csv_record.GetFieldAsInt("AccountClass");
+			record->AccountClass = static_cast<AccountClassType>(csv_record.GetFieldAsInt("AccountClass"));
 			Utility::Strcpy(record->BrokerPassword, csv_record.GetFieldAsString("BrokerPassword"));
 			record->OfferID = csv_record.GetFieldAsInt("OfferID");
-			record->IsAllowLogin = (bool)csv_record.GetFieldAsInt("IsAllowLogin");
-			record->IsSimulateAccount = (bool)csv_record.GetFieldAsInt("IsSimulateAccount");
-			record->LoginStatus = (LoginStatusType)csv_record.GetFieldAsInt("LoginStatus");
-			record->InitStatus = (InitStatusType)csv_record.GetFieldAsInt("InitStatus");
-			mdb->t_PrimaryAccount->Insert(record);
+			record->IsAllowLogin = static_cast<bool>(csv_record.GetFieldAsInt("IsAllowLogin"));
+			record->IsSimulateAccount = static_cast<bool>(csv_record.GetFieldAsInt("IsSimulateAccount"));
+			record->LoginStatus = static_cast<LoginStatusType>(csv_record.GetFieldAsInt("LoginStatus"));
+			record->InitStatus = static_cast<InitStatusType>(csv_record.GetFieldAsInt("InitStatus"));
+			mdb->primaryAccount->Insert(record);
 		}
 		file.close();
 	}
 	void InitMdbFromCsv::LoadAccountTable(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		sprintf(fullPath, "%s/t_Account.csv", dir);
-		fstream file(fullPath, fstream::in);
+		snprintf(fullPath, sizeof(fullPath), "%s/t_Account.csv", dir);
+		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
 			throw std::string(fullPath) + " Open Failed.";
@@ -266,21 +266,21 @@ namespace mdb
 			auto record = Account::Allocate();
 			Utility::Strcpy(record->AccountID, csv_record.GetFieldAsString("AccountID"));
 			Utility::Strcpy(record->AccountName, csv_record.GetFieldAsString("AccountName"));
-			record->AccountType = (AccountTypeType)csv_record.GetFieldAsInt("AccountType");
-			record->AccountStatus = (AccountStatusType)csv_record.GetFieldAsInt("AccountStatus");
+			record->AccountType = static_cast<AccountTypeType>(csv_record.GetFieldAsInt("AccountType"));
+			record->AccountStatus = static_cast<AccountStatusType>(csv_record.GetFieldAsInt("AccountStatus"));
 			Utility::Strcpy(record->Password, csv_record.GetFieldAsString("Password"));
 			record->TradeGroupID = csv_record.GetFieldAsInt("TradeGroupID");
 			record->RiskGroupID = csv_record.GetFieldAsInt("RiskGroupID");
 			record->CommissionGroupID = csv_record.GetFieldAsInt("CommissionGroupID");
-			mdb->t_Account->Insert(record);
+			mdb->account->Insert(record);
 		}
 		file.close();
 	}
 	void InitMdbFromCsv::LoadCapitalTable(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		sprintf(fullPath, "%s/t_Capital.csv", dir);
-		fstream file(fullPath, fstream::in);
+		snprintf(fullPath, sizeof(fullPath), "%s/t_Capital.csv", dir);
+		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
 			throw std::string(fullPath) + " Open Failed.";
@@ -306,7 +306,7 @@ namespace mdb
 			auto record = Capital::Allocate();
 			Utility::Strcpy(record->TradingDay, csv_record.GetFieldAsString("TradingDay"));
 			Utility::Strcpy(record->AccountID, csv_record.GetFieldAsString("AccountID"));
-			record->AccountType = (AccountTypeType)csv_record.GetFieldAsInt("AccountType");
+			record->AccountType = static_cast<AccountTypeType>(csv_record.GetFieldAsInt("AccountType"));
 			record->Balance = csv_record.GetFieldAsDouble("Balance");
 			record->PreBalance = csv_record.GetFieldAsDouble("PreBalance");
 			record->Available = csv_record.GetFieldAsDouble("Available");
@@ -324,15 +324,15 @@ namespace mdb
 			record->PositionProfitByTrade = csv_record.GetFieldAsDouble("PositionProfitByTrade");
 			record->Deposit = csv_record.GetFieldAsDouble("Deposit");
 			record->Withdraw = csv_record.GetFieldAsDouble("Withdraw");
-			mdb->t_Capital->Insert(record);
+			mdb->capital->Insert(record);
 		}
 		file.close();
 	}
 	void InitMdbFromCsv::LoadPositionTable(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		sprintf(fullPath, "%s/t_Position.csv", dir);
-		fstream file(fullPath, fstream::in);
+		snprintf(fullPath, sizeof(fullPath), "%s/t_Position.csv", dir);
+		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
 			throw std::string(fullPath) + " Open Failed.";
@@ -358,11 +358,11 @@ namespace mdb
 			auto record = Position::Allocate();
 			Utility::Strcpy(record->TradingDay, csv_record.GetFieldAsString("TradingDay"));
 			Utility::Strcpy(record->AccountID, csv_record.GetFieldAsString("AccountID"));
-			record->AccountType = (AccountTypeType)csv_record.GetFieldAsInt("AccountType");
+			record->AccountType = static_cast<AccountTypeType>(csv_record.GetFieldAsInt("AccountType"));
 			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
 			Utility::Strcpy(record->InstrumentID, csv_record.GetFieldAsString("InstrumentID"));
-			record->ProductClass = (ProductClassType)csv_record.GetFieldAsInt("ProductClass");
-			record->PosiDirection = (PosiDirectionType)csv_record.GetFieldAsInt("PosiDirection");
+			record->ProductClass = static_cast<ProductClassType>(csv_record.GetFieldAsInt("ProductClass"));
+			record->PosiDirection = static_cast<PosiDirectionType>(csv_record.GetFieldAsInt("PosiDirection"));
 			record->TotalPosition = csv_record.GetFieldAsInt64("TotalPosition");
 			record->PositionFrozen = csv_record.GetFieldAsInt64("PositionFrozen");
 			record->TodayPosition = csv_record.GetFieldAsInt64("TodayPosition");
@@ -381,15 +381,15 @@ namespace mdb
 			record->PositionProfitByTrade = csv_record.GetFieldAsDouble("PositionProfitByTrade");
 			record->SettlementPrice = csv_record.GetFieldAsDouble("SettlementPrice");
 			record->PreSettlementPrice = csv_record.GetFieldAsDouble("PreSettlementPrice");
-			mdb->t_Position->Insert(record);
+			mdb->position->Insert(record);
 		}
 		file.close();
 	}
 	void InitMdbFromCsv::LoadPositionDetailTable(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		sprintf(fullPath, "%s/t_PositionDetail.csv", dir);
-		fstream file(fullPath, fstream::in);
+		snprintf(fullPath, sizeof(fullPath), "%s/t_PositionDetail.csv", dir);
+		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
 			throw std::string(fullPath) + " Open Failed.";
@@ -415,11 +415,11 @@ namespace mdb
 			auto record = PositionDetail::Allocate();
 			Utility::Strcpy(record->TradingDay, csv_record.GetFieldAsString("TradingDay"));
 			Utility::Strcpy(record->AccountID, csv_record.GetFieldAsString("AccountID"));
-			record->AccountType = (AccountTypeType)csv_record.GetFieldAsInt("AccountType");
+			record->AccountType = static_cast<AccountTypeType>(csv_record.GetFieldAsInt("AccountType"));
 			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
 			Utility::Strcpy(record->InstrumentID, csv_record.GetFieldAsString("InstrumentID"));
-			record->ProductClass = (ProductClassType)csv_record.GetFieldAsInt("ProductClass");
-			record->PosiDirection = (PosiDirectionType)csv_record.GetFieldAsInt("PosiDirection");
+			record->ProductClass = static_cast<ProductClassType>(csv_record.GetFieldAsInt("ProductClass"));
+			record->PosiDirection = static_cast<PosiDirectionType>(csv_record.GetFieldAsInt("PosiDirection"));
 			Utility::Strcpy(record->OpenDate, csv_record.GetFieldAsString("OpenDate"));
 			Utility::Strcpy(record->TradeID, csv_record.GetFieldAsString("TradeID"));
 			record->Volume = csv_record.GetFieldAsInt64("Volume");
@@ -438,15 +438,15 @@ namespace mdb
 			record->PreSettlementPrice = csv_record.GetFieldAsDouble("PreSettlementPrice");
 			record->CloseVolume = csv_record.GetFieldAsInt64("CloseVolume");
 			record->CloseAmount = csv_record.GetFieldAsDouble("CloseAmount");
-			mdb->t_PositionDetail->Insert(record);
+			mdb->positionDetail->Insert(record);
 		}
 		file.close();
 	}
 	void InitMdbFromCsv::LoadOrderTable(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		sprintf(fullPath, "%s/t_Order.csv", dir);
-		fstream file(fullPath, fstream::in);
+		snprintf(fullPath, sizeof(fullPath), "%s/t_Order.csv", dir);
+		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
 			throw std::string(fullPath) + " Open Failed.";
@@ -472,21 +472,21 @@ namespace mdb
 			auto record = Order::Allocate();
 			Utility::Strcpy(record->TradingDay, csv_record.GetFieldAsString("TradingDay"));
 			Utility::Strcpy(record->AccountID, csv_record.GetFieldAsString("AccountID"));
-			record->AccountType = (AccountTypeType)csv_record.GetFieldAsInt("AccountType");
+			record->AccountType = static_cast<AccountTypeType>(csv_record.GetFieldAsInt("AccountType"));
 			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
 			Utility::Strcpy(record->InstrumentID, csv_record.GetFieldAsString("InstrumentID"));
-			record->ProductClass = (ProductClassType)csv_record.GetFieldAsInt("ProductClass");
+			record->ProductClass = static_cast<ProductClassType>(csv_record.GetFieldAsInt("ProductClass"));
 			record->OrderID = csv_record.GetFieldAsInt("OrderID");
 			Utility::Strcpy(record->OrderSysID, csv_record.GetFieldAsString("OrderSysID"));
-			record->Direction = (DirectionType)csv_record.GetFieldAsInt("Direction");
-			record->OffsetFlag = (OffsetFlagType)csv_record.GetFieldAsInt("OffsetFlag");
-			record->OrderPriceType = (OrderPriceTypeType)csv_record.GetFieldAsInt("OrderPriceType");
+			record->Direction = static_cast<DirectionType>(csv_record.GetFieldAsInt("Direction"));
+			record->OffsetFlag = static_cast<OffsetFlagType>(csv_record.GetFieldAsInt("OffsetFlag"));
+			record->OrderPriceType = static_cast<OrderPriceTypeType>(csv_record.GetFieldAsInt("OrderPriceType"));
 			record->Price = csv_record.GetFieldAsDouble("Price");
 			record->Volume = csv_record.GetFieldAsInt64("Volume");
 			record->VolumeTotal = csv_record.GetFieldAsInt64("VolumeTotal");
 			record->VolumeTraded = csv_record.GetFieldAsInt64("VolumeTraded");
 			record->VolumeMultiple = csv_record.GetFieldAsInt("VolumeMultiple");
-			record->OrderStatus = (OrderStatusType)csv_record.GetFieldAsInt("OrderStatus");
+			record->OrderStatus = static_cast<OrderStatusType>(csv_record.GetFieldAsInt("OrderStatus"));
 			Utility::Strcpy(record->OrderDate, csv_record.GetFieldAsString("OrderDate"));
 			Utility::Strcpy(record->OrderTime, csv_record.GetFieldAsString("OrderTime"));
 			Utility::Strcpy(record->CancelDate, csv_record.GetFieldAsString("CancelDate"));
@@ -501,17 +501,17 @@ namespace mdb
 			record->FrozenCash = csv_record.GetFieldAsDouble("FrozenCash");
 			record->FrozenMargin = csv_record.GetFieldAsDouble("FrozenMargin");
 			record->FrozenCommission = csv_record.GetFieldAsDouble("FrozenCommission");
-			record->RebuildMark = (bool)csv_record.GetFieldAsInt("RebuildMark");
-			record->IsForceClose = (bool)csv_record.GetFieldAsInt("IsForceClose");
-			mdb->t_Order->Insert(record);
+			record->RebuildMark = static_cast<bool>(csv_record.GetFieldAsInt("RebuildMark"));
+			record->IsForceClose = static_cast<bool>(csv_record.GetFieldAsInt("IsForceClose"));
+			mdb->order->Insert(record);
 		}
 		file.close();
 	}
 	void InitMdbFromCsv::LoadTradeTable(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		sprintf(fullPath, "%s/t_Trade.csv", dir);
-		fstream file(fullPath, fstream::in);
+		snprintf(fullPath, sizeof(fullPath), "%s/t_Trade.csv", dir);
+		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
 			throw std::string(fullPath) + " Open Failed.";
@@ -537,15 +537,15 @@ namespace mdb
 			auto record = Trade::Allocate();
 			Utility::Strcpy(record->TradingDay, csv_record.GetFieldAsString("TradingDay"));
 			Utility::Strcpy(record->AccountID, csv_record.GetFieldAsString("AccountID"));
-			record->AccountType = (AccountTypeType)csv_record.GetFieldAsInt("AccountType");
+			record->AccountType = static_cast<AccountTypeType>(csv_record.GetFieldAsInt("AccountType"));
 			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
 			Utility::Strcpy(record->InstrumentID, csv_record.GetFieldAsString("InstrumentID"));
-			record->ProductClass = (ProductClassType)csv_record.GetFieldAsInt("ProductClass");
+			record->ProductClass = static_cast<ProductClassType>(csv_record.GetFieldAsInt("ProductClass"));
 			record->OrderID = csv_record.GetFieldAsInt("OrderID");
 			Utility::Strcpy(record->OrderSysID, csv_record.GetFieldAsString("OrderSysID"));
 			Utility::Strcpy(record->TradeID, csv_record.GetFieldAsString("TradeID"));
-			record->Direction = (DirectionType)csv_record.GetFieldAsInt("Direction");
-			record->OffsetFlag = (OffsetFlagType)csv_record.GetFieldAsInt("OffsetFlag");
+			record->Direction = static_cast<DirectionType>(csv_record.GetFieldAsInt("Direction"));
+			record->OffsetFlag = static_cast<OffsetFlagType>(csv_record.GetFieldAsInt("OffsetFlag"));
 			record->Price = csv_record.GetFieldAsDouble("Price");
 			record->Volume = csv_record.GetFieldAsInt64("Volume");
 			record->VolumeMultiple = csv_record.GetFieldAsInt("VolumeMultiple");
@@ -553,7 +553,7 @@ namespace mdb
 			record->Commission = csv_record.GetFieldAsDouble("Commission");
 			Utility::Strcpy(record->TradeDate, csv_record.GetFieldAsString("TradeDate"));
 			Utility::Strcpy(record->TradeTime, csv_record.GetFieldAsString("TradeTime"));
-			mdb->t_Trade->Insert(record);
+			mdb->trade->Insert(record);
 		}
 		file.close();
 	}
