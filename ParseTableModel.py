@@ -36,7 +36,7 @@ def GetItems(itemFile, items):
 def GetTables(tableFile, items, tables) -> str:
     dom = xml.dom.minidom.parse(tableFile)
     root = dom.documentElement
-    rootName = root.getAttribute("name")
+    project = root.getAttribute("project")
     lastId = 0
     for tableNode in root.getElementsByTagName("table"):
         table = Table()
@@ -74,7 +74,7 @@ def GetTables(tableFile, items, tables) -> str:
                     itemName = itemNode.getAttribute("name")
                     table.Indexes[indexName].append(items[itemName])
         tables.append(table)
-    return rootName
+    return project
 	
 def AddItemNode(dom, parentNode, item):
     itemNode = dom.createElement('item')
@@ -126,8 +126,8 @@ def ReadXml(tableFile, itemFile):
     tables = []
     destFields = {}
     GetItems(itemFile, items)
-    rootName = GetTables(tableFile, items, tables)
-    return rootName, tables
+    project = GetTables(tableFile, items, tables)
+    return project, tables
 
 def WriteTablesFile(destTableFile, tables):
     impl = xml.dom.minidom.getDOMImplementation()
@@ -139,11 +139,12 @@ def WriteTablesFile(destTableFile, tables):
     dom.writexml(f, indent="", addindent='\t', newl='\n', encoding="UTF-8")
     f.close()
 
-def WriteFullDbTablesFile(fullDbTablesFile, rootName, tables):
+def WriteFullDbTablesFile(fullDbTablesFile, project, tables):
     impl = xml.dom.minidom.getDOMImplementation()
     dom = impl.createDocument(None, 'dbtables', None)
     root = dom.documentElement
-    root.setAttribute("name", rootName)
+    root.setAttribute("project", project)
+    root.setAttribute("module", "Full")
     for table in tables:
         tableNode = dom.createElement('table')
         tableNode.setAttribute("name", table.Name)
@@ -161,6 +162,6 @@ if __name__ == "__main__":
     shortTableFile = sys.argv[3]
     itemFile = sys.argv[4]
 
-    rootName, tables = ReadXml(shortTableFile, itemFile)
+    project, tables = ReadXml(shortTableFile, itemFile)
     WriteTablesFile(destTableFile, tables)
-    WriteFullDbTablesFile(fullDbTableFile, rootName, tables)
+    WriteFullDbTablesFile(fullDbTableFile, project, tables)
