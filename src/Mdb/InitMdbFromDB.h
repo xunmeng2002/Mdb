@@ -7,7 +7,7 @@
 using DbAdapters::Db;
 namespace Mdb
 {
-	class InitMdbFromDB
+	class InitMdbFromDb
 	{
 	public:
 		static void LoadTables(Mdb* mdb, Db* db, const TableList& tableList);

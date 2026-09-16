@@ -195,8 +195,7 @@ The test program runs the "in-memory DB + async write" full flow against SQLite 
 #include <Spark/Core/Core.h>
 #include <cstring>
 
-using namespace mdb;
-using namespace mdb::full;
+using namespace Mdb::Full
 using namespace DbAdapters;
 using namespace spark::core;
 
@@ -219,7 +218,7 @@ int main(int argc, const char* argv[])
 
     // 3. Bidirectional wiring
     //    mdb->Subscribe(dbWriter)  : in-memory changes broadcast to AsyncDBWriter for async writes
-    //    dbWriter->Subscribe(mdb)  : on connect, Mdb::OnDBConnected is called, auto InitDB (create + init)
+    //    dbWriter->Subscribe(mdb)  : on connect, Mdb::OnDbConnected is called, auto InitDB (create + init)
     mdb->Subscribe(dbWriter);
     dbWriter->Subscribe(mdb);
     dbWriter->Connect();                                    // synchronous connect, triggers table creation

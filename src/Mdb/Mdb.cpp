@@ -8,7 +8,7 @@ namespace Mdb
 	{
 		for (int i = 0; i < tableList.Count; ++i)
 		{
-			switch (tableList.TableIds_[i])
+			switch (tableList.TableIds[i])
 			{
 			case TradingDay::TableId:  TradingDay = new TradingDayTable(); tables_.push_back(TradingDay); break;
 			case Exchange::TableId:  Exchange = new ExchangeTable(); tables_.push_back(Exchange); break;
@@ -40,12 +40,12 @@ namespace Mdb
 			table->UnSubscribe();
 		}
 	}
-	void Mdb::InitDB()
+	void Mdb::InitDb()
 	{
 		CreateTables();
 		for (auto table : tables_)
 		{
-			table->InitDB();
+			table->InitDb();
 		}
 	}
 	void Mdb::SetInitStatus(bool initStatus)
@@ -66,21 +66,21 @@ namespace Mdb
 	{
 		if (mdbSubscriber_ != nullptr)
 		{
-			mdbSubscriber_->OnTableOp(DBOperateType::CreateTables);
+			mdbSubscriber_->OnTableOp(DbOperateType::CreateTables);
 		}
 	}
 	void Mdb::DropTables()
 	{
 		if (mdbSubscriber_ != nullptr)
 		{
-			mdbSubscriber_->OnTableOp(DBOperateType::DropTables);
+			mdbSubscriber_->OnTableOp(DbOperateType::DropTables);
 		}
 	}
 	void Mdb::TruncateTables()
 	{
 		if (mdbSubscriber_ != nullptr)
 		{
-			mdbSubscriber_->OnTableOp(DBOperateType::TruncateTables);
+			mdbSubscriber_->OnTableOp(DbOperateType::TruncateTables);
 		}
 		for (auto table : tables_)
 		{
@@ -88,11 +88,11 @@ namespace Mdb
 		}
 	}
 
-	void Mdb::OnDBConnected()
+	void Mdb::OnDbConnected()
 	{
-		InitDB();
+		InitDb();
 	}
-	void Mdb::OnDBDisConnected()
+	void Mdb::OnDbDisConnected()
 	{
 		for (auto table : tables_)
 		{

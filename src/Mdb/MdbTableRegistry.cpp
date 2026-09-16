@@ -3,13 +3,13 @@
 #include "MdbStructs.h"
 
 
-namespace mdb
+namespace Mdb
 {
 	MdbTableRegistry::MdbTableRegistry(const TableList& tableList)
 	{
 		for (int i = 0; i < tableList.Count; ++i)
 		{
-			unsigned int tableId = tableList.TableIDs[i];
+			unsigned int tableId = tableList.TableIds[i];
 			tableIds_.push_back(tableId);
 			schemas_.push_back(GetSchemaByID(tableId));
 		}
@@ -18,17 +18,17 @@ namespace mdb
 	{
 		switch (tableId)
 		{
-		case TradingDay::TableID: return &TradingDay::GetSchema();
-		case Exchange::TableID: return &Exchange::GetSchema();
-		case Product::TableID: return &Product::GetSchema();
-		case Instrument::TableID: return &Instrument::GetSchema();
-		case PrimaryAccount::TableID: return &PrimaryAccount::GetSchema();
-		case Account::TableID: return &Account::GetSchema();
-		case Capital::TableID: return &Capital::GetSchema();
-		case Position::TableID: return &Position::GetSchema();
-		case PositionDetail::TableID: return &PositionDetail::GetSchema();
-		case Order::TableID: return &Order::GetSchema();
-		case Trade::TableID: return &Trade::GetSchema();
+		case TradingDay::TableId: return &TradingDay::GetSchema();
+		case Exchange::TableId: return &Exchange::GetSchema();
+		case Product::TableId: return &Product::GetSchema();
+		case Instrument::TableId: return &Instrument::GetSchema();
+		case PrimaryAccount::TableId: return &PrimaryAccount::GetSchema();
+		case Account::TableId: return &Account::GetSchema();
+		case Capital::TableId: return &Capital::GetSchema();
+		case Position::TableId: return &Position::GetSchema();
+		case PositionDetail::TableId: return &PositionDetail::GetSchema();
+		case Order::TableId: return &Order::GetSchema();
+		case Trade::TableId: return &Trade::GetSchema();
 		default: return nullptr;
 		}
 	}

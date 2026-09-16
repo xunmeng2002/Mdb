@@ -13,7 +13,7 @@ namespace Mdb
 
 		virtual void Subscribe(DbAdapters::MdbSubscriber* subscriber) = 0;
 		virtual void UnSubscribe() = 0;
-		virtual void InitDB() = 0;
+		virtual void InitDb() = 0;
 		virtual void TruncateTables() = 0;
 		virtual void Dump(const char* dir) = 0;
 

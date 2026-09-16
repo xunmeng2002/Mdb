@@ -12,7 +12,7 @@ namespace Mdb
 	{
 		for (int i = 0; i < tableList.Count; ++i)
 		{
-			switch (tableList.TableIDs[i])
+			switch (tableList.TableIds[i])
 			{
 			case TradingDay::TableId:  LoadTradingDayTable(mdb, db); break;
 			case Exchange::TableId:  LoadExchangeTable(mdb, db); break;

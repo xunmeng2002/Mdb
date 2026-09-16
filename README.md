@@ -195,8 +195,7 @@ cmake --build out/build/WSL-GCC-Release
 #include <Spark/Core/Core.h>
 #include <cstring>
 
-using namespace mdb;
-using namespace mdb::full;
+using namespace Mdb::Full
 using namespace DbAdapters;
 using namespace spark::core;
 
@@ -219,7 +218,7 @@ int main(int argc, const char* argv[])
 
     // 3. 双向接线
     //    mdb->Subscribe(dbWriter)  ：内存表变更广播给 AsyncDBWriter，异步写库
-    //    dbWriter->Subscribe(mdb)  ：连接成功回调 Mdb::OnDBConnected，自动 InitDB（建表 + 初始化）
+    //    dbWriter->Subscribe(mdb)  ：连接成功回调 Mdb::OnDbConnected，自动 InitDB（建表 + 初始化）
     mdb->Subscribe(dbWriter);
     dbWriter->Subscribe(mdb);
     dbWriter->Connect();                                    // 同步连接并触发建表

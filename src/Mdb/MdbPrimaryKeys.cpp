@@ -18,7 +18,7 @@ namespace Mdb
 	{
 		CompareTradingDay.PK = PK;
 		
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareTradingDay);
 		if (it == index_.end())
 		{
@@ -28,7 +28,7 @@ namespace Mdb
 	}
 	std::pair<TradingDayPrimaryKey::iterator, TradingDayPrimaryKey::iterator> TradingDayPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool TradingDayPrimaryKey::Insert(TradingDay* const record)
@@ -55,7 +55,7 @@ namespace Mdb
 	{
 		Utility::Strcpy(CompareExchange.ExchangeId, ExchangeId);
 		
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareExchange);
 		if (it == index_.end())
 		{
@@ -65,7 +65,7 @@ namespace Mdb
 	}
 	std::pair<ExchangePrimaryKey::iterator, ExchangePrimaryKey::iterator> ExchangePrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool ExchangePrimaryKey::Insert(Exchange* const record)
@@ -93,7 +93,7 @@ namespace Mdb
 		Utility::Strcpy(CompareProduct.ExchangeId, ExchangeId);
 		Utility::Strcpy(CompareProduct.ProductId, ProductId);
 		
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareProduct);
 		if (it == index_.end())
 		{
@@ -103,7 +103,7 @@ namespace Mdb
 	}
 	std::pair<ProductPrimaryKey::iterator, ProductPrimaryKey::iterator> ProductPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool ProductPrimaryKey::Insert(Product* const record)
@@ -131,7 +131,7 @@ namespace Mdb
 		Utility::Strcpy(CompareInstrument.ExchangeId, ExchangeId);
 		Utility::Strcpy(CompareInstrument.InstrumentId, InstrumentId);
 		
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareInstrument);
 		if (it == index_.end())
 		{
@@ -141,7 +141,7 @@ namespace Mdb
 	}
 	std::pair<InstrumentPrimaryKey::iterator, InstrumentPrimaryKey::iterator> InstrumentPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool InstrumentPrimaryKey::Insert(Instrument* const record)
@@ -168,7 +168,7 @@ namespace Mdb
 	{
 		Utility::Strcpy(ComparePrimaryAccount.PrimaryAccountId, PrimaryAccountId);
 		
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&ComparePrimaryAccount);
 		if (it == index_.end())
 		{
@@ -178,7 +178,7 @@ namespace Mdb
 	}
 	std::pair<PrimaryAccountPrimaryKey::iterator, PrimaryAccountPrimaryKey::iterator> PrimaryAccountPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool PrimaryAccountPrimaryKey::Insert(PrimaryAccount* const record)
@@ -205,7 +205,7 @@ namespace Mdb
 	{
 		Utility::Strcpy(CompareAccount.AccountId, AccountId);
 		
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareAccount);
 		if (it == index_.end())
 		{
@@ -215,7 +215,7 @@ namespace Mdb
 	}
 	std::pair<AccountPrimaryKey::iterator, AccountPrimaryKey::iterator> AccountPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool AccountPrimaryKey::Insert(Account* const record)
@@ -243,7 +243,7 @@ namespace Mdb
 		Utility::Strcpy(CompareCapital.TradingDay, TradingDay);
 		Utility::Strcpy(CompareCapital.AccountId, AccountId);
 		
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareCapital);
 		if (it == index_.end())
 		{
@@ -253,7 +253,7 @@ namespace Mdb
 	}
 	std::pair<CapitalPrimaryKey::iterator, CapitalPrimaryKey::iterator> CapitalPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool CapitalPrimaryKey::Insert(Capital* const record)
@@ -284,7 +284,7 @@ namespace Mdb
 		Utility::Strcpy(ComparePosition.InstrumentId, InstrumentId);
 		ComparePosition.PosiDirection = PosiDirection;
 		
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&ComparePosition);
 		if (it == index_.end())
 		{
@@ -294,7 +294,7 @@ namespace Mdb
 	}
 	std::pair<PositionPrimaryKey::iterator, PositionPrimaryKey::iterator> PositionPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool PositionPrimaryKey::Insert(Position* const record)
@@ -327,7 +327,7 @@ namespace Mdb
 		Utility::Strcpy(ComparePositionDetail.OpenDate, OpenDate);
 		Utility::Strcpy(ComparePositionDetail.TradeId, TradeId);
 		
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&ComparePositionDetail);
 		if (it == index_.end())
 		{
@@ -337,7 +337,7 @@ namespace Mdb
 	}
 	std::pair<PositionDetailPrimaryKey::iterator, PositionDetailPrimaryKey::iterator> PositionDetailPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool PositionDetailPrimaryKey::Insert(PositionDetail* const record)
@@ -368,7 +368,7 @@ namespace Mdb
 		Utility::Strcpy(CompareOrder.InstrumentId, InstrumentId);
 		CompareOrder.OrderId = OrderId;
 		
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareOrder);
 		if (it == index_.end())
 		{
@@ -378,7 +378,7 @@ namespace Mdb
 	}
 	std::pair<OrderPrimaryKey::iterator, OrderPrimaryKey::iterator> OrderPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool OrderPrimaryKey::Insert(Order* const record)
@@ -409,7 +409,7 @@ namespace Mdb
 		Utility::Strcpy(CompareOrder.InstrumentId, InstrumentId);
 		CompareOrder.SessionId = SessionId;
 		CompareOrder.ClientOrderId = ClientOrderId;
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareOrder);
 		if (it == index_.end())
 		{
@@ -445,7 +445,7 @@ namespace Mdb
 		Utility::Strcpy(CompareTrade.TradeId, TradeId);
 		CompareTrade.Direction = Direction;
 		
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareTrade);
 		if (it == index_.end())
 		{
@@ -455,7 +455,7 @@ namespace Mdb
 	}
 	std::pair<TradePrimaryKey::iterator, TradePrimaryKey::iterator> TradePrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table_->sharedMutex);
+		std::shared_lock guard(table_->SharedMutex);
 		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool TradePrimaryKey::Insert(Trade* const record)
