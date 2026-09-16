@@ -6,14 +6,14 @@ import sys
 class Item:
     def  __init__(self):
         self.Name = ""
-        self.ID = ""
+        self.Id = ""
         self.Type = ""
         self.Desc = ""
 
 class Table:
     def __init__(self):
         self.Name = ""
-        self.ID = 0
+        self.Id = 0
         self.Desc = ""
         self.Batch = ""
         self.Session = ""
@@ -28,7 +28,7 @@ def GetItems(itemFile, items):
     for itemNode in root.getElementsByTagName("item"):
         item = Item()
         item.Name = itemNode.getAttribute("name")
-        item.ID = itemNode.getAttribute("id")
+        item.Id = itemNode.getAttribute("id")
         item.Type = itemNode.getAttribute("type")
         item.Desc = itemNode.getAttribute("desc")
         items[item.Name] = item
@@ -37,17 +37,17 @@ def GetTables(tableFile, items, tables) -> str:
     dom = xml.dom.minidom.parse(tableFile)
     root = dom.documentElement
     rootName = root.getAttribute("name")
-    lastID = 0
+    lastId = 0
     for tableNode in root.getElementsByTagName("table"):
         table = Table()
         table.Name = tableNode.getAttribute("name")
-        tableID = tableNode.getAttribute("id")
-        if tableID:
-            table.ID = int(tableID, 16)
-            lastID = table.ID
+        tableId = tableNode.getAttribute("id")
+        if tableId:
+            table.Id = int(tableId, 16)
+            lastId = table.Id
         else:
-            lastID += 1
-            table.ID = lastID
+            lastId += 1
+            table.Id = lastId
         table.Desc = tableNode.getAttribute("desc")
         table.Batch = tableNode.getAttribute("batch")
         table.Session = tableNode.getAttribute("session")
@@ -79,7 +79,7 @@ def GetTables(tableFile, items, tables) -> str:
 def AddItemNode(dom, parentNode, item):
     itemNode = dom.createElement('item')
     itemNode.setAttribute("name", item.Name)
-    itemNode.setAttribute("id", item.ID)
+    itemNode.setAttribute("id", item.Id)
     itemNode.setAttribute("type", item.Type)
     itemNode.setAttribute("desc", item.Desc)
     parentNode.appendChild(itemNode)
@@ -87,7 +87,7 @@ def AddItemNode(dom, parentNode, item):
 def AddTableNode(dom, parentNode, table):
     tableNode = dom.createElement('table')
     tableNode.setAttribute("name", table.Name)
-    tableNode.setAttribute("id", f"0x{table.ID:04X}")
+    tableNode.setAttribute("id", f"0x{table.Id:04X}")
     tableNode.setAttribute("desc", table.Desc)
     tableNode.setAttribute("batch", table.Batch)
     tableNode.setAttribute("session", table.Session)
@@ -139,7 +139,7 @@ def WriteTablesFile(destTableFile, tables):
     dom.writexml(f, indent="", addindent='\t', newl='\n', encoding="UTF-8")
     f.close()
 
-def WriteFullDBTablesFile(fullDBTablesFile, rootName, tables):
+def WriteFullDbTablesFile(fullDbTablesFile, rootName, tables):
     impl = xml.dom.minidom.getDOMImplementation()
     dom = impl.createDocument(None, 'dbtables', None)
     root = dom.documentElement
@@ -148,19 +148,19 @@ def WriteFullDBTablesFile(fullDBTablesFile, rootName, tables):
         tableNode = dom.createElement('table')
         tableNode.setAttribute("name", table.Name)
         root.appendChild(tableNode)
-    f = open(fullDBTablesFile, 'w', encoding="UTF-8")
+    f = open(fullDbTablesFile, 'w', encoding="UTF-8")
     dom.writexml(f, indent="", addindent='\t', newl='\n', encoding="UTF-8")
     f.close()
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
-        print("Usage: ParseTableModel.py destTable.xml fullDBTable.xml shortTable.xml items.xml")
+        print("Usage: ParseTableModel.py destTable.xml fullDbTable.xml shortTable.xml items.xml")
         exit(-1) 
     destTableFile = sys.argv[1]
-    fullDBTableFile = sys.argv[2]
+    fullDbTableFile = sys.argv[2]
     shortTableFile = sys.argv[3]
     itemFile = sys.argv[4]
 
     rootName, tables = ReadXml(shortTableFile, itemFile)
     WriteTablesFile(destTableFile, tables)
-    WriteFullDBTablesFile(fullDBTableFile, rootName, tables)
+    WriteFullDbTablesFile(fullDbTableFile, rootName, tables)

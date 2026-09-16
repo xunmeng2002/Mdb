@@ -6,21 +6,21 @@ import sys
 class Item:
     def  __init__(self):
         self.Name = ""
-        self.ID = ""
+        self.Id = ""
         self.Type = ""
         self.Desc = ""
 
 class Field:
     def __init__(self):
         self.Name = ""
-        self.ID = 0
+        self.Id = 0
         self.Desc = ""
         self.Items = []
 
 class Package:
     def __init__(self):
         self.Name = ""
-        self.ID = 0
+        self.Id = 0
         self.Desc = ""
         self.Fields = []
 
@@ -30,7 +30,7 @@ def GetItems(itemFile, items):
     for itemNode in root.getElementsByTagName("item"):
         item = Item()
         item.Name = itemNode.getAttribute("name")
-        item.ID = itemNode.getAttribute("id")
+        item.Id = itemNode.getAttribute("id")
         item.Type = itemNode.getAttribute("type")
         item.Desc = itemNode.getAttribute("desc")
         items[item.Name] = item
@@ -38,17 +38,17 @@ def GetItems(itemFile, items):
 def GetFields(fieldFile, items, fields):
     dom = xml.dom.minidom.parse(fieldFile)
     root = dom.documentElement
-    lastID = 0
+    lastId = 0
     for fieldNode in root.getElementsByTagName("field"):
         field = Field()
         field.Name = fieldNode.getAttribute("name")
-        fieldID = fieldNode.getAttribute("id")
-        if fieldID:
-            field.ID = int(fieldID, 16)
-            lastID = field.ID
+        fieldId = fieldNode.getAttribute("id")
+        if fieldId:
+            field.Id = int(fieldId, 16)
+            lastId = field.Id
         else:
-            lastID += 1
-            field.ID = lastID
+            lastId += 1
+            field.Id = lastId
         field.Desc = fieldNode.getAttribute("desc")
         for itemNode in fieldNode.getElementsByTagName("item"):
             itemName = itemNode.getAttribute("name")
@@ -59,17 +59,17 @@ def GetPackages(packageFile, fields, packages, destFields):
     dom = xml.dom.minidom.parse(packageFile)
     root = dom.documentElement
     projectName = root.getAttribute("project")
-    lastID = 0
+    lastId = 0
     for packageNode in root.getElementsByTagName("package"):
         package = Package()
         package.Name = packageNode.getAttribute("name")
-        packageID = packageNode.getAttribute("id")
-        if packageID:
-            package.ID = int(packageID, 16)
-            lastID = package.ID
+        packageId = packageNode.getAttribute("id")
+        if packageId:
+            package.Id = int(packageId, 16)
+            lastId = package.Id
         else:
-            lastID += 1
-            package.ID = lastID
+            lastId += 1
+            package.Id = lastId
         package.Desc = packageNode.getAttribute("desc")
         for fieldNode in packageNode.getElementsByTagName("field"):
             fieldName = fieldNode.getAttribute("name")
@@ -81,7 +81,7 @@ def GetPackages(packageFile, fields, packages, destFields):
 def AddItemNode(dom, parentNode, item):
     itemNode = dom.createElement('item')
     itemNode.setAttribute("name", item.Name)
-    itemNode.setAttribute("id", item.ID)
+    itemNode.setAttribute("id", item.Id)
     itemNode.setAttribute("type", item.Type)
     itemNode.setAttribute("desc", item.Desc)
     parentNode.appendChild(itemNode)
@@ -89,7 +89,7 @@ def AddItemNode(dom, parentNode, item):
 def AddFieldNode(dom, parentNode, field):
     fieldNode = dom.createElement('field')
     fieldNode.setAttribute("name", field.Name)
-    fieldNode.setAttribute("id", f"0x{field.ID:04X}")
+    fieldNode.setAttribute("id", f"0x{field.Id:04X}")
     fieldNode.setAttribute("desc", field.Desc)
     for item in field.Items:
         AddItemNode(dom, fieldNode, item)
@@ -98,7 +98,7 @@ def AddFieldNode(dom, parentNode, field):
 def AddPackageNode(dom, parentNode, package):
     packageNode = dom.createElement('package')
     packageNode.setAttribute("name", package.Name)
-    packageNode.setAttribute("id", f"0x{package.ID:04X}")
+    packageNode.setAttribute("id", f"0x{package.Id:04X}")
     packageNode.setAttribute("desc", package.Desc)
     for field in package.Fields:
         AddFieldNode(dom, packageNode, field)
@@ -138,7 +138,7 @@ def WriteFullApiPackagesFile(fullApiPackageFile, packages):
     f.close()
     
 def WriteFieldsFile(destFieldFile, fields):
-    sortedFields = sorted(fields.values(), key=lambda field : field.ID)
+    sortedFields = sorted(fields.values(), key=lambda field : field.Id)
     impl = xml.dom.minidom.getDOMImplementation()
     dom = impl.createDocument(None, 'fields', None)
     root = dom.documentElement

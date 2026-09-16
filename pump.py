@@ -5,7 +5,7 @@ import sys
 import re
 import os
 
-#sys.argv = ["pump.py", "DBIndexInterface.h", "DBIndexInterface.h.tpl", "mdb.xml"]
+#sys.argv = ["pump.py", "DbIndexInterface.h", "DbIndexInterface.h.tpl", "mdb.xml"]
 
 #自定义的异常
 class MyException(Exception):
