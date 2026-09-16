@@ -1,6 +1,6 @@
 ﻿-- 本文件由 ../Templates/Sql/Sqlite/CreateTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 
-CREATE TABLE IF NOT EXISTS t_TradingDay(
+CREATE TABLE IF NOT EXISTS TradingDay(
   `PK` int, 
   `CurrTradingDay` text, 
   `PreTradingDay` text, 
@@ -8,16 +8,16 @@ CREATE TABLE IF NOT EXISTS t_TradingDay(
 );
 
 
-CREATE TABLE IF NOT EXISTS t_Exchange(
-  `ExchangeID` text, 
+CREATE TABLE IF NOT EXISTS Exchange(
+  `ExchangeId` text, 
   `ExchangeName` text, 
-  PRIMARY KEY(ExchangeID)
+  PRIMARY KEY(ExchangeId)
 );
 
 
-CREATE TABLE IF NOT EXISTS t_Product(
-  `ExchangeID` text, 
-  `ProductID` text, 
+CREATE TABLE IF NOT EXISTS Product(
+  `ExchangeId` text, 
+  `ProductId` text, 
   `ProductName` text, 
   `ProductClass` int, 
   `VolumeMultiple` int, 
@@ -27,16 +27,16 @@ CREATE TABLE IF NOT EXISTS t_Product(
   `MaxLimitOrderVolume` bigint, 
   `MinLimitOrderVolume` bigint, 
   `SessionName` text, 
-  PRIMARY KEY(ExchangeID, ProductID)
+  PRIMARY KEY(ExchangeId, ProductId)
 );
 
 
-CREATE TABLE IF NOT EXISTS t_Instrument(
-  `ExchangeID` text, 
-  `InstrumentID` text, 
-  `ExchangeInstID` text, 
+CREATE TABLE IF NOT EXISTS Instrument(
+  `ExchangeId` text, 
+  `InstrumentId` text, 
+  `ExchangeInstId` text, 
   `InstrumentName` text, 
-  `ProductID` text, 
+  `ProductId` text, 
   `ProductClass` int, 
   `InstrumentClass` int, 
   `Rank` int, 
@@ -47,41 +47,41 @@ CREATE TABLE IF NOT EXISTS t_Instrument(
   `MaxLimitOrderVolume` bigint, 
   `MinLimitOrderVolume` bigint, 
   `SessionName` text, 
-  PRIMARY KEY(ExchangeID, InstrumentID)
+  PRIMARY KEY(ExchangeId, InstrumentId)
 );
 
 
-CREATE TABLE IF NOT EXISTS t_PrimaryAccount(
-  `PrimaryAccountID` text, 
+CREATE TABLE IF NOT EXISTS PrimaryAccount(
+  `PrimaryAccountId` text, 
   `PrimaryAccountName` text, 
   `AccountClass` int, 
   `BrokerPassword` text, 
-  `OfferID` int, 
+  `OfferId` int, 
   `IsAllowLogin` int, 
   `IsSimulateAccount` int, 
   `LoginStatus` int, 
   `InitStatus` int, 
-  PRIMARY KEY(PrimaryAccountID)
+  PRIMARY KEY(PrimaryAccountId)
 );
-CREATE INDEX PrimaryAccountOfferID ON t_PrimaryAccount(OfferID);
+CREATE INDEX PrimaryAccountOfferId ON PrimaryAccount(OfferId);
 
 
-CREATE TABLE IF NOT EXISTS t_Account(
-  `AccountID` text, 
+CREATE TABLE IF NOT EXISTS Account(
+  `AccountId` text, 
   `AccountName` text, 
   `AccountType` int, 
   `AccountStatus` int, 
   `Password` text, 
-  `TradeGroupID` int, 
-  `RiskGroupID` int, 
-  `CommissionGroupID` int, 
-  PRIMARY KEY(AccountID)
+  `TradeGroupId` int, 
+  `RiskGroupId` int, 
+  `CommissionGroupId` int, 
+  PRIMARY KEY(AccountId)
 );
 
 
-CREATE TABLE IF NOT EXISTS t_Capital(
+CREATE TABLE IF NOT EXISTS Capital(
   `TradingDay` text, 
-  `AccountID` text, 
+  `AccountId` text, 
   `AccountType` int, 
   `Balance` double, 
   `PreBalance` double, 
@@ -100,17 +100,17 @@ CREATE TABLE IF NOT EXISTS t_Capital(
   `PositionProfitByTrade` double, 
   `Deposit` double, 
   `Withdraw` double, 
-  PRIMARY KEY(TradingDay, AccountID)
+  PRIMARY KEY(TradingDay, AccountId)
 );
-CREATE INDEX CapitalTradingDay ON t_Capital(TradingDay);
+CREATE INDEX CapitalTradingDay ON Capital(TradingDay);
 
 
-CREATE TABLE IF NOT EXISTS t_Position(
+CREATE TABLE IF NOT EXISTS Position(
   `TradingDay` text, 
-  `AccountID` text, 
+  `AccountId` text, 
   `AccountType` int, 
-  `ExchangeID` text, 
-  `InstrumentID` text, 
+  `ExchangeId` text, 
+  `InstrumentId` text, 
   `ProductClass` int, 
   `PosiDirection` int, 
   `TotalPosition` bigint, 
@@ -131,22 +131,22 @@ CREATE TABLE IF NOT EXISTS t_Position(
   `PositionProfitByTrade` double, 
   `SettlementPrice` double, 
   `PreSettlementPrice` double, 
-  PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection)
+  PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection)
 );
-CREATE INDEX PositionAccount ON t_Position(TradingDay, AccountID);
-CREATE INDEX PositionTradingDay ON t_Position(TradingDay);
+CREATE INDEX PositionAccount ON Position(TradingDay, AccountId);
+CREATE INDEX PositionTradingDay ON Position(TradingDay);
 
 
-CREATE TABLE IF NOT EXISTS t_PositionDetail(
+CREATE TABLE IF NOT EXISTS PositionDetail(
   `TradingDay` text, 
-  `AccountID` text, 
+  `AccountId` text, 
   `AccountType` int, 
-  `ExchangeID` text, 
-  `InstrumentID` text, 
+  `ExchangeId` text, 
+  `InstrumentId` text, 
   `ProductClass` int, 
   `PosiDirection` int, 
   `OpenDate` text, 
-  `TradeID` text, 
+  `TradeId` text, 
   `Volume` bigint, 
   `OpenPrice` double, 
   `MarketValue` double, 
@@ -163,21 +163,21 @@ CREATE TABLE IF NOT EXISTS t_PositionDetail(
   `PreSettlementPrice` double, 
   `CloseVolume` bigint, 
   `CloseAmount` double, 
-  PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection, OpenDate, TradeID)
+  PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection, OpenDate, TradeId)
 );
-CREATE INDEX PositionDetailTradeMatch ON t_PositionDetail(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection);
-CREATE INDEX PositionDetailTradingDay ON t_PositionDetail(TradingDay);
+CREATE INDEX PositionDetailTradeMatch ON PositionDetail(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection);
+CREATE INDEX PositionDetailTradingDay ON PositionDetail(TradingDay);
 
 
-CREATE TABLE IF NOT EXISTS t_Order(
+CREATE TABLE IF NOT EXISTS Order(
   `TradingDay` text, 
-  `AccountID` text, 
+  `AccountId` text, 
   `AccountType` int, 
-  `ExchangeID` text, 
-  `InstrumentID` text, 
+  `ExchangeId` text, 
+  `InstrumentId` text, 
   `ProductClass` int, 
-  `OrderID` int, 
-  `OrderSysID` text, 
+  `OrderId` int, 
+  `OrderSysId` text, 
   `Direction` int, 
   `OffsetFlag` int, 
   `OrderPriceType` int, 
@@ -191,33 +191,33 @@ CREATE TABLE IF NOT EXISTS t_Order(
   `OrderTime` text, 
   `CancelDate` text, 
   `CancelTime` text, 
-  `SessionID` bigint, 
-  `ClientOrderID` int, 
-  `RequestID` int, 
-  `OfferID` int, 
-  `TradeGroupID` int, 
-  `RiskGroupID` int, 
-  `CommissionGroupID` int, 
+  `SessionId` bigint, 
+  `ClientOrderId` int, 
+  `RequestId` int, 
+  `OfferId` int, 
+  `TradeGroupId` int, 
+  `RiskGroupId` int, 
+  `CommissionGroupId` int, 
   `FrozenCash` double, 
   `FrozenMargin` double, 
   `FrozenCommission` double, 
   `RebuildMark` int, 
   `IsForceClose` int, 
-  UNIQUE (TradingDay, AccountID, ExchangeID, InstrumentID, SessionID, ClientOrderID), 
-  PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, OrderID)
+  UNIQUE (TradingDay, AccountId, ExchangeId, InstrumentId, SessionId, ClientOrderId), 
+  PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, OrderId)
 );
 
 
-CREATE TABLE IF NOT EXISTS t_Trade(
+CREATE TABLE IF NOT EXISTS Trade(
   `TradingDay` text, 
-  `AccountID` text, 
+  `AccountId` text, 
   `AccountType` int, 
-  `ExchangeID` text, 
-  `InstrumentID` text, 
+  `ExchangeId` text, 
+  `InstrumentId` text, 
   `ProductClass` int, 
-  `OrderID` int, 
-  `OrderSysID` text, 
-  `TradeID` text, 
+  `OrderId` int, 
+  `OrderSysId` text, 
+  `TradeId` text, 
   `Direction` int, 
   `OffsetFlag` int, 
   `Price` double, 
@@ -227,7 +227,7 @@ CREATE TABLE IF NOT EXISTS t_Trade(
   `Commission` double, 
   `TradeDate` text, 
   `TradeTime` text, 
-  PRIMARY KEY(TradingDay, ExchangeID, TradeID, Direction)
+  PRIMARY KEY(TradingDay, ExchangeId, TradeId, Direction)
 );
 
 

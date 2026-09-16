@@ -14,19 +14,19 @@
 	</table>
 	<table name="Exchange" id="0x0002" desc="交易所" batch="" session="">
 		<items>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
 			<item name="ExchangeName" id="0x2005" type="ExchangeName" desc="交易所名称"/>
 		</items>
 		<primarykey>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
 		</primarykey>
 		<uniquekeys/>
 		<indexes/>
 	</table>
 	<table name="Product" id="0x0003" desc="品种表" batch="" session="">
 		<items>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="ProductID" id="0x1015" type="ProductID" desc="品种代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+			<item name="ProductId" id="0x1015" type="ProductId" desc="品种代码"/>
 			<item name="ProductName" id="0x200A" type="ProductName" desc="品种名称"/>
 			<item name="ProductClass" id="0x901C" type="ProductClass" desc="品种类型"/>
 			<item name="VolumeMultiple" id="0x8403" type="VolumeMultiple" desc="合约乘数"/>
@@ -38,19 +38,19 @@
 			<item name="SessionName" id="0x200E" type="SessionName" desc="交易节名称"/>
 		</items>
 		<primarykey>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="ProductID" id="0x1015" type="ProductID" desc="品种代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+			<item name="ProductId" id="0x1015" type="ProductId" desc="品种代码"/>
 		</primarykey>
 		<uniquekeys/>
 		<indexes/>
 	</table>
 	<table name="Instrument" id="0x0004" desc="合约" batch="true" session="">
 		<items>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="InstrumentID" id="0x100D" type="InstrumentID" desc="合约代码"/>
-			<item name="ExchangeInstID" id="0x100B" type="InstrumentID" desc="交易所合约代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+			<item name="InstrumentId" id="0x100D" type="InstrumentId" desc="合约代码"/>
+			<item name="ExchangeInstId" id="0x100B" type="InstrumentId" desc="交易所合约代码"/>
 			<item name="InstrumentName" id="0x2006" type="InstrumentName" desc="合约名称"/>
-			<item name="ProductID" id="0x1015" type="ProductID" desc="品种代码"/>
+			<item name="ProductId" id="0x1015" type="ProductId" desc="品种代码"/>
 			<item name="ProductClass" id="0x901C" type="ProductClass" desc="品种类型"/>
 			<item name="InstrumentClass" id="0x9001" type="InstrumentClass" desc="合约类别"/>
 			<item name="Rank" id="0x2903" type="Int32" desc="级别"/>
@@ -63,47 +63,47 @@
 			<item name="SessionName" id="0x200E" type="SessionName" desc="交易节名称"/>
 		</items>
 		<primarykey>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="InstrumentID" id="0x100D" type="InstrumentID" desc="合约代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+			<item name="InstrumentId" id="0x100D" type="InstrumentId" desc="合约代码"/>
 		</primarykey>
 		<uniquekeys/>
 		<indexes/>
 	</table>
 	<table name="PrimaryAccount" id="0x0005" desc="主账户" batch="" session="">
 		<items>
-			<item name="PrimaryAccountID" id="0x1014" type="AccountID" desc="主账户代码"/>
+			<item name="PrimaryAccountId" id="0x1014" type="AccountId" desc="主账户代码"/>
 			<item name="PrimaryAccountName" id="0x2009" type="AccountName" desc="主账户名称"/>
 			<item name="AccountClass" id="0x9013" type="AccountClass" desc="账户类别"/>
 			<item name="BrokerPassword" id="0x2802" type="Password" desc="经纪公司密码"/>
-			<item name="OfferID" id="0x1011" type="OfferID" desc="报盘代码"/>
+			<item name="OfferId" id="0x1011" type="OfferId" desc="报盘代码"/>
 			<item name="IsAllowLogin" id="0x8001" type="Bool" desc="是否允许登陆"/>
 			<item name="IsSimulateAccount" id="0x8005" type="Bool" desc="是否模拟账号"/>
 			<item name="LoginStatus" id="0x901E" type="LoginStatus" desc="登录状态"/>
 			<item name="InitStatus" id="0x901F" type="InitStatus" desc="初始化状态"/>
 		</items>
 		<primarykey>
-			<item name="PrimaryAccountID" id="0x1014" type="AccountID" desc="主账户代码"/>
+			<item name="PrimaryAccountId" id="0x1014" type="AccountId" desc="主账户代码"/>
 		</primarykey>
 		<uniquekeys/>
 		<indexes>
-			<index name="OfferID">
-				<item name="OfferID" id="0x1011" type="OfferID" desc="报盘代码"/>
+			<index name="OfferId">
+				<item name="OfferId" id="0x1011" type="OfferId" desc="报盘代码"/>
 			</index>
 		</indexes>
 	</table>
 	<table name="Account" id="0x0006" desc="账户" batch="" session="">
 		<items>
-			<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
+			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
 			<item name="AccountName" id="0x2001" type="AccountName" desc="账户名称"/>
 			<item name="AccountType" id="0x9002" type="AccountType" desc="账户类型"/>
 			<item name="AccountStatus" id="0x9003" type="AccountStatus" desc="账户状态"/>
 			<item name="Password" id="0x2801" type="Password" desc="密码"/>
-			<item name="TradeGroupID" id="0x1020" type="GroupID" desc="交易组代码"/>
-			<item name="RiskGroupID" id="0x1019" type="GroupID" desc="交易组代码"/>
-			<item name="CommissionGroupID" id="0x1007" type="GroupID" desc="交易组代码"/>
+			<item name="TradeGroupId" id="0x1020" type="GroupId" desc="交易组代码"/>
+			<item name="RiskGroupId" id="0x1019" type="GroupId" desc="交易组代码"/>
+			<item name="CommissionGroupId" id="0x1007" type="GroupId" desc="交易组代码"/>
 		</items>
 		<primarykey>
-			<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
+			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
 		</primarykey>
 		<uniquekeys/>
 		<indexes/>
@@ -111,7 +111,7 @@
 	<table name="Capital" id="0x0007" desc="资金" batch="" session="">
 		<items>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-			<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
+			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
 			<item name="AccountType" id="0x9002" type="AccountType" desc="账户类型"/>
 			<item name="Balance" id="0x7001" type="Money" desc="权益"/>
 			<item name="PreBalance" id="0x7002" type="Money" desc="上日权益"/>
@@ -133,7 +133,7 @@
 		</items>
 		<primarykey>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-			<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
+			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
 		</primarykey>
 		<uniquekeys/>
 		<indexes>
@@ -145,10 +145,10 @@
 	<table name="Position" id="0x0008" desc="持仓" batch="" session="">
 		<items>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-			<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
+			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
 			<item name="AccountType" id="0x9002" type="AccountType" desc="账户类型"/>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="InstrumentID" id="0x100D" type="InstrumentID" desc="合约代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+			<item name="InstrumentId" id="0x100D" type="InstrumentId" desc="合约代码"/>
 			<item name="ProductClass" id="0x901C" type="ProductClass" desc="品种类型"/>
 			<item name="PosiDirection" id="0x9004" type="PosiDirection" desc="持仓方向"/>
 			<item name="TotalPosition" id="0x4019" type="Volume" desc="持仓数量"/>
@@ -172,16 +172,16 @@
 		</items>
 		<primarykey>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-			<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="InstrumentID" id="0x100D" type="InstrumentID" desc="合约代码"/>
+			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+			<item name="InstrumentId" id="0x100D" type="InstrumentId" desc="合约代码"/>
 			<item name="PosiDirection" id="0x9004" type="PosiDirection" desc="持仓方向"/>
 		</primarykey>
 		<uniquekeys/>
 		<indexes>
 			<index name="Account">
 				<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-				<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
+				<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
 			</index>
 			<index name="TradingDay">
 				<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
@@ -191,14 +191,14 @@
 	<table name="PositionDetail" id="0x0009" desc="持仓明细" batch="" session="">
 		<items>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-			<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
+			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
 			<item name="AccountType" id="0x9002" type="AccountType" desc="账户类型"/>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="InstrumentID" id="0x100D" type="InstrumentID" desc="合约代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+			<item name="InstrumentId" id="0x100D" type="InstrumentId" desc="合约代码"/>
 			<item name="ProductClass" id="0x901C" type="ProductClass" desc="品种类型"/>
 			<item name="PosiDirection" id="0x9004" type="PosiDirection" desc="持仓方向"/>
 			<item name="OpenDate" id="0x3006" type="Date" desc="开仓日期"/>
-			<item name="TradeID" id="0x101F" type="TradeID" desc="成交编号"/>
+			<item name="TradeId" id="0x101F" type="TradeId" desc="成交编号"/>
 			<item name="Volume" id="0x4015" type="Volume" desc="委托数量"/>
 			<item name="OpenPrice" id="0x6017" type="Price" desc="开盘价"/>
 			<item name="MarketValue" id="0x701C" type="Money" desc="市值"/>
@@ -218,20 +218,20 @@
 		</items>
 		<primarykey>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-			<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="InstrumentID" id="0x100D" type="InstrumentID" desc="合约代码"/>
+			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+			<item name="InstrumentId" id="0x100D" type="InstrumentId" desc="合约代码"/>
 			<item name="PosiDirection" id="0x9004" type="PosiDirection" desc="持仓方向"/>
 			<item name="OpenDate" id="0x3006" type="Date" desc="开仓日期"/>
-			<item name="TradeID" id="0x101F" type="TradeID" desc="成交编号"/>
+			<item name="TradeId" id="0x101F" type="TradeId" desc="成交编号"/>
 		</primarykey>
 		<uniquekeys/>
 		<indexes>
 			<index name="TradeMatch">
 				<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-				<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
-				<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-				<item name="InstrumentID" id="0x100D" type="InstrumentID" desc="合约代码"/>
+				<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
+				<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+				<item name="InstrumentId" id="0x100D" type="InstrumentId" desc="合约代码"/>
 				<item name="PosiDirection" id="0x9004" type="PosiDirection" desc="持仓方向"/>
 			</index>
 			<index name="TradingDay">
@@ -242,13 +242,13 @@
 	<table name="Order" id="0x000A" desc="委托" batch="" session="">
 		<items>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-			<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
+			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
 			<item name="AccountType" id="0x9002" type="AccountType" desc="账户类型"/>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="InstrumentID" id="0x100D" type="InstrumentID" desc="合约代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+			<item name="InstrumentId" id="0x100D" type="InstrumentId" desc="合约代码"/>
 			<item name="ProductClass" id="0x901C" type="ProductClass" desc="品种类型"/>
-			<item name="OrderID" id="0x1012" type="OrderID" desc="委托编号"/>
-			<item name="OrderSysID" id="0x1013" type="OrderSysID" desc="系统委托编号"/>
+			<item name="OrderId" id="0x1012" type="OrderId" desc="委托编号"/>
+			<item name="OrderSysId" id="0x1013" type="OrderSysId" desc="系统委托编号"/>
 			<item name="Direction" id="0x9005" type="Direction" desc="买卖方向"/>
 			<item name="OffsetFlag" id="0x9006" type="OffsetFlag" desc="开平标志"/>
 			<item name="OrderPriceType" id="0x9008" type="OrderPriceType" desc="委托价格类型"/>
@@ -262,13 +262,13 @@
 			<item name="OrderTime" id="0x3802" type="Time" desc="委托时间"/>
 			<item name="CancelDate" id="0x3004" type="Date" desc="撤单日期"/>
 			<item name="CancelTime" id="0x3803" type="Time" desc="撤单时间"/>
-			<item name="SessionID" id="0x101E" type="SessionID" desc="会话编号"/>
-			<item name="ClientOrderID" id="0x1006" type="ClientOrderID" desc="客户端委托编号"/>
-			<item name="RequestID" id="0x1016" type="RequestID" desc="客户端请求编号"/>
-			<item name="OfferID" id="0x1011" type="OfferID" desc="报盘代码"/>
-			<item name="TradeGroupID" id="0x1020" type="GroupID" desc="交易组代码"/>
-			<item name="RiskGroupID" id="0x1019" type="GroupID" desc="交易组代码"/>
-			<item name="CommissionGroupID" id="0x1007" type="GroupID" desc="交易组代码"/>
+			<item name="SessionId" id="0x101E" type="SessionId" desc="会话编号"/>
+			<item name="ClientOrderId" id="0x1006" type="ClientOrderId" desc="客户端委托编号"/>
+			<item name="RequestId" id="0x1016" type="RequestId" desc="客户端请求编号"/>
+			<item name="OfferId" id="0x1011" type="OfferId" desc="报盘代码"/>
+			<item name="TradeGroupId" id="0x1020" type="GroupId" desc="交易组代码"/>
+			<item name="RiskGroupId" id="0x1019" type="GroupId" desc="交易组代码"/>
+			<item name="CommissionGroupId" id="0x1007" type="GroupId" desc="交易组代码"/>
 			<item name="FrozenCash" id="0x7017" type="Money" desc="冻结资金"/>
 			<item name="FrozenMargin" id="0x7009" type="Money" desc="冻结保证金"/>
 			<item name="FrozenCommission" id="0x700B" type="Money" desc="冻结手续费"/>
@@ -277,19 +277,19 @@
 		</items>
 		<primarykey>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-			<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="InstrumentID" id="0x100D" type="InstrumentID" desc="合约代码"/>
-			<item name="OrderID" id="0x1012" type="OrderID" desc="委托编号"/>
+			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+			<item name="InstrumentId" id="0x100D" type="InstrumentId" desc="合约代码"/>
+			<item name="OrderId" id="0x1012" type="OrderId" desc="委托编号"/>
 		</primarykey>
 		<uniquekeys>
-			<uniquekey name="ClientOrderID">
+			<uniquekey name="ClientOrderId">
 				<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-				<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
-				<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-				<item name="InstrumentID" id="0x100D" type="InstrumentID" desc="合约代码"/>
-				<item name="SessionID" id="0x101E" type="SessionID" desc="会话编号"/>
-				<item name="ClientOrderID" id="0x1006" type="ClientOrderID" desc="客户端委托编号"/>
+				<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
+				<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+				<item name="InstrumentId" id="0x100D" type="InstrumentId" desc="合约代码"/>
+				<item name="SessionId" id="0x101E" type="SessionId" desc="会话编号"/>
+				<item name="ClientOrderId" id="0x1006" type="ClientOrderId" desc="客户端委托编号"/>
 			</uniquekey>
 		</uniquekeys>
 		<indexes/>
@@ -297,14 +297,14 @@
 	<table name="Trade" id="0x000B" desc="成交" batch="" session="">
 		<items>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-			<item name="AccountID" id="0x1001" type="AccountID" desc="账户代码"/>
+			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
 			<item name="AccountType" id="0x9002" type="AccountType" desc="账户类型"/>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="InstrumentID" id="0x100D" type="InstrumentID" desc="合约代码"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+			<item name="InstrumentId" id="0x100D" type="InstrumentId" desc="合约代码"/>
 			<item name="ProductClass" id="0x901C" type="ProductClass" desc="品种类型"/>
-			<item name="OrderID" id="0x1012" type="OrderID" desc="委托编号"/>
-			<item name="OrderSysID" id="0x1013" type="OrderSysID" desc="系统委托编号"/>
-			<item name="TradeID" id="0x101F" type="TradeID" desc="成交编号"/>
+			<item name="OrderId" id="0x1012" type="OrderId" desc="委托编号"/>
+			<item name="OrderSysId" id="0x1013" type="OrderSysId" desc="系统委托编号"/>
+			<item name="TradeId" id="0x101F" type="TradeId" desc="成交编号"/>
 			<item name="Direction" id="0x9005" type="Direction" desc="买卖方向"/>
 			<item name="OffsetFlag" id="0x9006" type="OffsetFlag" desc="开平标志"/>
 			<item name="Price" id="0x6015" type="Price" desc="委托价格"/>
@@ -317,8 +317,8 @@
 		</items>
 		<primarykey>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
-			<item name="ExchangeID" id="0x100A" type="ExchangeID" desc="交易所代码"/>
-			<item name="TradeID" id="0x101F" type="TradeID" desc="成交编号"/>
+			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
+			<item name="TradeId" id="0x101F" type="TradeId" desc="成交编号"/>
 			<item name="Direction" id="0x9005" type="Direction" desc="买卖方向"/>
 		</primarykey>
 		<uniquekeys/>

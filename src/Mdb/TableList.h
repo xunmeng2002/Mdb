@@ -3,12 +3,12 @@
 #include "MdbStructs.h"
 
 
-namespace mdb
+namespace Mdb
 {
 	struct TableList
 	{
 		const char* Name;
-		const unsigned int* TableIDs;
+		const unsigned int* TableIds;
 		int Count;
 	};
 }

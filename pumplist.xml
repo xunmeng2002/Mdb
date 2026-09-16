@@ -20,8 +20,8 @@
     
     <pump dest="./src/Mdb/InitMdbFromCsv.h" tpl="../Templates/Cpp/Mdb/InitMdbFromCsv.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/InitMdbFromCsv.cpp" tpl="../Templates/Cpp/Mdb/InitMdbFromCsv.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
-    <pump dest="./src/Mdb/InitMdbFromDB.h" tpl="../Templates/Cpp/Mdb/InitMdbFromDB.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/InitMdbFromDB.cpp" tpl="../Templates/Cpp/Mdb/InitMdbFromDB.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/InitMdbFromDb.h" tpl="../Templates/Cpp/Mdb/InitMdbFromDb.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/InitMdbFromDb.cpp" tpl="../Templates/Cpp/Mdb/InitMdbFromDb.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
 
     <pump dest="./test/TestMdb/FullTableList.h" tpl="../Templates/Cpp/Mdb/ModuleTableList.h.tpl" model="./Model/TableNames/FullTableNames.xml"/>
 </pumplist>

@@ -3,7 +3,7 @@
 #include "Mdb.h"
 #include "TableList.h"
 
-namespace mdb
+namespace Mdb
 {
 	class InitMdbFromCsv
 	{

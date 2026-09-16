@@ -5,11 +5,11 @@
 #include <fstream>
 #include <assert.h>
 
-using namespace spark::core;
-using namespace spark::serialization;
+using namespace Spark::Core;
+using namespace Spark::Serialization;
 
 
-namespace mdb
+namespace Mdb
 {
 	static char HeaderBuffer[1024] = { 0 };
 	static char ContentBuffer[64 * 1024] = { 0 };
@@ -99,7 +99,7 @@ namespace mdb
 			}
 
 			auto record = Exchange::Allocate();
-			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
+			Utility::Strcpy(record->ExchangeId, csv_record.GetFieldAsString("ExchangeId"));
 			Utility::Strcpy(record->ExchangeName, csv_record.GetFieldAsString("ExchangeName"));
 			mdb->exchange->Insert(record);
 		}
@@ -133,8 +133,8 @@ namespace mdb
 			}
 
 			auto record = Product::Allocate();
-			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
-			Utility::Strcpy(record->ProductID, csv_record.GetFieldAsString("ProductID"));
+			Utility::Strcpy(record->ExchangeId, csv_record.GetFieldAsString("ExchangeId"));
+			Utility::Strcpy(record->ProductId, csv_record.GetFieldAsString("ProductId"));
 			Utility::Strcpy(record->ProductName, csv_record.GetFieldAsString("ProductName"));
 			record->ProductClass = static_cast<ProductClassType>(csv_record.GetFieldAsInt("ProductClass"));
 			record->VolumeMultiple = csv_record.GetFieldAsInt("VolumeMultiple");
@@ -176,11 +176,11 @@ namespace mdb
 			}
 
 			auto record = Instrument::Allocate();
-			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
-			Utility::Strcpy(record->InstrumentID, csv_record.GetFieldAsString("InstrumentID"));
-			Utility::Strcpy(record->ExchangeInstID, csv_record.GetFieldAsString("ExchangeInstID"));
+			Utility::Strcpy(record->ExchangeId, csv_record.GetFieldAsString("ExchangeId"));
+			Utility::Strcpy(record->InstrumentId, csv_record.GetFieldAsString("InstrumentId"));
+			Utility::Strcpy(record->ExchangeInstId, csv_record.GetFieldAsString("ExchangeInstId"));
 			Utility::Strcpy(record->InstrumentName, csv_record.GetFieldAsString("InstrumentName"));
-			Utility::Strcpy(record->ProductID, csv_record.GetFieldAsString("ProductID"));
+			Utility::Strcpy(record->ProductId, csv_record.GetFieldAsString("ProductId"));
 			record->ProductClass = static_cast<ProductClassType>(csv_record.GetFieldAsInt("ProductClass"));
 			record->InstrumentClass = static_cast<InstrumentClassType>(csv_record.GetFieldAsInt("InstrumentClass"));
 			record->Rank = csv_record.GetFieldAsInt("Rank");
@@ -223,11 +223,11 @@ namespace mdb
 			}
 
 			auto record = PrimaryAccount::Allocate();
-			Utility::Strcpy(record->PrimaryAccountID, csv_record.GetFieldAsString("PrimaryAccountID"));
+			Utility::Strcpy(record->PrimaryAccountId, csv_record.GetFieldAsString("PrimaryAccountId"));
 			Utility::Strcpy(record->PrimaryAccountName, csv_record.GetFieldAsString("PrimaryAccountName"));
 			record->AccountClass = static_cast<AccountClassType>(csv_record.GetFieldAsInt("AccountClass"));
 			Utility::Strcpy(record->BrokerPassword, csv_record.GetFieldAsString("BrokerPassword"));
-			record->OfferID = csv_record.GetFieldAsInt("OfferID");
+			record->OfferId = csv_record.GetFieldAsInt("OfferId");
 			record->IsAllowLogin = static_cast<bool>(csv_record.GetFieldAsInt("IsAllowLogin"));
 			record->IsSimulateAccount = static_cast<bool>(csv_record.GetFieldAsInt("IsSimulateAccount"));
 			record->LoginStatus = static_cast<LoginStatusType>(csv_record.GetFieldAsInt("LoginStatus"));
@@ -264,14 +264,14 @@ namespace mdb
 			}
 
 			auto record = Account::Allocate();
-			Utility::Strcpy(record->AccountID, csv_record.GetFieldAsString("AccountID"));
+			Utility::Strcpy(record->AccountId, csv_record.GetFieldAsString("AccountId"));
 			Utility::Strcpy(record->AccountName, csv_record.GetFieldAsString("AccountName"));
 			record->AccountType = static_cast<AccountTypeType>(csv_record.GetFieldAsInt("AccountType"));
 			record->AccountStatus = static_cast<AccountStatusType>(csv_record.GetFieldAsInt("AccountStatus"));
 			Utility::Strcpy(record->Password, csv_record.GetFieldAsString("Password"));
-			record->TradeGroupID = csv_record.GetFieldAsInt("TradeGroupID");
-			record->RiskGroupID = csv_record.GetFieldAsInt("RiskGroupID");
-			record->CommissionGroupID = csv_record.GetFieldAsInt("CommissionGroupID");
+			record->TradeGroupId = csv_record.GetFieldAsInt("TradeGroupId");
+			record->RiskGroupId = csv_record.GetFieldAsInt("RiskGroupId");
+			record->CommissionGroupId = csv_record.GetFieldAsInt("CommissionGroupId");
 			mdb->account->Insert(record);
 		}
 		file.close();
@@ -305,7 +305,7 @@ namespace mdb
 
 			auto record = Capital::Allocate();
 			Utility::Strcpy(record->TradingDay, csv_record.GetFieldAsString("TradingDay"));
-			Utility::Strcpy(record->AccountID, csv_record.GetFieldAsString("AccountID"));
+			Utility::Strcpy(record->AccountId, csv_record.GetFieldAsString("AccountId"));
 			record->AccountType = static_cast<AccountTypeType>(csv_record.GetFieldAsInt("AccountType"));
 			record->Balance = csv_record.GetFieldAsDouble("Balance");
 			record->PreBalance = csv_record.GetFieldAsDouble("PreBalance");
@@ -357,10 +357,10 @@ namespace mdb
 
 			auto record = Position::Allocate();
 			Utility::Strcpy(record->TradingDay, csv_record.GetFieldAsString("TradingDay"));
-			Utility::Strcpy(record->AccountID, csv_record.GetFieldAsString("AccountID"));
+			Utility::Strcpy(record->AccountId, csv_record.GetFieldAsString("AccountId"));
 			record->AccountType = static_cast<AccountTypeType>(csv_record.GetFieldAsInt("AccountType"));
-			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
-			Utility::Strcpy(record->InstrumentID, csv_record.GetFieldAsString("InstrumentID"));
+			Utility::Strcpy(record->ExchangeId, csv_record.GetFieldAsString("ExchangeId"));
+			Utility::Strcpy(record->InstrumentId, csv_record.GetFieldAsString("InstrumentId"));
 			record->ProductClass = static_cast<ProductClassType>(csv_record.GetFieldAsInt("ProductClass"));
 			record->PosiDirection = static_cast<PosiDirectionType>(csv_record.GetFieldAsInt("PosiDirection"));
 			record->TotalPosition = csv_record.GetFieldAsInt64("TotalPosition");
@@ -414,14 +414,14 @@ namespace mdb
 
 			auto record = PositionDetail::Allocate();
 			Utility::Strcpy(record->TradingDay, csv_record.GetFieldAsString("TradingDay"));
-			Utility::Strcpy(record->AccountID, csv_record.GetFieldAsString("AccountID"));
+			Utility::Strcpy(record->AccountId, csv_record.GetFieldAsString("AccountId"));
 			record->AccountType = static_cast<AccountTypeType>(csv_record.GetFieldAsInt("AccountType"));
-			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
-			Utility::Strcpy(record->InstrumentID, csv_record.GetFieldAsString("InstrumentID"));
+			Utility::Strcpy(record->ExchangeId, csv_record.GetFieldAsString("ExchangeId"));
+			Utility::Strcpy(record->InstrumentId, csv_record.GetFieldAsString("InstrumentId"));
 			record->ProductClass = static_cast<ProductClassType>(csv_record.GetFieldAsInt("ProductClass"));
 			record->PosiDirection = static_cast<PosiDirectionType>(csv_record.GetFieldAsInt("PosiDirection"));
 			Utility::Strcpy(record->OpenDate, csv_record.GetFieldAsString("OpenDate"));
-			Utility::Strcpy(record->TradeID, csv_record.GetFieldAsString("TradeID"));
+			Utility::Strcpy(record->TradeId, csv_record.GetFieldAsString("TradeId"));
 			record->Volume = csv_record.GetFieldAsInt64("Volume");
 			record->OpenPrice = csv_record.GetFieldAsDouble("OpenPrice");
 			record->MarketValue = csv_record.GetFieldAsDouble("MarketValue");
@@ -471,13 +471,13 @@ namespace mdb
 
 			auto record = Order::Allocate();
 			Utility::Strcpy(record->TradingDay, csv_record.GetFieldAsString("TradingDay"));
-			Utility::Strcpy(record->AccountID, csv_record.GetFieldAsString("AccountID"));
+			Utility::Strcpy(record->AccountId, csv_record.GetFieldAsString("AccountId"));
 			record->AccountType = static_cast<AccountTypeType>(csv_record.GetFieldAsInt("AccountType"));
-			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
-			Utility::Strcpy(record->InstrumentID, csv_record.GetFieldAsString("InstrumentID"));
+			Utility::Strcpy(record->ExchangeId, csv_record.GetFieldAsString("ExchangeId"));
+			Utility::Strcpy(record->InstrumentId, csv_record.GetFieldAsString("InstrumentId"));
 			record->ProductClass = static_cast<ProductClassType>(csv_record.GetFieldAsInt("ProductClass"));
-			record->OrderID = csv_record.GetFieldAsInt("OrderID");
-			Utility::Strcpy(record->OrderSysID, csv_record.GetFieldAsString("OrderSysID"));
+			record->OrderId = csv_record.GetFieldAsInt("OrderId");
+			Utility::Strcpy(record->OrderSysId, csv_record.GetFieldAsString("OrderSysId"));
 			record->Direction = static_cast<DirectionType>(csv_record.GetFieldAsInt("Direction"));
 			record->OffsetFlag = static_cast<OffsetFlagType>(csv_record.GetFieldAsInt("OffsetFlag"));
 			record->OrderPriceType = static_cast<OrderPriceTypeType>(csv_record.GetFieldAsInt("OrderPriceType"));
@@ -491,13 +491,13 @@ namespace mdb
 			Utility::Strcpy(record->OrderTime, csv_record.GetFieldAsString("OrderTime"));
 			Utility::Strcpy(record->CancelDate, csv_record.GetFieldAsString("CancelDate"));
 			Utility::Strcpy(record->CancelTime, csv_record.GetFieldAsString("CancelTime"));
-			record->SessionID = csv_record.GetFieldAsInt64("SessionID");
-			record->ClientOrderID = csv_record.GetFieldAsInt("ClientOrderID");
-			record->RequestID = csv_record.GetFieldAsInt("RequestID");
-			record->OfferID = csv_record.GetFieldAsInt("OfferID");
-			record->TradeGroupID = csv_record.GetFieldAsInt("TradeGroupID");
-			record->RiskGroupID = csv_record.GetFieldAsInt("RiskGroupID");
-			record->CommissionGroupID = csv_record.GetFieldAsInt("CommissionGroupID");
+			record->SessionId = csv_record.GetFieldAsInt64("SessionId");
+			record->ClientOrderId = csv_record.GetFieldAsInt("ClientOrderId");
+			record->RequestId = csv_record.GetFieldAsInt("RequestId");
+			record->OfferId = csv_record.GetFieldAsInt("OfferId");
+			record->TradeGroupId = csv_record.GetFieldAsInt("TradeGroupId");
+			record->RiskGroupId = csv_record.GetFieldAsInt("RiskGroupId");
+			record->CommissionGroupId = csv_record.GetFieldAsInt("CommissionGroupId");
 			record->FrozenCash = csv_record.GetFieldAsDouble("FrozenCash");
 			record->FrozenMargin = csv_record.GetFieldAsDouble("FrozenMargin");
 			record->FrozenCommission = csv_record.GetFieldAsDouble("FrozenCommission");
@@ -536,14 +536,14 @@ namespace mdb
 
 			auto record = Trade::Allocate();
 			Utility::Strcpy(record->TradingDay, csv_record.GetFieldAsString("TradingDay"));
-			Utility::Strcpy(record->AccountID, csv_record.GetFieldAsString("AccountID"));
+			Utility::Strcpy(record->AccountId, csv_record.GetFieldAsString("AccountId"));
 			record->AccountType = static_cast<AccountTypeType>(csv_record.GetFieldAsInt("AccountType"));
-			Utility::Strcpy(record->ExchangeID, csv_record.GetFieldAsString("ExchangeID"));
-			Utility::Strcpy(record->InstrumentID, csv_record.GetFieldAsString("InstrumentID"));
+			Utility::Strcpy(record->ExchangeId, csv_record.GetFieldAsString("ExchangeId"));
+			Utility::Strcpy(record->InstrumentId, csv_record.GetFieldAsString("InstrumentId"));
 			record->ProductClass = static_cast<ProductClassType>(csv_record.GetFieldAsInt("ProductClass"));
-			record->OrderID = csv_record.GetFieldAsInt("OrderID");
-			Utility::Strcpy(record->OrderSysID, csv_record.GetFieldAsString("OrderSysID"));
-			Utility::Strcpy(record->TradeID, csv_record.GetFieldAsString("TradeID"));
+			record->OrderId = csv_record.GetFieldAsInt("OrderId");
+			Utility::Strcpy(record->OrderSysId, csv_record.GetFieldAsString("OrderSysId"));
+			Utility::Strcpy(record->TradeId, csv_record.GetFieldAsString("TradeId"));
 			record->Direction = static_cast<DirectionType>(csv_record.GetFieldAsInt("Direction"));
 			record->OffsetFlag = static_cast<OffsetFlagType>(csv_record.GetFieldAsInt("OffsetFlag"));
 			record->Price = csv_record.GetFieldAsDouble("Price");

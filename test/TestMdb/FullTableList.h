@@ -3,22 +3,22 @@
 #include "TableList.h"
 #include "MdbStructs.h"
 
-using namespace mdb;
-namespace mdb::full
+using namespace Mdb;
+namespace Mdb::Full
 {
-	inline const unsigned int kfullTableIDs[] =
+	inline const unsigned int kFullTableIDs[] =
 	{
-		TradingDay::TableID,
-		Exchange::TableID,
-		Product::TableID,
-		Instrument::TableID,
-		PrimaryAccount::TableID,
-		Account::TableID,
-		Capital::TableID,
-		Position::TableID,
-		PositionDetail::TableID,
-		Order::TableID,
-		Trade::TableID,
+		TradingDay::TableId,
+		Exchange::TableId,
+		Product::TableId,
+		Instrument::TableId,
+		PrimaryAccount::TableId,
+		Account::TableId,
+		Capital::TableId,
+		Position::TableId,
+		PositionDetail::TableId,
+		Order::TableId,
+		Trade::TableId,
 	};
-	inline const TableList fullTableList = { "full", kfullTableIDs, static_cast<int>(sizeof(kfullTableIDs) / sizeof(kfullTableIDs[0])) };
+	inline const TableList FullTableList = { "Full", kFullTableIds, static_cast<int>(sizeof(kFullTableIds) / sizeof(kFullTableIds[0])) };
 }

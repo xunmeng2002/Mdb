@@ -6,18 +6,18 @@
 
 using std::multiset;
 
-namespace mdb
+namespace Mdb
 {
 	class PrimaryAccountTable;
-	class PrimaryAccountIndexOfferID
+	class PrimaryAccountIndexOfferId
 	{
-		using iterator = std::multiset<PrimaryAccount*, PrimaryAccountLessForOfferIDIndex>::iterator;
+		using iterator = std::multiset<PrimaryAccount*, PrimaryAccountLessForOfferIdIndex>::iterator;
 		friend class PrimaryAccountTable;
 	public:
-		PrimaryAccountIndexOfferID(PrimaryAccountTable* tableOwner);
-		iterator LowerBound(const OfferIDType& OfferID);
-		iterator UpperBound(const OfferIDType& OfferID);
-		std::pair<iterator, iterator> EqualRange(const OfferIDType& OfferID);
+		PrimaryAccountIndexOfferId(PrimaryAccountTable* tableOwner);
+		iterator LowerBound(const OfferIdType& OfferId);
+		iterator UpperBound(const OfferIdType& OfferId);
+		std::pair<iterator, iterator> EqualRange(const OfferIdType& OfferId);
 	public:
 		static constexpr unsigned int IndexID = 0x0000;
 	protected:
@@ -26,11 +26,11 @@ namespace mdb
 		void Update(iterator it);
 		bool NeedUpdate(const PrimaryAccount* const oldRecord, const PrimaryAccount* const newRecord);
 		iterator FindNode(PrimaryAccount* const record);
-		void FillCompareRecord(const OfferIDType& OfferID);
+		void FillCompareRecord(const OfferIdType& OfferId);
 
 	private:
-		PrimaryAccountTable* table;
-		multiset<PrimaryAccount*, PrimaryAccountLessForOfferIDIndex> index;
+		PrimaryAccountTable* table_;
+		multiset<PrimaryAccount*, PrimaryAccountLessForOfferIdIndex> index_;
 	};
 	
 	class CapitalTable;
@@ -54,8 +54,8 @@ namespace mdb
 		void FillCompareRecord(const DateType& TradingDay);
 
 	private:
-		CapitalTable* table;
-		multiset<Capital*, CapitalLessForTradingDayIndex> index;
+		CapitalTable* table_;
+		multiset<Capital*, CapitalLessForTradingDayIndex> index_;
 	};
 	
 	class PositionTable;
@@ -65,9 +65,9 @@ namespace mdb
 		friend class PositionTable;
 	public:
 		PositionIndexAccount(PositionTable* tableOwner);
-		iterator LowerBound(const DateType& TradingDay, const AccountIDType& AccountID);
-		iterator UpperBound(const DateType& TradingDay, const AccountIDType& AccountID);
-		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay, const AccountIDType& AccountID);
+		iterator LowerBound(const DateType& TradingDay, const AccountIdType& AccountId);
+		iterator UpperBound(const DateType& TradingDay, const AccountIdType& AccountId);
+		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay, const AccountIdType& AccountId);
 	public:
 		static constexpr unsigned int IndexID = 0x0000;
 	protected:
@@ -76,11 +76,11 @@ namespace mdb
 		void Update(iterator it);
 		bool NeedUpdate(const Position* const oldRecord, const Position* const newRecord);
 		iterator FindNode(Position* const record);
-		void FillCompareRecord(const DateType& TradingDay, const AccountIDType& AccountID);
+		void FillCompareRecord(const DateType& TradingDay, const AccountIdType& AccountId);
 
 	private:
-		PositionTable* table;
-		multiset<Position*, PositionLessForAccountIndex> index;
+		PositionTable* table_;
+		multiset<Position*, PositionLessForAccountIndex> index_;
 	};
 	
 	class PositionIndexTradingDay
@@ -103,8 +103,8 @@ namespace mdb
 		void FillCompareRecord(const DateType& TradingDay);
 
 	private:
-		PositionTable* table;
-		multiset<Position*, PositionLessForTradingDayIndex> index;
+		PositionTable* table_;
+		multiset<Position*, PositionLessForTradingDayIndex> index_;
 	};
 	
 	class PositionDetailTable;
@@ -114,9 +114,9 @@ namespace mdb
 		friend class PositionDetailTable;
 	public:
 		PositionDetailIndexTradeMatch(PositionDetailTable* tableOwner);
-		iterator LowerBound(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection);
-		iterator UpperBound(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection);
-		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection);
+		iterator LowerBound(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
+		iterator UpperBound(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
+		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
 	public:
 		static constexpr unsigned int IndexID = 0x0000;
 	protected:
@@ -125,11 +125,11 @@ namespace mdb
 		void Update(iterator it);
 		bool NeedUpdate(const PositionDetail* const oldRecord, const PositionDetail* const newRecord);
 		iterator FindNode(PositionDetail* const record);
-		void FillCompareRecord(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection);
+		void FillCompareRecord(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
 
 	private:
-		PositionDetailTable* table;
-		multiset<PositionDetail*, PositionDetailLessForTradeMatchIndex> index;
+		PositionDetailTable* table_;
+		multiset<PositionDetail*, PositionDetailLessForTradeMatchIndex> index_;
 	};
 	
 	class PositionDetailIndexTradingDay
@@ -152,8 +152,8 @@ namespace mdb
 		void FillCompareRecord(const DateType& TradingDay);
 
 	private:
-		PositionDetailTable* table;
-		multiset<PositionDetail*, PositionDetailLessForTradingDayIndex> index;
+		PositionDetailTable* table_;
+		multiset<PositionDetail*, PositionDetailLessForTradingDayIndex> index_;
 	};
 	
 }

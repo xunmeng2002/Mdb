@@ -2,40 +2,40 @@
 #include "Mdb.h"
 
 
-namespace mdb
+namespace Mdb
 {
-	Mdb::Mdb(const TableList& tableList): mdbSubscriber(nullptr)
+	Mdb::Mdb(const TableList& tableList): mdbSubscriber_(nullptr)
 	{
 		for (int i = 0; i < tableList.Count; ++i)
 		{
-			switch (tableList.TableIDs[i])
+			switch (tableList.TableIds_[i])
 			{
-			case TradingDay::TableID:  tradingDay = new TradingDayTable(); tables.push_back(tradingDay); break;
-			case Exchange::TableID:  exchange = new ExchangeTable(); tables.push_back(exchange); break;
-			case Product::TableID:  product = new ProductTable(); tables.push_back(product); break;
-			case Instrument::TableID:  instrument = new InstrumentTable(); tables.push_back(instrument); break;
-			case PrimaryAccount::TableID:  primaryAccount = new PrimaryAccountTable(); tables.push_back(primaryAccount); break;
-			case Account::TableID:  account = new AccountTable(); tables.push_back(account); break;
-			case Capital::TableID:  capital = new CapitalTable(); tables.push_back(capital); break;
-			case Position::TableID:  position = new PositionTable(); tables.push_back(position); break;
-			case PositionDetail::TableID:  positionDetail = new PositionDetailTable(); tables.push_back(positionDetail); break;
-			case Order::TableID:  order = new OrderTable(); tables.push_back(order); break;
-			case Trade::TableID:  trade = new TradeTable(); tables.push_back(trade); break;
+			case TradingDay::TableId:  TradingDay = new TradingDayTable(); tables_.push_back(TradingDay); break;
+			case Exchange::TableId:  Exchange = new ExchangeTable(); tables_.push_back(Exchange); break;
+			case Product::TableId:  Product = new ProductTable(); tables_.push_back(Product); break;
+			case Instrument::TableId:  Instrument = new InstrumentTable(); tables_.push_back(Instrument); break;
+			case PrimaryAccount::TableId:  PrimaryAccount = new PrimaryAccountTable(); tables_.push_back(PrimaryAccount); break;
+			case Account::TableId:  Account = new AccountTable(); tables_.push_back(Account); break;
+			case Capital::TableId:  Capital = new CapitalTable(); tables_.push_back(Capital); break;
+			case Position::TableId:  Position = new PositionTable(); tables_.push_back(Position); break;
+			case PositionDetail::TableId:  PositionDetail = new PositionDetailTable(); tables_.push_back(PositionDetail); break;
+			case Order::TableId:  Order = new OrderTable(); tables_.push_back(Order); break;
+			case Trade::TableId:  Trade = new TradeTable(); tables_.push_back(Trade); break;
 			default: break;
 			}
 		}
 	}
 	void Mdb::Subscribe(MdbSubscriber* subscriber)
 	{
-		mdbSubscriber = subscriber;
-		for (auto table : tables)
+		mdbSubscriber_ = subscriber;
+		for (auto table : tables_)
 		{
 			table->Subscribe(subscriber);
 		}
 	}
 	void Mdb::UnSubscribe()
 	{
-		for (auto table : tables)
+		for (auto table : tables_)
 		{
 			table->UnSubscribe();
 		}
@@ -43,46 +43,46 @@ namespace mdb
 	void Mdb::InitDB()
 	{
 		CreateTables();
-		for (auto table : tables)
+		for (auto table : tables_)
 		{
 			table->InitDB();
 		}
 	}
 	void Mdb::SetInitStatus(bool initStatus)
 	{
-		for (auto table : tables)
+		for (auto table : tables_)
 		{
-			table->dbInited = initStatus;
+			table->DbInited = initStatus;
 		}
 	}
 	void Mdb::Dump(const char* dir)
 	{
-		for (auto table : tables)
+		for (auto table : tables_)
 		{
 			table->Dump(dir);
 		}
 	}
 	void Mdb::CreateTables()
 	{
-		if (mdbSubscriber != nullptr)
+		if (mdbSubscriber_ != nullptr)
 		{
-			mdbSubscriber->OnTableOp(DBOperateType::CreateTables);
+			mdbSubscriber_->OnTableOp(DBOperateType::CreateTables);
 		}
 	}
 	void Mdb::DropTables()
 	{
-		if (mdbSubscriber != nullptr)
+		if (mdbSubscriber_ != nullptr)
 		{
-			mdbSubscriber->OnTableOp(DBOperateType::DropTables);
+			mdbSubscriber_->OnTableOp(DBOperateType::DropTables);
 		}
 	}
 	void Mdb::TruncateTables()
 	{
-		if (mdbSubscriber != nullptr)
+		if (mdbSubscriber_ != nullptr)
 		{
-			mdbSubscriber->OnTableOp(DBOperateType::TruncateTables);
+			mdbSubscriber_->OnTableOp(DBOperateType::TruncateTables);
 		}
-		for (auto table : tables)
+		for (auto table : tables_)
 		{
 			table->TruncateTables();
 		}
@@ -94,9 +94,9 @@ namespace mdb
 	}
 	void Mdb::OnDBDisConnected()
 	{
-		for (auto table : tables)
+		for (auto table : tables_)
 		{
-			table->dbInited = false;
+			table->DbInited = false;
 		}
 	}
 }

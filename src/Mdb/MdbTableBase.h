@@ -1,10 +1,10 @@
 ﻿// 本文件由 ../Templates/Cpp/Mdb/MdbTableBase.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #pragma once
-#include <DBAdapters/DBInterface/MdbSubscriber.h>
+#include <DBAdapters/DbInterface/MdbSubscriber.h>
 #include <atomic>
 
 
-namespace mdb
+namespace Mdb
 {
 	class MdbTableBase
 	{
@@ -18,6 +18,6 @@ namespace mdb
 		virtual void Dump(const char* dir) = 0;
 
 	public:
-		std::atomic<bool> dbInited{ false };
+		std::atomic<bool> DbInited{ false };
 	};
 }

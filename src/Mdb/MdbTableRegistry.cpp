@@ -9,14 +9,14 @@ namespace mdb
 	{
 		for (int i = 0; i < tableList.Count; ++i)
 		{
-			unsigned int tableID = tableList.TableIDs[i];
-			tableIDs.push_back(tableID);
-			schemas.push_back(GetSchemaByID(tableID));
+			unsigned int tableId = tableList.TableIDs[i];
+			tableIds_.push_back(tableId);
+			schemas_.push_back(GetSchemaByID(tableId));
 		}
 	}
-	const TableSchema* MdbTableRegistry::GetSchemaByID(unsigned int tableID)
+	const TableSchema* MdbTableRegistry::GetSchemaByID(unsigned int tableId)
 	{
-		switch (tableID)
+		switch (tableId)
 		{
 		case TradingDay::TableID: return &TradingDay::GetSchema();
 		case Exchange::TableID: return &Exchange::GetSchema();
@@ -32,23 +32,23 @@ namespace mdb
 		default: return nullptr;
 		}
 	}
-	const TableSchema* MdbTableRegistry::GetSchema(unsigned int tableID) const
+	const TableSchema* MdbTableRegistry::GetSchema(unsigned int tableId) const
 	{
-		for (size_t i = 0; i < tableIDs.size(); ++i)
+		for (size_t i = 0; i < tableIds_.size(); ++i)
 		{
-			if (tableIDs[i] == tableID)
+			if (tableIds_[i] == tableId)
 			{
-				return schemas[i];
+				return schemas_[i];
 			}
 		}
 		return nullptr;
 	}
 	const TableSchema* const* MdbTableRegistry::GetAllSchemas() const
 	{
-		return schemas.data();
+		return schemas_.data();
 	}
 	int MdbTableRegistry::GetTableCount() const
 	{
-		return static_cast<int>(tableIDs.size());
+		return static_cast<int>(tableIds_.size());
 	}
 }

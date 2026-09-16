@@ -5,22 +5,22 @@
 #include <string.h>
 
 using std::unordered_set;
-using namespace spark::core;
+using namespace Spark::Core;
 
 
-namespace mdb
+namespace Mdb
 {
 	TradingDayPrimaryKey::TradingDayPrimaryKey(TradingDayTable* tableOwner, size_t buckets)
-		:table(tableOwner), index(buckets)
+		:table_(tableOwner), index_(buckets)
 	{
 	}
 	TradingDay* TradingDayPrimaryKey::Select(const Int32Type& PK)
 	{
 		CompareTradingDay.PK = PK;
 		
-		std::shared_lock guard(table->sharedMutex);
-		auto it = index.find(&CompareTradingDay);
-		if (it == index.end())
+		std::shared_lock guard(table_->sharedMutex);
+		auto it = index_.find(&CompareTradingDay);
+		if (it == index_.end())
 		{
 			return nullptr;
 		}
@@ -28,36 +28,36 @@ namespace mdb
 	}
 	std::pair<TradingDayPrimaryKey::iterator, TradingDayPrimaryKey::iterator> TradingDayPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table->sharedMutex);
-		return std::pair<iterator, iterator>(index.begin(), index.end());
+		std::shared_lock guard(table_->sharedMutex);
+		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool TradingDayPrimaryKey::Insert(TradingDay* const record)
 	{
-		return index.insert(record).second;
+		return index_.insert(record).second;
 	}
 	void TradingDayPrimaryKey::Erase(TradingDay* const  record)
 	{
-		index.erase(record);
+		index_.erase(record);
 	}
 	bool TradingDayPrimaryKey::CheckInsert(TradingDay* const record)
 	{
-		return index.find(record) == index.end();
+		return index_.find(record) == index_.end();
 	}
 	bool TradingDayPrimaryKey::CheckUpdate(const TradingDay* const oldRecord, const TradingDay* const newRecord)
 	{
 		return TradingDayEqualForTradingDayPrimaryKey()(oldRecord, newRecord);
 	}
 	ExchangePrimaryKey::ExchangePrimaryKey(ExchangeTable* tableOwner, size_t buckets)
-		:table(tableOwner), index(buckets)
+		:table_(tableOwner), index_(buckets)
 	{
 	}
-	Exchange* ExchangePrimaryKey::Select(const ExchangeIDType& ExchangeID)
+	Exchange* ExchangePrimaryKey::Select(const ExchangeIdType& ExchangeId)
 	{
-		Utility::Strcpy(CompareExchange.ExchangeID, ExchangeID);
+		Utility::Strcpy(CompareExchange.ExchangeId, ExchangeId);
 		
-		std::shared_lock guard(table->sharedMutex);
-		auto it = index.find(&CompareExchange);
-		if (it == index.end())
+		std::shared_lock guard(table_->sharedMutex);
+		auto it = index_.find(&CompareExchange);
+		if (it == index_.end())
 		{
 			return nullptr;
 		}
@@ -65,37 +65,37 @@ namespace mdb
 	}
 	std::pair<ExchangePrimaryKey::iterator, ExchangePrimaryKey::iterator> ExchangePrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table->sharedMutex);
-		return std::pair<iterator, iterator>(index.begin(), index.end());
+		std::shared_lock guard(table_->sharedMutex);
+		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool ExchangePrimaryKey::Insert(Exchange* const record)
 	{
-		return index.insert(record).second;
+		return index_.insert(record).second;
 	}
 	void ExchangePrimaryKey::Erase(Exchange* const  record)
 	{
-		index.erase(record);
+		index_.erase(record);
 	}
 	bool ExchangePrimaryKey::CheckInsert(Exchange* const record)
 	{
-		return index.find(record) == index.end();
+		return index_.find(record) == index_.end();
 	}
 	bool ExchangePrimaryKey::CheckUpdate(const Exchange* const oldRecord, const Exchange* const newRecord)
 	{
 		return ExchangeEqualForExchangePrimaryKey()(oldRecord, newRecord);
 	}
 	ProductPrimaryKey::ProductPrimaryKey(ProductTable* tableOwner, size_t buckets)
-		:table(tableOwner), index(buckets)
+		:table_(tableOwner), index_(buckets)
 	{
 	}
-	Product* ProductPrimaryKey::Select(const ExchangeIDType& ExchangeID, const ProductIDType& ProductID)
+	Product* ProductPrimaryKey::Select(const ExchangeIdType& ExchangeId, const ProductIdType& ProductId)
 	{
-		Utility::Strcpy(CompareProduct.ExchangeID, ExchangeID);
-		Utility::Strcpy(CompareProduct.ProductID, ProductID);
+		Utility::Strcpy(CompareProduct.ExchangeId, ExchangeId);
+		Utility::Strcpy(CompareProduct.ProductId, ProductId);
 		
-		std::shared_lock guard(table->sharedMutex);
-		auto it = index.find(&CompareProduct);
-		if (it == index.end())
+		std::shared_lock guard(table_->sharedMutex);
+		auto it = index_.find(&CompareProduct);
+		if (it == index_.end())
 		{
 			return nullptr;
 		}
@@ -103,37 +103,37 @@ namespace mdb
 	}
 	std::pair<ProductPrimaryKey::iterator, ProductPrimaryKey::iterator> ProductPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table->sharedMutex);
-		return std::pair<iterator, iterator>(index.begin(), index.end());
+		std::shared_lock guard(table_->sharedMutex);
+		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool ProductPrimaryKey::Insert(Product* const record)
 	{
-		return index.insert(record).second;
+		return index_.insert(record).second;
 	}
 	void ProductPrimaryKey::Erase(Product* const  record)
 	{
-		index.erase(record);
+		index_.erase(record);
 	}
 	bool ProductPrimaryKey::CheckInsert(Product* const record)
 	{
-		return index.find(record) == index.end();
+		return index_.find(record) == index_.end();
 	}
 	bool ProductPrimaryKey::CheckUpdate(const Product* const oldRecord, const Product* const newRecord)
 	{
 		return ProductEqualForProductPrimaryKey()(oldRecord, newRecord);
 	}
 	InstrumentPrimaryKey::InstrumentPrimaryKey(InstrumentTable* tableOwner, size_t buckets)
-		:table(tableOwner), index(buckets)
+		:table_(tableOwner), index_(buckets)
 	{
 	}
-	Instrument* InstrumentPrimaryKey::Select(const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID)
+	Instrument* InstrumentPrimaryKey::Select(const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId)
 	{
-		Utility::Strcpy(CompareInstrument.ExchangeID, ExchangeID);
-		Utility::Strcpy(CompareInstrument.InstrumentID, InstrumentID);
+		Utility::Strcpy(CompareInstrument.ExchangeId, ExchangeId);
+		Utility::Strcpy(CompareInstrument.InstrumentId, InstrumentId);
 		
-		std::shared_lock guard(table->sharedMutex);
-		auto it = index.find(&CompareInstrument);
-		if (it == index.end())
+		std::shared_lock guard(table_->sharedMutex);
+		auto it = index_.find(&CompareInstrument);
+		if (it == index_.end())
 		{
 			return nullptr;
 		}
@@ -141,36 +141,36 @@ namespace mdb
 	}
 	std::pair<InstrumentPrimaryKey::iterator, InstrumentPrimaryKey::iterator> InstrumentPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table->sharedMutex);
-		return std::pair<iterator, iterator>(index.begin(), index.end());
+		std::shared_lock guard(table_->sharedMutex);
+		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool InstrumentPrimaryKey::Insert(Instrument* const record)
 	{
-		return index.insert(record).second;
+		return index_.insert(record).second;
 	}
 	void InstrumentPrimaryKey::Erase(Instrument* const  record)
 	{
-		index.erase(record);
+		index_.erase(record);
 	}
 	bool InstrumentPrimaryKey::CheckInsert(Instrument* const record)
 	{
-		return index.find(record) == index.end();
+		return index_.find(record) == index_.end();
 	}
 	bool InstrumentPrimaryKey::CheckUpdate(const Instrument* const oldRecord, const Instrument* const newRecord)
 	{
 		return InstrumentEqualForInstrumentPrimaryKey()(oldRecord, newRecord);
 	}
 	PrimaryAccountPrimaryKey::PrimaryAccountPrimaryKey(PrimaryAccountTable* tableOwner, size_t buckets)
-		:table(tableOwner), index(buckets)
+		:table_(tableOwner), index_(buckets)
 	{
 	}
-	PrimaryAccount* PrimaryAccountPrimaryKey::Select(const AccountIDType& PrimaryAccountID)
+	PrimaryAccount* PrimaryAccountPrimaryKey::Select(const AccountIdType& PrimaryAccountId)
 	{
-		Utility::Strcpy(ComparePrimaryAccount.PrimaryAccountID, PrimaryAccountID);
+		Utility::Strcpy(ComparePrimaryAccount.PrimaryAccountId, PrimaryAccountId);
 		
-		std::shared_lock guard(table->sharedMutex);
-		auto it = index.find(&ComparePrimaryAccount);
-		if (it == index.end())
+		std::shared_lock guard(table_->sharedMutex);
+		auto it = index_.find(&ComparePrimaryAccount);
+		if (it == index_.end())
 		{
 			return nullptr;
 		}
@@ -178,36 +178,36 @@ namespace mdb
 	}
 	std::pair<PrimaryAccountPrimaryKey::iterator, PrimaryAccountPrimaryKey::iterator> PrimaryAccountPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table->sharedMutex);
-		return std::pair<iterator, iterator>(index.begin(), index.end());
+		std::shared_lock guard(table_->sharedMutex);
+		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool PrimaryAccountPrimaryKey::Insert(PrimaryAccount* const record)
 	{
-		return index.insert(record).second;
+		return index_.insert(record).second;
 	}
 	void PrimaryAccountPrimaryKey::Erase(PrimaryAccount* const  record)
 	{
-		index.erase(record);
+		index_.erase(record);
 	}
 	bool PrimaryAccountPrimaryKey::CheckInsert(PrimaryAccount* const record)
 	{
-		return index.find(record) == index.end();
+		return index_.find(record) == index_.end();
 	}
 	bool PrimaryAccountPrimaryKey::CheckUpdate(const PrimaryAccount* const oldRecord, const PrimaryAccount* const newRecord)
 	{
 		return PrimaryAccountEqualForPrimaryAccountPrimaryKey()(oldRecord, newRecord);
 	}
 	AccountPrimaryKey::AccountPrimaryKey(AccountTable* tableOwner, size_t buckets)
-		:table(tableOwner), index(buckets)
+		:table_(tableOwner), index_(buckets)
 	{
 	}
-	Account* AccountPrimaryKey::Select(const AccountIDType& AccountID)
+	Account* AccountPrimaryKey::Select(const AccountIdType& AccountId)
 	{
-		Utility::Strcpy(CompareAccount.AccountID, AccountID);
+		Utility::Strcpy(CompareAccount.AccountId, AccountId);
 		
-		std::shared_lock guard(table->sharedMutex);
-		auto it = index.find(&CompareAccount);
-		if (it == index.end())
+		std::shared_lock guard(table_->sharedMutex);
+		auto it = index_.find(&CompareAccount);
+		if (it == index_.end())
 		{
 			return nullptr;
 		}
@@ -215,37 +215,37 @@ namespace mdb
 	}
 	std::pair<AccountPrimaryKey::iterator, AccountPrimaryKey::iterator> AccountPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table->sharedMutex);
-		return std::pair<iterator, iterator>(index.begin(), index.end());
+		std::shared_lock guard(table_->sharedMutex);
+		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool AccountPrimaryKey::Insert(Account* const record)
 	{
-		return index.insert(record).second;
+		return index_.insert(record).second;
 	}
 	void AccountPrimaryKey::Erase(Account* const  record)
 	{
-		index.erase(record);
+		index_.erase(record);
 	}
 	bool AccountPrimaryKey::CheckInsert(Account* const record)
 	{
-		return index.find(record) == index.end();
+		return index_.find(record) == index_.end();
 	}
 	bool AccountPrimaryKey::CheckUpdate(const Account* const oldRecord, const Account* const newRecord)
 	{
 		return AccountEqualForAccountPrimaryKey()(oldRecord, newRecord);
 	}
 	CapitalPrimaryKey::CapitalPrimaryKey(CapitalTable* tableOwner, size_t buckets)
-		:table(tableOwner), index(buckets)
+		:table_(tableOwner), index_(buckets)
 	{
 	}
-	Capital* CapitalPrimaryKey::Select(const DateType& TradingDay, const AccountIDType& AccountID)
+	Capital* CapitalPrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId)
 	{
 		Utility::Strcpy(CompareCapital.TradingDay, TradingDay);
-		Utility::Strcpy(CompareCapital.AccountID, AccountID);
+		Utility::Strcpy(CompareCapital.AccountId, AccountId);
 		
-		std::shared_lock guard(table->sharedMutex);
-		auto it = index.find(&CompareCapital);
-		if (it == index.end())
+		std::shared_lock guard(table_->sharedMutex);
+		auto it = index_.find(&CompareCapital);
+		if (it == index_.end())
 		{
 			return nullptr;
 		}
@@ -253,40 +253,40 @@ namespace mdb
 	}
 	std::pair<CapitalPrimaryKey::iterator, CapitalPrimaryKey::iterator> CapitalPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table->sharedMutex);
-		return std::pair<iterator, iterator>(index.begin(), index.end());
+		std::shared_lock guard(table_->sharedMutex);
+		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool CapitalPrimaryKey::Insert(Capital* const record)
 	{
-		return index.insert(record).second;
+		return index_.insert(record).second;
 	}
 	void CapitalPrimaryKey::Erase(Capital* const  record)
 	{
-		index.erase(record);
+		index_.erase(record);
 	}
 	bool CapitalPrimaryKey::CheckInsert(Capital* const record)
 	{
-		return index.find(record) == index.end();
+		return index_.find(record) == index_.end();
 	}
 	bool CapitalPrimaryKey::CheckUpdate(const Capital* const oldRecord, const Capital* const newRecord)
 	{
 		return CapitalEqualForCapitalPrimaryKey()(oldRecord, newRecord);
 	}
 	PositionPrimaryKey::PositionPrimaryKey(PositionTable* tableOwner, size_t buckets)
-		:table(tableOwner), index(buckets)
+		:table_(tableOwner), index_(buckets)
 	{
 	}
-	Position* PositionPrimaryKey::Select(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection)
+	Position* PositionPrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection)
 	{
 		Utility::Strcpy(ComparePosition.TradingDay, TradingDay);
-		Utility::Strcpy(ComparePosition.AccountID, AccountID);
-		Utility::Strcpy(ComparePosition.ExchangeID, ExchangeID);
-		Utility::Strcpy(ComparePosition.InstrumentID, InstrumentID);
+		Utility::Strcpy(ComparePosition.AccountId, AccountId);
+		Utility::Strcpy(ComparePosition.ExchangeId, ExchangeId);
+		Utility::Strcpy(ComparePosition.InstrumentId, InstrumentId);
 		ComparePosition.PosiDirection = PosiDirection;
 		
-		std::shared_lock guard(table->sharedMutex);
-		auto it = index.find(&ComparePosition);
-		if (it == index.end())
+		std::shared_lock guard(table_->sharedMutex);
+		auto it = index_.find(&ComparePosition);
+		if (it == index_.end())
 		{
 			return nullptr;
 		}
@@ -294,42 +294,42 @@ namespace mdb
 	}
 	std::pair<PositionPrimaryKey::iterator, PositionPrimaryKey::iterator> PositionPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table->sharedMutex);
-		return std::pair<iterator, iterator>(index.begin(), index.end());
+		std::shared_lock guard(table_->sharedMutex);
+		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool PositionPrimaryKey::Insert(Position* const record)
 	{
-		return index.insert(record).second;
+		return index_.insert(record).second;
 	}
 	void PositionPrimaryKey::Erase(Position* const  record)
 	{
-		index.erase(record);
+		index_.erase(record);
 	}
 	bool PositionPrimaryKey::CheckInsert(Position* const record)
 	{
-		return index.find(record) == index.end();
+		return index_.find(record) == index_.end();
 	}
 	bool PositionPrimaryKey::CheckUpdate(const Position* const oldRecord, const Position* const newRecord)
 	{
 		return PositionEqualForPositionPrimaryKey()(oldRecord, newRecord);
 	}
 	PositionDetailPrimaryKey::PositionDetailPrimaryKey(PositionDetailTable* tableOwner, size_t buckets)
-		:table(tableOwner), index(buckets)
+		:table_(tableOwner), index_(buckets)
 	{
 	}
-	PositionDetail* PositionDetailPrimaryKey::Select(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIDType& TradeID)
+	PositionDetail* PositionDetailPrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIdType& TradeId)
 	{
 		Utility::Strcpy(ComparePositionDetail.TradingDay, TradingDay);
-		Utility::Strcpy(ComparePositionDetail.AccountID, AccountID);
-		Utility::Strcpy(ComparePositionDetail.ExchangeID, ExchangeID);
-		Utility::Strcpy(ComparePositionDetail.InstrumentID, InstrumentID);
+		Utility::Strcpy(ComparePositionDetail.AccountId, AccountId);
+		Utility::Strcpy(ComparePositionDetail.ExchangeId, ExchangeId);
+		Utility::Strcpy(ComparePositionDetail.InstrumentId, InstrumentId);
 		ComparePositionDetail.PosiDirection = PosiDirection;
 		Utility::Strcpy(ComparePositionDetail.OpenDate, OpenDate);
-		Utility::Strcpy(ComparePositionDetail.TradeID, TradeID);
+		Utility::Strcpy(ComparePositionDetail.TradeId, TradeId);
 		
-		std::shared_lock guard(table->sharedMutex);
-		auto it = index.find(&ComparePositionDetail);
-		if (it == index.end())
+		std::shared_lock guard(table_->sharedMutex);
+		auto it = index_.find(&ComparePositionDetail);
+		if (it == index_.end())
 		{
 			return nullptr;
 		}
@@ -337,40 +337,40 @@ namespace mdb
 	}
 	std::pair<PositionDetailPrimaryKey::iterator, PositionDetailPrimaryKey::iterator> PositionDetailPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table->sharedMutex);
-		return std::pair<iterator, iterator>(index.begin(), index.end());
+		std::shared_lock guard(table_->sharedMutex);
+		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool PositionDetailPrimaryKey::Insert(PositionDetail* const record)
 	{
-		return index.insert(record).second;
+		return index_.insert(record).second;
 	}
 	void PositionDetailPrimaryKey::Erase(PositionDetail* const  record)
 	{
-		index.erase(record);
+		index_.erase(record);
 	}
 	bool PositionDetailPrimaryKey::CheckInsert(PositionDetail* const record)
 	{
-		return index.find(record) == index.end();
+		return index_.find(record) == index_.end();
 	}
 	bool PositionDetailPrimaryKey::CheckUpdate(const PositionDetail* const oldRecord, const PositionDetail* const newRecord)
 	{
 		return PositionDetailEqualForPositionDetailPrimaryKey()(oldRecord, newRecord);
 	}
 	OrderPrimaryKey::OrderPrimaryKey(OrderTable* tableOwner, size_t buckets)
-		:table(tableOwner), index(buckets)
+		:table_(tableOwner), index_(buckets)
 	{
 	}
-	Order* OrderPrimaryKey::Select(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const OrderIDType& OrderID)
+	Order* OrderPrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const OrderIdType& OrderId)
 	{
 		Utility::Strcpy(CompareOrder.TradingDay, TradingDay);
-		Utility::Strcpy(CompareOrder.AccountID, AccountID);
-		Utility::Strcpy(CompareOrder.ExchangeID, ExchangeID);
-		Utility::Strcpy(CompareOrder.InstrumentID, InstrumentID);
-		CompareOrder.OrderID = OrderID;
+		Utility::Strcpy(CompareOrder.AccountId, AccountId);
+		Utility::Strcpy(CompareOrder.ExchangeId, ExchangeId);
+		Utility::Strcpy(CompareOrder.InstrumentId, InstrumentId);
+		CompareOrder.OrderId = OrderId;
 		
-		std::shared_lock guard(table->sharedMutex);
-		auto it = index.find(&CompareOrder);
-		if (it == index.end())
+		std::shared_lock guard(table_->sharedMutex);
+		auto it = index_.find(&CompareOrder);
+		if (it == index_.end())
 		{
 			return nullptr;
 		}
@@ -378,76 +378,76 @@ namespace mdb
 	}
 	std::pair<OrderPrimaryKey::iterator, OrderPrimaryKey::iterator> OrderPrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table->sharedMutex);
-		return std::pair<iterator, iterator>(index.begin(), index.end());
+		std::shared_lock guard(table_->sharedMutex);
+		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool OrderPrimaryKey::Insert(Order* const record)
 	{
-		return index.insert(record).second;
+		return index_.insert(record).second;
 	}
 	void OrderPrimaryKey::Erase(Order* const  record)
 	{
-		index.erase(record);
+		index_.erase(record);
 	}
 	bool OrderPrimaryKey::CheckInsert(Order* const record)
 	{
-		return index.find(record) == index.end();
+		return index_.find(record) == index_.end();
 	}
 	bool OrderPrimaryKey::CheckUpdate(const Order* const oldRecord, const Order* const newRecord)
 	{
 		return OrderEqualForOrderPrimaryKey()(oldRecord, newRecord);
 	}
-	OrderUniqueKeyClientOrderID::OrderUniqueKeyClientOrderID(OrderTable* tableOwner, size_t buckets)
-		:table(tableOwner), index(buckets)
+	OrderUniqueKeyClientOrderId::OrderUniqueKeyClientOrderId(OrderTable* tableOwner, size_t buckets)
+		:table_(tableOwner), index_(buckets)
 	{
 	}
-	Order* OrderUniqueKeyClientOrderID::Select(const DateType& TradingDay, const AccountIDType& AccountID, const ExchangeIDType& ExchangeID, const InstrumentIDType& InstrumentID, const SessionIDType& SessionID, const ClientOrderIDType& ClientOrderID)
+	Order* OrderUniqueKeyClientOrderId::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const SessionIdType& SessionId, const ClientOrderIdType& ClientOrderId)
 	{
 		Utility::Strcpy(CompareOrder.TradingDay, TradingDay);
-		Utility::Strcpy(CompareOrder.AccountID, AccountID);
-		Utility::Strcpy(CompareOrder.ExchangeID, ExchangeID);
-		Utility::Strcpy(CompareOrder.InstrumentID, InstrumentID);
-		CompareOrder.SessionID = SessionID;
-		CompareOrder.ClientOrderID = ClientOrderID;
-		std::shared_lock guard(table->sharedMutex);
-		auto it = index.find(&CompareOrder);
-		if (it == index.end())
+		Utility::Strcpy(CompareOrder.AccountId, AccountId);
+		Utility::Strcpy(CompareOrder.ExchangeId, ExchangeId);
+		Utility::Strcpy(CompareOrder.InstrumentId, InstrumentId);
+		CompareOrder.SessionId = SessionId;
+		CompareOrder.ClientOrderId = ClientOrderId;
+		std::shared_lock guard(table_->sharedMutex);
+		auto it = index_.find(&CompareOrder);
+		if (it == index_.end())
 		{
 			return nullptr;
 		}
 		return *it;
 	}
-	bool OrderUniqueKeyClientOrderID::Insert(Order* const record)
+	bool OrderUniqueKeyClientOrderId::Insert(Order* const record)
 	{
-		return index.insert(record).second;
+		return index_.insert(record).second;
 	}
-	void OrderUniqueKeyClientOrderID::Erase(Order* const  record)
+	void OrderUniqueKeyClientOrderId::Erase(Order* const  record)
 	{
-		index.erase(record);
+		index_.erase(record);
 	}
-	bool OrderUniqueKeyClientOrderID::CheckInsert(Order* const record)
+	bool OrderUniqueKeyClientOrderId::CheckInsert(Order* const record)
 	{
-		return index.find(record) == index.end();
+		return index_.find(record) == index_.end();
 	}
-	bool OrderUniqueKeyClientOrderID::CheckUpdate(const Order* const oldRecord, const Order* const newRecord)
+	bool OrderUniqueKeyClientOrderId::CheckUpdate(const Order* const oldRecord, const Order* const newRecord)
 	{
-		return OrderEqualForClientOrderIDUniqueKey()(oldRecord, newRecord);
+		return OrderEqualForClientOrderIdUniqueKey()(oldRecord, newRecord);
 	}
 	
 	TradePrimaryKey::TradePrimaryKey(TradeTable* tableOwner, size_t buckets)
-		:table(tableOwner), index(buckets)
+		:table_(tableOwner), index_(buckets)
 	{
 	}
-	Trade* TradePrimaryKey::Select(const DateType& TradingDay, const ExchangeIDType& ExchangeID, const TradeIDType& TradeID, const DirectionType& Direction)
+	Trade* TradePrimaryKey::Select(const DateType& TradingDay, const ExchangeIdType& ExchangeId, const TradeIdType& TradeId, const DirectionType& Direction)
 	{
 		Utility::Strcpy(CompareTrade.TradingDay, TradingDay);
-		Utility::Strcpy(CompareTrade.ExchangeID, ExchangeID);
-		Utility::Strcpy(CompareTrade.TradeID, TradeID);
+		Utility::Strcpy(CompareTrade.ExchangeId, ExchangeId);
+		Utility::Strcpy(CompareTrade.TradeId, TradeId);
 		CompareTrade.Direction = Direction;
 		
-		std::shared_lock guard(table->sharedMutex);
-		auto it = index.find(&CompareTrade);
-		if (it == index.end())
+		std::shared_lock guard(table_->sharedMutex);
+		auto it = index_.find(&CompareTrade);
+		if (it == index_.end())
 		{
 			return nullptr;
 		}
@@ -455,20 +455,20 @@ namespace mdb
 	}
 	std::pair<TradePrimaryKey::iterator, TradePrimaryKey::iterator> TradePrimaryKey::SelectAll()
 	{
-		std::shared_lock guard(table->sharedMutex);
-		return std::pair<iterator, iterator>(index.begin(), index.end());
+		std::shared_lock guard(table_->sharedMutex);
+		return std::pair<iterator, iterator>(index_.begin(), index_.end());
 	}
 	bool TradePrimaryKey::Insert(Trade* const record)
 	{
-		return index.insert(record).second;
+		return index_.insert(record).second;
 	}
 	void TradePrimaryKey::Erase(Trade* const  record)
 	{
-		index.erase(record);
+		index_.erase(record);
 	}
 	bool TradePrimaryKey::CheckInsert(Trade* const record)
 	{
-		return index.find(record) == index.end();
+		return index_.find(record) == index_.end();
 	}
 	bool TradePrimaryKey::CheckUpdate(const Trade* const oldRecord, const Trade* const newRecord)
 	{

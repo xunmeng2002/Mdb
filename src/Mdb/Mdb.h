@@ -3,43 +3,43 @@
 #include "MdbTables.h"
 #include "MdbTableBase.h"
 #include "TableList.h"
-#include <DBAdapters/DBInterface/MdbSubscriber.h>
-#include <DBAdapters/DBInterface/DBSubscriber.h>
+#include <DbAdapters/DbInterface/MdbSubscriber.h>
+#include <DbAdapters/DbInterface/DbSubscriber.h>
 #include <vector>
 
 
-namespace mdb
+namespace Mdb
 {
-	class Mdb : public dbadapters::DBSubscriber
+	class Mdb : public dbadapters::DbSubscriber
 	{
 	public:
 		explicit Mdb(const TableList& tableList);
 		void Subscribe(MdbSubscriber* subscriber);
 		void UnSubscribe();
-		void InitDB();
+		void InitDb();
 		void SetInitStatus(bool initStatus);
 		void Dump(const char* dir);
 		void CreateTables();
 		void DropTables();
 		void TruncateTables();
 
-		virtual void OnDBConnected() override;
-		virtual void OnDBDisConnected() override;
+		virtual void OnDbConnected() override;
+		virtual void OnDbDisConnected() override;
 
 	public:
-		TradingDayTable* tradingDay = nullptr;
-		ExchangeTable* exchange = nullptr;
-		ProductTable* product = nullptr;
-		InstrumentTable* instrument = nullptr;
-		PrimaryAccountTable* primaryAccount = nullptr;
-		AccountTable* account = nullptr;
-		CapitalTable* capital = nullptr;
-		PositionTable* position = nullptr;
-		PositionDetailTable* positionDetail = nullptr;
-		OrderTable* order = nullptr;
-		TradeTable* trade = nullptr;
+		TradingDayTable* TradingDay = nullptr;
+		ExchangeTable* Exchange = nullptr;
+		ProductTable* Product = nullptr;
+		InstrumentTable* Instrument = nullptr;
+		PrimaryAccountTable* PrimaryAccount = nullptr;
+		AccountTable* Account = nullptr;
+		CapitalTable* Capital = nullptr;
+		PositionTable* Position = nullptr;
+		PositionDetailTable* PositionDetail = nullptr;
+		OrderTable* Order = nullptr;
+		TradeTable* Trade = nullptr;
 	private:
-		MdbSubscriber* mdbSubscriber;
-		std::vector<MdbTableBase*> tables;
+		MdbSubscriber* mdbSubscriber_;
+		std::vector<MdbTableBase*> tables_;
 	};
 }

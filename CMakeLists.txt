@@ -41,29 +41,29 @@ message(STATUS "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}")
 
 if(WIN32)
     find_package(Spark REQUIRED PATHS "../Libs/Spark/x64-windows")
-    find_package(DBAdapters CONFIG REQUIRED PATHS "../Libs/DBAdapters/x64-windows")
+    find_package(DbAdapters CONFIG REQUIRED PATHS "../Libs/DbAdapters/x64-windows")
     find_package(duckdb CONFIG REQUIRED PATHS "../Libs/duckdb/x64-windows")
 else()
     find_package(Spark REQUIRED PATHS "../Libs/Spark/x64-linux")
-    find_package(DBAdapters CONFIG REQUIRED PATHS "../Libs/DBAdapters/x64-linux")
+    find_package(DbAdapters CONFIG REQUIRED PATHS "../Libs/DbAdapters/x64-linux")
     find_package(duckdb CONFIG REQUIRED PATHS "../Libs/duckdb/x64-linux")
 endif()
 
 
 add_static_md_module(Mdb ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb)
-target_link_libraries(MdbStatic PUBLIC Spark::Core DBAdapters::DBInterface)
+target_link_libraries(MdbStatic PUBLIC Spark::Core DbAdapters::DbInterface)
 target_link_libraries(MdbStatic PRIVATE Spark::TemplateLib)
 
 # 测试可执行文件
-add_application(TestDB  ${CMAKE_CURRENT_SOURCE_DIR}/test/TestMdb ${CMAKE_CURRENT_SOURCE_DIR}/test/TestMdb)
-target_link_libraries(TestDB PRIVATE
+add_application(TestMdb  ${CMAKE_CURRENT_SOURCE_DIR}/test/TestMdb ${CMAKE_CURRENT_SOURCE_DIR}/test/TestMdb)
+target_link_libraries(TestMdb PRIVATE
     MdbStatic
-    DBAdapters::DBInterface
-    DBAdapters::AsyncDBWriter
-    DBAdapters::SqliteWrapper
-    DBAdapters::DuckdbWrapper
-    DBAdapters::MysqlWrapper
-    DBAdapters::MariadbWrapper
+    DbAdapters::DbInterface
+    DbAdapters::AsyncDbWriter
+    DbAdapters::SqliteWrapper
+    DbAdapters::DuckdbWrapper
+    DbAdapters::MysqlWrapper
+    DbAdapters::MariadbWrapper
     Spark::Core
     Spark::Serialization)
-copy_dll_file(TestDB)
+copy_dll_file(TestMdb)

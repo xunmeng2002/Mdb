@@ -3,17 +3,17 @@
 #include <string.h>
 
 
-namespace mdb
+namespace Mdb
 {
-	bool PrimaryAccountEqualForOfferIDIndex::operator()(const PrimaryAccount* const left, const PrimaryAccount* const right) const
+	bool PrimaryAccountEqualForOfferIdIndex::operator()(const PrimaryAccount* const left, const PrimaryAccount* const right) const
 	{
-		return left->OfferID == right->OfferID ;
+		return left->OfferId == right->OfferId ;
 	}
-	bool PrimaryAccountLessForOfferIDIndex::operator()(const PrimaryAccount* const left, const PrimaryAccount* const right) const
+	bool PrimaryAccountLessForOfferIdIndex::operator()(const PrimaryAccount* const left, const PrimaryAccount* const right) const
 	{
-		if (left->OfferID < right->OfferID)
+		if (left->OfferId < right->OfferId)
 			return true;
-		else if (left->OfferID > right->OfferID)
+		else if (left->OfferId > right->OfferId)
 			return false;
 		return false;
 	}
@@ -33,7 +33,7 @@ namespace mdb
 	
 	bool PositionEqualForAccountIndex::operator()(const Position* const left, const Position* const right) const
 	{
-		return strcmp(left->TradingDay, right->TradingDay) == 0&& strcmp(left->AccountID, right->AccountID) == 0;
+		return strcmp(left->TradingDay, right->TradingDay) == 0&& strcmp(left->AccountId, right->AccountId) == 0;
 	}
 	bool PositionLessForAccountIndex::operator()(const Position* const left, const Position* const right) const
 	{
@@ -41,9 +41,9 @@ namespace mdb
 			return true;
 		else if (strcmp(left->TradingDay, right->TradingDay) > 0)
 			return false;
-		if (strcmp(left->AccountID, right->AccountID) < 0)
+		if (strcmp(left->AccountId, right->AccountId) < 0)
 			return true;
-		else if (strcmp(left->AccountID, right->AccountID) > 0)
+		else if (strcmp(left->AccountId, right->AccountId) > 0)
 			return false;
 		return false;
 	}
@@ -63,7 +63,7 @@ namespace mdb
 	
 	bool PositionDetailEqualForTradeMatchIndex::operator()(const PositionDetail* const left, const PositionDetail* const right) const
 	{
-		return strcmp(left->TradingDay, right->TradingDay) == 0&& strcmp(left->AccountID, right->AccountID) == 0&& strcmp(left->ExchangeID, right->ExchangeID) == 0&& strcmp(left->InstrumentID, right->InstrumentID) == 0&& left->PosiDirection == right->PosiDirection ;
+		return strcmp(left->TradingDay, right->TradingDay) == 0&& strcmp(left->AccountId, right->AccountId) == 0&& strcmp(left->ExchangeId, right->ExchangeId) == 0&& strcmp(left->InstrumentId, right->InstrumentId) == 0&& left->PosiDirection == right->PosiDirection ;
 	}
 	bool PositionDetailLessForTradeMatchIndex::operator()(const PositionDetail* const left, const PositionDetail* const right) const
 	{
@@ -71,17 +71,17 @@ namespace mdb
 			return true;
 		else if (strcmp(left->TradingDay, right->TradingDay) > 0)
 			return false;
-		if (strcmp(left->AccountID, right->AccountID) < 0)
+		if (strcmp(left->AccountId, right->AccountId) < 0)
 			return true;
-		else if (strcmp(left->AccountID, right->AccountID) > 0)
+		else if (strcmp(left->AccountId, right->AccountId) > 0)
 			return false;
-		if (strcmp(left->ExchangeID, right->ExchangeID) < 0)
+		if (strcmp(left->ExchangeId, right->ExchangeId) < 0)
 			return true;
-		else if (strcmp(left->ExchangeID, right->ExchangeID) > 0)
+		else if (strcmp(left->ExchangeId, right->ExchangeId) > 0)
 			return false;
-		if (strcmp(left->InstrumentID, right->InstrumentID) < 0)
+		if (strcmp(left->InstrumentId, right->InstrumentId) < 0)
 			return true;
-		else if (strcmp(left->InstrumentID, right->InstrumentID) > 0)
+		else if (strcmp(left->InstrumentId, right->InstrumentId) > 0)
 			return false;
 		if (left->PosiDirection < right->PosiDirection)
 			return true;

@@ -2,13 +2,13 @@
 #pragma once
 #include "MdbStructs.h"
 
-namespace mdb
+namespace Mdb
 {
-	struct PrimaryAccountEqualForOfferIDIndex
+	struct PrimaryAccountEqualForOfferIdIndex
 	{
 		bool operator()(const PrimaryAccount* const left, const PrimaryAccount* const right) const;
 	};
-	struct PrimaryAccountLessForOfferIDIndex
+	struct PrimaryAccountLessForOfferIdIndex
 	{
 		bool operator()(const PrimaryAccount* const left, const PrimaryAccount* const right) const;
 	};

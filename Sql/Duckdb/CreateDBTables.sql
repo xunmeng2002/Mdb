@@ -1,6 +1,6 @@
 ﻿-- 本文件由 ../Templates/Sql/Duckdb/CreateTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 
-CREATE TABLE IF NOT EXISTS t_TradingDay(
+CREATE TABLE IF NOT EXISTS TradingDay(
   PK int, 
   CurrTradingDay varchar, 
   PreTradingDay varchar, 
@@ -8,16 +8,16 @@ CREATE TABLE IF NOT EXISTS t_TradingDay(
 );  -- '交易日'
 
 
-CREATE TABLE IF NOT EXISTS t_Exchange(
-  ExchangeID varchar, 
+CREATE TABLE IF NOT EXISTS Exchange(
+  ExchangeId varchar, 
   ExchangeName varchar, 
-  PRIMARY KEY(ExchangeID)
+  PRIMARY KEY(ExchangeId)
 );  -- '交易所'
 
 
-CREATE TABLE IF NOT EXISTS t_Product(
-  ExchangeID varchar, 
-  ProductID varchar, 
+CREATE TABLE IF NOT EXISTS Product(
+  ExchangeId varchar, 
+  ProductId varchar, 
   ProductName varchar, 
   ProductClass int, 
   VolumeMultiple int, 
@@ -27,16 +27,16 @@ CREATE TABLE IF NOT EXISTS t_Product(
   MaxLimitOrderVolume bigint, 
   MinLimitOrderVolume bigint, 
   SessionName varchar, 
-  PRIMARY KEY(ExchangeID, ProductID)
+  PRIMARY KEY(ExchangeId, ProductId)
 );  -- '品种表'
 
 
-CREATE TABLE IF NOT EXISTS t_Instrument(
-  ExchangeID varchar, 
-  InstrumentID varchar, 
-  ExchangeInstID varchar, 
+CREATE TABLE IF NOT EXISTS Instrument(
+  ExchangeId varchar, 
+  InstrumentId varchar, 
+  ExchangeInstId varchar, 
   InstrumentName varchar, 
-  ProductID varchar, 
+  ProductId varchar, 
   ProductClass int, 
   InstrumentClass int, 
   Rank int, 
@@ -47,41 +47,41 @@ CREATE TABLE IF NOT EXISTS t_Instrument(
   MaxLimitOrderVolume bigint, 
   MinLimitOrderVolume bigint, 
   SessionName varchar, 
-  PRIMARY KEY(ExchangeID, InstrumentID)
+  PRIMARY KEY(ExchangeId, InstrumentId)
 );  -- '合约'
 
 
-CREATE TABLE IF NOT EXISTS t_PrimaryAccount(
-  PrimaryAccountID varchar, 
+CREATE TABLE IF NOT EXISTS PrimaryAccount(
+  PrimaryAccountId varchar, 
   PrimaryAccountName varchar, 
   AccountClass int, 
   BrokerPassword varchar, 
-  OfferID int, 
+  OfferId int, 
   IsAllowLogin int, 
   IsSimulateAccount int, 
   LoginStatus int, 
   InitStatus int, 
-  PRIMARY KEY(PrimaryAccountID)
+  PRIMARY KEY(PrimaryAccountId)
 );  -- '主账户'
-  CREATE INDEX PrimaryAccountOfferID ON t_PrimaryAccount(OfferID);
+  CREATE INDEX PrimaryAccountOfferId ON PrimaryAccount(OfferId);
 
 
-CREATE TABLE IF NOT EXISTS t_Account(
-  AccountID varchar, 
+CREATE TABLE IF NOT EXISTS Account(
+  AccountId varchar, 
   AccountName varchar, 
   AccountType int, 
   AccountStatus int, 
   Password varchar, 
-  TradeGroupID int, 
-  RiskGroupID int, 
-  CommissionGroupID int, 
-  PRIMARY KEY(AccountID)
+  TradeGroupId int, 
+  RiskGroupId int, 
+  CommissionGroupId int, 
+  PRIMARY KEY(AccountId)
 );  -- '账户'
 
 
-CREATE TABLE IF NOT EXISTS t_Capital(
+CREATE TABLE IF NOT EXISTS Capital(
   TradingDay varchar, 
-  AccountID varchar, 
+  AccountId varchar, 
   AccountType int, 
   Balance double, 
   PreBalance double, 
@@ -100,17 +100,17 @@ CREATE TABLE IF NOT EXISTS t_Capital(
   PositionProfitByTrade double, 
   Deposit double, 
   Withdraw double, 
-  PRIMARY KEY(TradingDay, AccountID)
+  PRIMARY KEY(TradingDay, AccountId)
 );  -- '资金'
-  CREATE INDEX CapitalTradingDay ON t_Capital(TradingDay);
+  CREATE INDEX CapitalTradingDay ON Capital(TradingDay);
 
 
-CREATE TABLE IF NOT EXISTS t_Position(
+CREATE TABLE IF NOT EXISTS Position(
   TradingDay varchar, 
-  AccountID varchar, 
+  AccountId varchar, 
   AccountType int, 
-  ExchangeID varchar, 
-  InstrumentID varchar, 
+  ExchangeId varchar, 
+  InstrumentId varchar, 
   ProductClass int, 
   PosiDirection int, 
   TotalPosition bigint, 
@@ -131,22 +131,22 @@ CREATE TABLE IF NOT EXISTS t_Position(
   PositionProfitByTrade double, 
   SettlementPrice double, 
   PreSettlementPrice double, 
-  PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection)
+  PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection)
 );  -- '持仓'
-  CREATE INDEX PositionAccount ON t_Position(TradingDay, AccountID);
-  CREATE INDEX PositionTradingDay ON t_Position(TradingDay);
+  CREATE INDEX PositionAccount ON Position(TradingDay, AccountId);
+  CREATE INDEX PositionTradingDay ON Position(TradingDay);
 
 
-CREATE TABLE IF NOT EXISTS t_PositionDetail(
+CREATE TABLE IF NOT EXISTS PositionDetail(
   TradingDay varchar, 
-  AccountID varchar, 
+  AccountId varchar, 
   AccountType int, 
-  ExchangeID varchar, 
-  InstrumentID varchar, 
+  ExchangeId varchar, 
+  InstrumentId varchar, 
   ProductClass int, 
   PosiDirection int, 
   OpenDate varchar, 
-  TradeID varchar, 
+  TradeId varchar, 
   Volume bigint, 
   OpenPrice double, 
   MarketValue double, 
@@ -163,21 +163,21 @@ CREATE TABLE IF NOT EXISTS t_PositionDetail(
   PreSettlementPrice double, 
   CloseVolume bigint, 
   CloseAmount double, 
-  PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection, OpenDate, TradeID)
+  PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection, OpenDate, TradeId)
 );  -- '持仓明细'
-  CREATE INDEX PositionDetailTradeMatch ON t_PositionDetail(TradingDay, AccountID, ExchangeID, InstrumentID, PosiDirection);
-  CREATE INDEX PositionDetailTradingDay ON t_PositionDetail(TradingDay);
+  CREATE INDEX PositionDetailTradeMatch ON PositionDetail(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection);
+  CREATE INDEX PositionDetailTradingDay ON PositionDetail(TradingDay);
 
 
-CREATE TABLE IF NOT EXISTS t_Order(
+CREATE TABLE IF NOT EXISTS Order(
   TradingDay varchar, 
-  AccountID varchar, 
+  AccountId varchar, 
   AccountType int, 
-  ExchangeID varchar, 
-  InstrumentID varchar, 
+  ExchangeId varchar, 
+  InstrumentId varchar, 
   ProductClass int, 
-  OrderID int, 
-  OrderSysID varchar, 
+  OrderId int, 
+  OrderSysId varchar, 
   Direction int, 
   OffsetFlag int, 
   OrderPriceType int, 
@@ -191,33 +191,33 @@ CREATE TABLE IF NOT EXISTS t_Order(
   OrderTime varchar, 
   CancelDate varchar, 
   CancelTime varchar, 
-  SessionID bigint, 
-  ClientOrderID int, 
-  RequestID int, 
-  OfferID int, 
-  TradeGroupID int, 
-  RiskGroupID int, 
-  CommissionGroupID int, 
+  SessionId bigint, 
+  ClientOrderId int, 
+  RequestId int, 
+  OfferId int, 
+  TradeGroupId int, 
+  RiskGroupId int, 
+  CommissionGroupId int, 
   FrozenCash double, 
   FrozenMargin double, 
   FrozenCommission double, 
   RebuildMark int, 
   IsForceClose int, 
-  UNIQUE (TradingDay, AccountID, ExchangeID, InstrumentID, SessionID, ClientOrderID), 
-  PRIMARY KEY(TradingDay, AccountID, ExchangeID, InstrumentID, OrderID)
+  UNIQUE (TradingDay, AccountId, ExchangeId, InstrumentId, SessionId, ClientOrderId), 
+  PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, OrderId)
 );  -- '委托'
 
 
-CREATE TABLE IF NOT EXISTS t_Trade(
+CREATE TABLE IF NOT EXISTS Trade(
   TradingDay varchar, 
-  AccountID varchar, 
+  AccountId varchar, 
   AccountType int, 
-  ExchangeID varchar, 
-  InstrumentID varchar, 
+  ExchangeId varchar, 
+  InstrumentId varchar, 
   ProductClass int, 
-  OrderID int, 
-  OrderSysID varchar, 
-  TradeID varchar, 
+  OrderId int, 
+  OrderSysId varchar, 
+  TradeId varchar, 
   Direction int, 
   OffsetFlag int, 
   Price double, 
@@ -227,7 +227,7 @@ CREATE TABLE IF NOT EXISTS t_Trade(
   Commission double, 
   TradeDate varchar, 
   TradeTime varchar, 
-  PRIMARY KEY(TradingDay, ExchangeID, TradeID, Direction)
+  PRIMARY KEY(TradingDay, ExchangeId, TradeId, Direction)
 );  -- '成交'
 
 
