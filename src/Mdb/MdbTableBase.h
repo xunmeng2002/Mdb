@@ -11,7 +11,7 @@ namespace Mdb
 	public:
 		virtual ~MdbTableBase() = default;
 
-		virtual void Subscribe(dbadapters::MdbSubscriber* subscriber) = 0;
+		virtual void Subscribe(DbAdapters::MdbSubscriber* subscriber) = 0;
 		virtual void UnSubscribe() = 0;
 		virtual void InitDB() = 0;
 		virtual void TruncateTables() = 0;

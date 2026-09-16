@@ -17,7 +17,7 @@ using namespace std;
 using namespace mdb;
 using namespace mdb::full;
 using namespace spark::core;
-using namespace dbadapters;
+using namespace DbAdapters;
 
 const char* sqliteDBName = "./Test.sqlitedb";
 const char* duckdbDBName = "./Test.duckdb";

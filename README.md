@@ -197,7 +197,7 @@ cmake --build out/build/WSL-GCC-Release
 
 using namespace mdb;
 using namespace mdb::full;
-using namespace dbadapters;
+using namespace DbAdapters;
 using namespace spark::core;
 
 // 内存库包含的金融数据表清单（全量 11 表）不手写：由 Model/TableNames/FullTableNames.xml
@@ -359,6 +359,6 @@ mdb->Dump("./dump");
 - **项目定位**：本项目是内存数据库的**实现示例**，重点在"如何实现与使用"；内置金融数据表仅作演示，新业务可基于 `Model/*.xml` + 代码生成快速定义自己的表结构
 - **依赖关系**：Mdb 构建在 [Spark](https://gitee.com/xunmeng2002/Spark.git)（基础能力）与 [DBAdapters](https://gitee.com/xunmeng2002/DBAdapters.git)（统一数据库访问层）之上，二者均为预编译依赖
 - **包含路径**：Mdb 头文件位于 `src/Mdb/`，以 `#include "Mdb.h"` 风格引用
-- **命名空间**：全部接口位于 `mdb` 命名空间；数据库接口复用 `dbadapters` 命名空间
+- **命名空间**：全部接口位于 `mdb` 命名空间；数据库接口复用 `DbAdapters` 命名空间
 - **并发访问**：内存表为多线程安全设计，读操作建议先 `LockShared()` 再访问主键 / 索引容器，避免与写线程竞争
 - **代码生成**：修改 `Model/*.xml` 后运行 `python pumpall.py` 可重新生成表结构代码，无需手写

@@ -8,7 +8,7 @@ using DbAdapters::TableSchema;
 
 namespace Mdb
 {
-	class MdbTableRegistry : public dbadapters::SchemaRegistry
+	class MdbTableRegistry : public DbAdapters::SchemaRegistry
 	{
 	public:
 		explicit MdbTableRegistry(const TableList& tableList);

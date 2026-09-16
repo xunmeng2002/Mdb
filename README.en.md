@@ -197,7 +197,7 @@ The test program runs the "in-memory DB + async write" full flow against SQLite 
 
 using namespace mdb;
 using namespace mdb::full;
-using namespace dbadapters;
+using namespace DbAdapters;
 using namespace spark::core;
 
 // The in-memory DB's table list (all 11 tables) is not hand-written: it is generated
@@ -359,6 +359,6 @@ The `test/TestMdb/TestDB.cpp` integration test covers:
 - **Project Positioning**: this project is an **implementation example** of an in-memory database — the focus is on "how to implement and use"; the built-in financial tables are for demonstration only, and new businesses can define their own tables via `Model/*.xml` + code generation
 - **Dependencies**: Mdb is built on [Spark](https://gitee.com/xunmeng2002/Spark.git) (foundational capabilities) and [DBAdapters](https://gitee.com/xunmeng2002/DBAdapters.git) (unified database access layer); both are prebuilt dependencies
 - **Include Paths**: Mdb headers live in `src/Mdb/`, referenced as `#include "Mdb.h"`
-- **Namespaces**: all interfaces are in the `mdb` namespace; database interfaces reuse the `dbadapters` namespace
+- **Namespaces**: all interfaces are in the `mdb` namespace; database interfaces reuse the `DbAdapters` namespace
 - **Concurrency**: in-memory tables are thread-safe by design; for reads, consider calling `LockShared()` before accessing primary-key / index containers to avoid contention with writer threads
 - **Code Generation**: after editing `Model/*.xml`, run `python pumpall.py` to regenerate table-structure code without manual edits
