@@ -12,7 +12,7 @@ namespace Mdb
 	thread_local char MdbDataStringBuffer[10240];
 
 	static const FieldDescriptor TradingDayFields[] = {
-		{"PK", FieldType::Int32, offsetof(TradingDay, PK), 0},
+		{"Pk", FieldType::Int32, offsetof(TradingDay, Pk), 0},
 		{"CurrTradingDay", FieldType::Char, offsetof(TradingDay, CurrTradingDay), sizeof(TradingDay::CurrTradingDay)},
 		{"PreTradingDay", FieldType::Char, offsetof(TradingDay, PreTradingDay), sizeof(TradingDay::PreTradingDay)},
 	};
@@ -28,13 +28,13 @@ namespace Mdb
 	const char* TradingDay::GetString() const
 	{
 		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "%d,%s,%s",
-			PK, CurrTradingDay, PreTradingDay);
+			Pk, CurrTradingDay, PreTradingDay);
 		return MdbDataStringBuffer;
 	}
 	const char* TradingDay::GetDebugString() const
 	{
-		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "TradingDay:PK:[%d], CurrTradingDay:[%s], PreTradingDay:[%s]",
-			PK, CurrTradingDay, PreTradingDay);
+		snprintf(MdbDataStringBuffer, sizeof(MdbDataStringBuffer), "TradingDay:Pk:[%d], CurrTradingDay:[%s], PreTradingDay:[%s]",
+			Pk, CurrTradingDay, PreTradingDay);
 		return MdbDataStringBuffer;
 	}
 	static void DeallocateTradingDay(void* r) { static_cast<TradingDay*>(r)->Deallocate(); }
@@ -170,9 +170,9 @@ namespace Mdb
 		{"InitStatus", FieldType::Int32, offsetof(PrimaryAccount, InitStatus), 0},
 	};
 	static const int PrimaryAccountPKIndices[] = { 0 };
-	static const int kPrimaryAccountIdxOfferId[] = { 4 };
+	static const int PrimaryAccountIdxOfferId[] = { 4 };
 	static const IndexDefinition PrimaryAccountIndices[] = {
-		{PrimaryAccountIndexOfferId::IndexID, kPrimaryAccountIdxOfferId, 1},
+		{PrimaryAccountIndexOfferId::IndexID, PrimaryAccountIdxOfferId, 1},
 	};
 	PrimaryAccount* PrimaryAccount::Allocate()
 	{
@@ -260,9 +260,9 @@ namespace Mdb
 		{"Withdraw", FieldType::Double, offsetof(Capital, Withdraw), 0},
 	};
 	static const int CapitalPKIndices[] = { 0, 1 };
-	static const int kCapitalIdxTradingDay[] = { 0 };
+	static const int CapitalIdxTradingDay[] = { 0 };
 	static const IndexDefinition CapitalIndices[] = {
-		{CapitalIndexTradingDay::IndexID, kCapitalIdxTradingDay, 1},
+		{CapitalIndexTradingDay::IndexID, CapitalIdxTradingDay, 1},
 	};
 	Capital* Capital::Allocate()
 	{
@@ -318,11 +318,11 @@ namespace Mdb
 		{"PreSettlementPrice", FieldType::Double, offsetof(Position, PreSettlementPrice), 0},
 	};
 	static const int PositionPKIndices[] = { 0, 1, 3, 4, 6 };
-	static const int kPositionIdxAccount[] = { 0, 1 };
-	static const int kPositionIdxTradingDay[] = { 0 };
+	static const int PositionIdxAccount[] = { 0, 1 };
+	static const int PositionIdxTradingDay[] = { 0 };
 	static const IndexDefinition PositionIndices[] = {
-		{PositionIndexAccount::IndexID, kPositionIdxAccount, 2},
-		{PositionIndexTradingDay::IndexID, kPositionIdxTradingDay, 1},
+		{PositionIndexAccount::IndexID, PositionIdxAccount, 2},
+		{PositionIndexTradingDay::IndexID, PositionIdxTradingDay, 1},
 	};
 	Position* Position::Allocate()
 	{
@@ -378,11 +378,11 @@ namespace Mdb
 		{"CloseAmount", FieldType::Double, offsetof(PositionDetail, CloseAmount), 0},
 	};
 	static const int PositionDetailPKIndices[] = { 0, 1, 3, 4, 6, 7, 8 };
-	static const int kPositionDetailIdxTradeMatch[] = { 0, 1, 3, 4, 6 };
-	static const int kPositionDetailIdxTradingDay[] = { 0 };
+	static const int PositionDetailIdxTradeMatch[] = { 0, 1, 3, 4, 6 };
+	static const int PositionDetailIdxTradingDay[] = { 0 };
 	static const IndexDefinition PositionDetailIndices[] = {
-		{PositionDetailIndexTradeMatch::IndexID, kPositionDetailIdxTradeMatch, 5},
-		{PositionDetailIndexTradingDay::IndexID, kPositionDetailIdxTradingDay, 1},
+		{PositionDetailIndexTradeMatch::IndexID, PositionDetailIdxTradeMatch, 5},
+		{PositionDetailIndexTradingDay::IndexID, PositionDetailIdxTradingDay, 1},
 	};
 	PositionDetail* PositionDetail::Allocate()
 	{

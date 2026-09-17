@@ -1,12 +1,12 @@
 <tables project="Mdb">
 	<table name="TradingDay" 					id="0x0001" desc="交易日">
 		<items>
-			<item name="PK"/>
+			<item name="Pk"/>
 			<item name="CurrTradingDay"/>
 			<item name="PreTradingDay"/>
 		</items>
 		<primarykey>
-			<item name="PK"/>
+			<item name="Pk"/>
 		</primarykey>
 		<uniquekeys></uniquekeys>
 		<indexes></indexes>

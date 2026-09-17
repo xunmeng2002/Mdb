@@ -2,12 +2,12 @@
 <tables>
 	<table name="TradingDay" id="0x0001" desc="交易日" batch="" session="">
 		<items>
-			<item name="PK" id="0x2901" type="Int32" desc="主键"/>
+			<item name="Pk" id="0x2901" type="Int32" desc="主键"/>
 			<item name="CurrTradingDay" id="0x300F" type="Date" desc="当前交易日"/>
 			<item name="PreTradingDay" id="0x3010" type="Date" desc="昨交易日"/>
 		</items>
 		<primarykey>
-			<item name="PK" id="0x2901" type="Int32" desc="主键"/>
+			<item name="Pk" id="0x2901" type="Int32" desc="主键"/>
 		</primarykey>
 		<uniquekeys/>
 		<indexes/>

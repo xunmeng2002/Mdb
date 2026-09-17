@@ -11,25 +11,7 @@ namespace Mdb
 		{
 			unsigned int tableId = tableList.TableIds[i];
 			tableIds_.push_back(tableId);
-			schemas_.push_back(GetSchemaByID(tableId));
-		}
-	}
-	const TableSchema* MdbTableRegistry::GetSchemaByID(unsigned int tableId)
-	{
-		switch (tableId)
-		{
-		case TradingDay::TableId: return &TradingDay::GetSchema();
-		case Exchange::TableId: return &Exchange::GetSchema();
-		case Product::TableId: return &Product::GetSchema();
-		case Instrument::TableId: return &Instrument::GetSchema();
-		case PrimaryAccount::TableId: return &PrimaryAccount::GetSchema();
-		case Account::TableId: return &Account::GetSchema();
-		case Capital::TableId: return &Capital::GetSchema();
-		case Position::TableId: return &Position::GetSchema();
-		case PositionDetail::TableId: return &PositionDetail::GetSchema();
-		case Order::TableId: return &Order::GetSchema();
-		case Trade::TableId: return &Trade::GetSchema();
-		default: return nullptr;
+			schemas_.push_back(GetSchemaById(tableId));
 		}
 	}
 	const TableSchema* MdbTableRegistry::GetSchema(unsigned int tableId) const
@@ -50,5 +32,23 @@ namespace Mdb
 	int MdbTableRegistry::GetTableCount() const
 	{
 		return static_cast<int>(tableIds_.size());
+	}
+	const TableSchema* MdbTableRegistry::GetSchemaById(unsigned int tableId)
+	{
+		switch (tableId)
+		{
+		case TradingDay::TableId: return &TradingDay::GetSchema();
+		case Exchange::TableId: return &Exchange::GetSchema();
+		case Product::TableId: return &Product::GetSchema();
+		case Instrument::TableId: return &Instrument::GetSchema();
+		case PrimaryAccount::TableId: return &PrimaryAccount::GetSchema();
+		case Account::TableId: return &Account::GetSchema();
+		case Capital::TableId: return &Capital::GetSchema();
+		case Position::TableId: return &Position::GetSchema();
+		case PositionDetail::TableId: return &PositionDetail::GetSchema();
+		case Order::TableId: return &Order::GetSchema();
+		case Trade::TableId: return &Trade::GetSchema();
+		default: return nullptr;
+		}
 	}
 }

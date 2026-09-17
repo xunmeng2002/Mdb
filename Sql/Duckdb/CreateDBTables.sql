@@ -1,10 +1,10 @@
 ﻿-- 本文件由 ../Templates/Sql/Duckdb/CreateTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 
 CREATE TABLE IF NOT EXISTS TradingDay(
-  PK int, 
+  Pk int, 
   CurrTradingDay varchar, 
   PreTradingDay varchar, 
-  PRIMARY KEY(PK)
+  PRIMARY KEY(Pk)
 );  -- '交易日'
 
 

@@ -18,7 +18,7 @@ namespace Mdb
 		int GetTableCount() const override;
 
 	private:
-		static const TableSchema* GetSchemaByID(unsigned int tableId);
+		static const TableSchema* GetSchemaById(unsigned int tableId);
 
 		std::vector<unsigned int> tableIds_;
 		std::vector<const TableSchema*> schemas_;

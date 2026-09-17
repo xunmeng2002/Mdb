@@ -17,7 +17,6 @@ namespace
 		virtual void TruncateTables() = 0;
 		virtual void Dump(const char* dir) = 0;
 
-	public:
 		std::atomic<bool> DbInited{ false };
 	};
 }

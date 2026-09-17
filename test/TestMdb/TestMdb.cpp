@@ -22,19 +22,19 @@ namespace testMdb
     using namespace ::Mdb::Full;
 
 
-    const char* sqliteDbName = "./Test.sqlitedb";
-    const char* duckdbDbName = "./Test.duckdb";
-    const char* mysqlHost = "mysqlx://sams:sams@localhost:33060/mdb";
-    const char* mariadbHost = "tcp://localhost:3306/mdb";
-    const char* mariadbUser = "sams";
-    const char* mariadbPassword = "sams";
+    const char* SqliteDbName = "./Test.sqlitedb";
+    const char* DuckdbDbName = "./Test.duckdb";
+    const char* MysqlHost = "mysqlx://sams:sams@localhost:33060/mdb";
+    const char* MariadbHost = "tcp://localhost:3306/mdb";
+    const char* MariadbUser = "sams";
+    const char* MariadbPassword = "sams";
 
     TradingDay* PrepareTradingDay()
     {
         auto currDate = TimeUtility::GetLocalDate();
         TradingDay* tradingDay = new TradingDay();
         memset(tradingDay, 0, sizeof(TradingDay));
-        tradingDay->PK = 1;
+        tradingDay->Pk = 1;
         TimeUtility::GetPreTradingDay(currDate.c_str(), tradingDay->PreTradingDay);
         TimeUtility::GetNextTradingDay(tradingDay->PreTradingDay, tradingDay->CurrTradingDay);
         return tradingDay;
@@ -243,25 +243,25 @@ namespace testMdb
 
     static void TestSqlite()
     {
-        SqliteWrapper* sqlitedb = new SqliteWrapper(sqliteDbName);
+        SqliteWrapper* sqlitedb = new SqliteWrapper(SqliteDbName);
         WriteLog(LogLevel::Info, "TestDB with Sqlite");
         TestMdb(sqlitedb);
     }
     static void TestDuckdb()
     {
-        DuckdbWrapper* duckdb = new DuckdbWrapper(duckdbDbName);
+        DuckdbWrapper* duckdb = new DuckdbWrapper(DuckdbDbName);
         WriteLog(LogLevel::Info, "TestDB with Duckdb");
         TestMdb(duckdb);
     }
     static void TestMysql()
     {
-        MysqlWrapper* mysql = new MysqlWrapper(mysqlHost);
+        MysqlWrapper* mysql = new MysqlWrapper(MysqlHost);
         WriteLog(LogLevel::Info, "TestDB with Mysql");
         TestMdb(mysql);
     }
     static void TestMariadb()
     {
-        MariadbWrapper* mariadb = new MariadbWrapper(mariadbHost, mariadbUser, mariadbPassword);
+        MariadbWrapper* mariadb = new MariadbWrapper(MariadbHost, MariadbUser, MariadbPassword);
         WriteLog(LogLevel::Info, "TestDB with Mariadb");
         TestMdb(mariadb);
     }

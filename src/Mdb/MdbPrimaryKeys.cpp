@@ -14,9 +14,9 @@ namespace Mdb
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TradingDay* TradingDayPrimaryKey::Select(const Int32Type& PK)
+	TradingDay* TradingDayPrimaryKey::Select(const Int32Type& Pk)
 	{
-		CompareTradingDay.PK = PK;
+		CompareTradingDay.Pk = Pk;
 		
 		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareTradingDay);

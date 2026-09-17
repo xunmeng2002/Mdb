@@ -31,15 +31,14 @@ namespace Mdb
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
 
-	private:
-		void EraseUniqueKey(TradingDay* record);
-		void EraseIndex(TradingDay* record);
-
-	public:
 		std::shared_mutex SharedMutex;
 		TradingDayPrimaryKey* PrimaryKey;
 	protected:
 		MdbSubscriber* mdbSubscriber_;
+
+	private:
+		void EraseUniqueKey(TradingDay* record);
+		void EraseIndex(TradingDay* record);
 	};
 
 	class ExchangeTable : public MdbTableBase
@@ -60,15 +59,14 @@ namespace Mdb
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
 
-	private:
-		void EraseUniqueKey(Exchange* record);
-		void EraseIndex(Exchange* record);
-
-	public:
 		std::shared_mutex SharedMutex;
 		ExchangePrimaryKey* PrimaryKey;
 	protected:
 		MdbSubscriber* mdbSubscriber_;
+
+	private:
+		void EraseUniqueKey(Exchange* record);
+		void EraseIndex(Exchange* record);
 	};
 
 	class ProductTable : public MdbTableBase
@@ -89,15 +87,14 @@ namespace Mdb
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
 
-	private:
-		void EraseUniqueKey(Product* record);
-		void EraseIndex(Product* record);
-
-	public:
 		std::shared_mutex SharedMutex;
 		ProductPrimaryKey* PrimaryKey;
 	protected:
 		MdbSubscriber* mdbSubscriber_;
+
+	private:
+		void EraseUniqueKey(Product* record);
+		void EraseIndex(Product* record);
 	};
 
 	class InstrumentTable : public MdbTableBase
@@ -118,15 +115,14 @@ namespace Mdb
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
 
-	private:
-		void EraseUniqueKey(Instrument* record);
-		void EraseIndex(Instrument* record);
-
-	public:
 		std::shared_mutex SharedMutex;
 		InstrumentPrimaryKey* PrimaryKey;
 	protected:
 		MdbSubscriber* mdbSubscriber_;
+
+	private:
+		void EraseUniqueKey(Instrument* record);
+		void EraseIndex(Instrument* record);
 	};
 
 	class PrimaryAccountTable : public MdbTableBase
@@ -148,16 +144,15 @@ namespace Mdb
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
 
-	private:
-		void EraseUniqueKey(PrimaryAccount* record);
-		void EraseIndex(PrimaryAccount* record);
-
-	public:
 		std::shared_mutex SharedMutex;
 		PrimaryAccountPrimaryKey* PrimaryKey;
 		PrimaryAccountIndexOfferId* OfferIdIndex;
 	protected:
 		MdbSubscriber* mdbSubscriber_;
+
+	private:
+		void EraseUniqueKey(PrimaryAccount* record);
+		void EraseIndex(PrimaryAccount* record);
 	};
 
 	class AccountTable : public MdbTableBase
@@ -178,15 +173,14 @@ namespace Mdb
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
 
-	private:
-		void EraseUniqueKey(Account* record);
-		void EraseIndex(Account* record);
-
-	public:
 		std::shared_mutex SharedMutex;
 		AccountPrimaryKey* PrimaryKey;
 	protected:
 		MdbSubscriber* mdbSubscriber_;
+
+	private:
+		void EraseUniqueKey(Account* record);
+		void EraseIndex(Account* record);
 	};
 
 	class CapitalTable : public MdbTableBase
@@ -208,16 +202,15 @@ namespace Mdb
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
 
-	private:
-		void EraseUniqueKey(Capital* record);
-		void EraseIndex(Capital* record);
-
-	public:
 		std::shared_mutex SharedMutex;
 		CapitalPrimaryKey* PrimaryKey;
 		CapitalIndexTradingDay* TradingDayIndex;
 	protected:
 		MdbSubscriber* mdbSubscriber_;
+
+	private:
+		void EraseUniqueKey(Capital* record);
+		void EraseIndex(Capital* record);
 	};
 
 	class PositionTable : public MdbTableBase
@@ -240,17 +233,16 @@ namespace Mdb
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
 
-	private:
-		void EraseUniqueKey(Position* record);
-		void EraseIndex(Position* record);
-
-	public:
 		std::shared_mutex SharedMutex;
 		PositionPrimaryKey* PrimaryKey;
 		PositionIndexAccount* AccountIndex;
 		PositionIndexTradingDay* TradingDayIndex;
 	protected:
 		MdbSubscriber* mdbSubscriber_;
+
+	private:
+		void EraseUniqueKey(Position* record);
+		void EraseIndex(Position* record);
 	};
 
 	class PositionDetailTable : public MdbTableBase
@@ -273,17 +265,16 @@ namespace Mdb
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
 
-	private:
-		void EraseUniqueKey(PositionDetail* record);
-		void EraseIndex(PositionDetail* record);
-
-	public:
 		std::shared_mutex SharedMutex;
 		PositionDetailPrimaryKey* PrimaryKey;
 		PositionDetailIndexTradeMatch* TradeMatchIndex;
 		PositionDetailIndexTradingDay* TradingDayIndex;
 	protected:
 		MdbSubscriber* mdbSubscriber_;
+
+	private:
+		void EraseUniqueKey(PositionDetail* record);
+		void EraseIndex(PositionDetail* record);
 	};
 
 	class OrderTable : public MdbTableBase
@@ -304,16 +295,15 @@ namespace Mdb
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
 
-	private:
-		void EraseUniqueKey(Order* record);
-		void EraseIndex(Order* record);
-
-	public:
 		std::shared_mutex SharedMutex;
 		OrderPrimaryKey* PrimaryKey;
 		OrderUniqueKeyClientOrderId* ClientOrderIdUniqueKey;
 	protected:
 		MdbSubscriber* mdbSubscriber_;
+
+	private:
+		void EraseUniqueKey(Order* record);
+		void EraseIndex(Order* record);
 	};
 
 	class TradeTable : public MdbTableBase
@@ -334,15 +324,14 @@ namespace Mdb
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
 
-	private:
-		void EraseUniqueKey(Trade* record);
-		void EraseIndex(Trade* record);
-
-	public:
 		std::shared_mutex SharedMutex;
 		TradePrimaryKey* PrimaryKey;
 	protected:
 		MdbSubscriber* mdbSubscriber_;
+
+	private:
+		void EraseUniqueKey(Trade* record);
+		void EraseIndex(Trade* record);
 	};
 
 }

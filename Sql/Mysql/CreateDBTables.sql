@@ -1,11 +1,11 @@
 ﻿-- 本文件由 ../Templates/Sql/Mysql/CreateTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 
 CREATE TABLE IF NOT EXISTS `TradingDay` (
-  `PK` int COMMENT '主键',
+  `Pk` int COMMENT '主键',
   `CurrTradingDay` char(16) COMMENT '当前交易日',
   `PreTradingDay` char(16) COMMENT '昨交易日',
 
-  PRIMARY KEY(PK)
+  PRIMARY KEY(Pk)
 ) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin' COMMENT='交易日';
 
 CREATE TABLE IF NOT EXISTS `Exchange` (

@@ -64,7 +64,7 @@ namespace Mdb
 			}
 
 			auto record = TradingDay::Allocate();
-			record->PK = csvRecord.GetFieldAsInt("PK");
+			record->Pk = csvRecord.GetFieldAsInt("Pk");
 			Utility::Strcpy(record->CurrTradingDay, csvRecord.GetFieldAsString("CurrTradingDay"));
 			Utility::Strcpy(record->PreTradingDay, csvRecord.GetFieldAsString("PreTradingDay"));
 			mdb->TradingDay->Insert(record);

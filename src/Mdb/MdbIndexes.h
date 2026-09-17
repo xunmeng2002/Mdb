@@ -11,15 +11,15 @@ namespace Mdb
 	class PrimaryAccountTable;
 	class PrimaryAccountIndexOfferId
 	{
-		using iterator = std::multiset<PrimaryAccount*, PrimaryAccountLessForOfferIdIndex>::iterator;
-		friend class PrimaryAccountTable;
 	public:
+		using iterator = std::multiset<PrimaryAccount*, PrimaryAccountLessForOfferIdIndex>::iterator;
+		static constexpr unsigned int IndexID = 0x0000;
+	
 		PrimaryAccountIndexOfferId(PrimaryAccountTable* tableOwner);
 		iterator LowerBound(const OfferIdType& OfferId);
 		iterator UpperBound(const OfferIdType& OfferId);
 		std::pair<iterator, iterator> EqualRange(const OfferIdType& OfferId);
-	public:
-		static constexpr unsigned int IndexID = 0x0000;
+	
 	protected:
 		void Insert(PrimaryAccount* const record);
 		void Erase(PrimaryAccount* const record);
@@ -29,6 +29,8 @@ namespace Mdb
 		void FillCompareRecord(const OfferIdType& OfferId);
 
 	private:
+		friend class PrimaryAccountTable;
+	
 		PrimaryAccountTable* table_;
 		multiset<PrimaryAccount*, PrimaryAccountLessForOfferIdIndex> index_;
 	};
@@ -36,15 +38,15 @@ namespace Mdb
 	class CapitalTable;
 	class CapitalIndexTradingDay
 	{
-		using iterator = std::multiset<Capital*, CapitalLessForTradingDayIndex>::iterator;
-		friend class CapitalTable;
 	public:
+		using iterator = std::multiset<Capital*, CapitalLessForTradingDayIndex>::iterator;
+		static constexpr unsigned int IndexID = 0x0000;
+	
 		CapitalIndexTradingDay(CapitalTable* tableOwner);
 		iterator LowerBound(const DateType& TradingDay);
 		iterator UpperBound(const DateType& TradingDay);
 		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay);
-	public:
-		static constexpr unsigned int IndexID = 0x0000;
+	
 	protected:
 		void Insert(Capital* const record);
 		void Erase(Capital* const record);
@@ -54,6 +56,8 @@ namespace Mdb
 		void FillCompareRecord(const DateType& TradingDay);
 
 	private:
+		friend class CapitalTable;
+	
 		CapitalTable* table_;
 		multiset<Capital*, CapitalLessForTradingDayIndex> index_;
 	};
@@ -61,15 +65,15 @@ namespace Mdb
 	class PositionTable;
 	class PositionIndexAccount
 	{
-		using iterator = std::multiset<Position*, PositionLessForAccountIndex>::iterator;
-		friend class PositionTable;
 	public:
+		using iterator = std::multiset<Position*, PositionLessForAccountIndex>::iterator;
+		static constexpr unsigned int IndexID = 0x0000;
+	
 		PositionIndexAccount(PositionTable* tableOwner);
 		iterator LowerBound(const DateType& TradingDay, const AccountIdType& AccountId);
 		iterator UpperBound(const DateType& TradingDay, const AccountIdType& AccountId);
 		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay, const AccountIdType& AccountId);
-	public:
-		static constexpr unsigned int IndexID = 0x0000;
+	
 	protected:
 		void Insert(Position* const record);
 		void Erase(Position* const record);
@@ -79,21 +83,23 @@ namespace Mdb
 		void FillCompareRecord(const DateType& TradingDay, const AccountIdType& AccountId);
 
 	private:
+		friend class PositionTable;
+	
 		PositionTable* table_;
 		multiset<Position*, PositionLessForAccountIndex> index_;
 	};
 	
 	class PositionIndexTradingDay
 	{
-		using iterator = std::multiset<Position*, PositionLessForTradingDayIndex>::iterator;
-		friend class PositionTable;
 	public:
+		using iterator = std::multiset<Position*, PositionLessForTradingDayIndex>::iterator;
+		static constexpr unsigned int IndexID = 0x0001;
+	
 		PositionIndexTradingDay(PositionTable* tableOwner);
 		iterator LowerBound(const DateType& TradingDay);
 		iterator UpperBound(const DateType& TradingDay);
 		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay);
-	public:
-		static constexpr unsigned int IndexID = 0x0001;
+	
 	protected:
 		void Insert(Position* const record);
 		void Erase(Position* const record);
@@ -103,6 +109,8 @@ namespace Mdb
 		void FillCompareRecord(const DateType& TradingDay);
 
 	private:
+		friend class PositionTable;
+	
 		PositionTable* table_;
 		multiset<Position*, PositionLessForTradingDayIndex> index_;
 	};
@@ -110,15 +118,15 @@ namespace Mdb
 	class PositionDetailTable;
 	class PositionDetailIndexTradeMatch
 	{
-		using iterator = std::multiset<PositionDetail*, PositionDetailLessForTradeMatchIndex>::iterator;
-		friend class PositionDetailTable;
 	public:
+		using iterator = std::multiset<PositionDetail*, PositionDetailLessForTradeMatchIndex>::iterator;
+		static constexpr unsigned int IndexID = 0x0000;
+	
 		PositionDetailIndexTradeMatch(PositionDetailTable* tableOwner);
 		iterator LowerBound(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
 		iterator UpperBound(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
 		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
-	public:
-		static constexpr unsigned int IndexID = 0x0000;
+	
 	protected:
 		void Insert(PositionDetail* const record);
 		void Erase(PositionDetail* const record);
@@ -128,21 +136,23 @@ namespace Mdb
 		void FillCompareRecord(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
 
 	private:
+		friend class PositionDetailTable;
+	
 		PositionDetailTable* table_;
 		multiset<PositionDetail*, PositionDetailLessForTradeMatchIndex> index_;
 	};
 	
 	class PositionDetailIndexTradingDay
 	{
-		using iterator = std::multiset<PositionDetail*, PositionDetailLessForTradingDayIndex>::iterator;
-		friend class PositionDetailTable;
 	public:
+		using iterator = std::multiset<PositionDetail*, PositionDetailLessForTradingDayIndex>::iterator;
+		static constexpr unsigned int IndexID = 0x0001;
+	
 		PositionDetailIndexTradingDay(PositionDetailTable* tableOwner);
 		iterator LowerBound(const DateType& TradingDay);
 		iterator UpperBound(const DateType& TradingDay);
 		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay);
-	public:
-		static constexpr unsigned int IndexID = 0x0001;
+	
 	protected:
 		void Insert(PositionDetail* const record);
 		void Erase(PositionDetail* const record);
@@ -152,6 +162,8 @@ namespace Mdb
 		void FillCompareRecord(const DateType& TradingDay);
 
 	private:
+		friend class PositionDetailTable;
+	
 		PositionDetailTable* table_;
 		multiset<PositionDetail*, PositionDetailLessForTradingDayIndex> index_;
 	};

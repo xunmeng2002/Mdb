@@ -12,7 +12,7 @@ namespace Mdb
 	public:
 		static constexpr unsigned int TableId = 0x0001;
 		//主键
-		Int32Type PK;
+		Int32Type Pk;
 		//当前交易日
 		DateType CurrTradingDay;
 		//昨交易日

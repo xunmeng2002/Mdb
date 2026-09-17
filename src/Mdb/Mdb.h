@@ -26,7 +26,6 @@ namespace Mdb
 		virtual void OnDbConnected() override;
 		virtual void OnDbDisConnected() override;
 
-	public:
 		TradingDayTable* TradingDay = nullptr;
 		ExchangeTable* Exchange = nullptr;
 		ProductTable* Product = nullptr;
@@ -38,6 +37,7 @@ namespace Mdb
 		PositionDetailTable* PositionDetail = nullptr;
 		OrderTable* Order = nullptr;
 		TradeTable* Trade = nullptr;
+
 	private:
 		MdbSubscriber* mdbSubscriber_;
 		std::vector<MdbTableBase*> tables_;

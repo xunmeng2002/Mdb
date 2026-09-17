@@ -175,7 +175,7 @@ namespace Mdb
 			return;
 		}
 
-		fprintf(dumpFile, "PK,CurrTradingDay,PreTradingDay\n");
+		fprintf(dumpFile, "Pk,CurrTradingDay,PreTradingDay\n");
 		char buff[4096] = { 0 };
 		set<TradingDay*, TradingDayLessForTradingDayPrimaryKey> records;
 		std::shared_lock guard(SharedMutex);
