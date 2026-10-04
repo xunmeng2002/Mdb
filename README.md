@@ -3,7 +3,7 @@
 [![Language](https://img.shields.io/badge/Language-C++20+-orange.svg)]()
 [![Build](https://img.shields.io/badge/Build-CMake3.20+-green.svg)]()
 
-**Mdb** 是一个基于 **Spark** 与 **DBAdapters** 构建的 C++ **内存数据库参考实现（Demo）**，完整演示"**如何实现并使用内存数据库**"：数据在内存中高速读写，通过订阅接口广播变更，再由 DBAdapters 的 `AsyncDBWriter` 异步同步到 SQLite / DuckDB / MySQL / MariaDB 等持久化数据库。项目内置的金融数据表**仅作为示例数据**，重点展示的是内存数据库的架构与实现方法。
+**Mdb** 是一个基于 **Spark** 与 **DbAdapters** 构建的 C++ **内存数据库参考实现（Demo）**，完整演示"**如何实现并使用内存数据库**"：数据在内存中高速读写，通过订阅接口广播变更，再由 DbAdapters 的 `AsyncDBWriter` 异步同步到 SQLite / DuckDB / MySQL / MariaDB 等持久化数据库。项目内置的金融数据表**仅作为示例数据**，重点展示的是内存数据库的架构与实现方法。
 
 Created by [Fireseeker](https://fireseeker.cn/)
 
@@ -12,7 +12,7 @@ Created by [Fireseeker](https://fireseeker.cn/)
 Mdb 是一个**内存数据库的实现示例**，重点是演示"如何实现并使用内存数据库"，而不是具体的业务数据。它展示了内存数据库的完整实现路径：
 
 1. **表结构驱动**：数据表模型由 `Model/*.xml` 定义，通过 Python 脚本（`pump.py` + `pumplist.xml`）自动生成全部表结构代码（记录结构体、类型化表容器、主键容器、二级索引容器），无需手写；
-2. **内存优先 + 异步落库**：业务读写优先操作内存，变更通过订阅接口（`MdbSubscriber`）广播，由 DBAdapters 的 `AsyncDBWriter` **异步同步至物理数据库**（SQLite / DuckDB / MySQL / MariaDB），兼顾低时延与数据可靠；
+2. **内存优先 + 异步落库**：业务读写优先操作内存，变更通过订阅接口（`MdbSubscriber`）广播，由 DbAdapters 的 `AsyncDBWriter` **异步同步至物理数据库**（SQLite / DuckDB / MySQL / MariaDB），兼顾低时延与数据可靠；
 3. **检索与并发**：每张表内置主键容器与二级索引容器（`Select` / `SelectAll` / `EqualRange`），并以 `std::shared_mutex` 支持并发读。
 
 因此，内置的 11 张金融数据表（交易日、账户、订单、持仓等）**仅作为示例数据**，用于演示不同类型字段（定长字符串、枚举、日期、整数）的建表与检索方式；要迁移到自己的业务，只需照葫芦画瓢定义自己的 `Model/*.xml` 并重新生成代码即可。
@@ -24,7 +24,7 @@ Mdb 是一个**内存数据库的实现示例**，重点是演示"如何实现�
 以下特性展示了内存数据库实现中需要解决的关键问题，Mdb 均给出了示例方案：
 
 - ✅ **内存 + 磁盘双写架构**：内存高速读写，异步日志落地磁盘，性能与安全兼顾
-- ✅ **多数据库兼容**：基于 DBAdapters，原生支持 MySQL、MariaDB、SQLite、DuckDB 四大数据库后端
+- ✅ **多数据库兼容**：基于 DbAdapters，原生支持 MySQL、MariaDB、SQLite、DuckDB 四大数据库后端
 - ✅ **统一访问接口**：一套内存接口对接所有数据库，切换存储引擎无需修改业务逻辑
 - ✅ **金融专属数据表**：内置 11 张交易业务数据表，覆盖交易日、合约、账户、资金、订单、持仓、成交等核心场景
 - ✅ **主键 & 二级索引查询**：每张表内置主键容器与二级索引容器，支持 `Select` / `SelectAll` / `EqualRange` 等高效检索
@@ -111,10 +111,10 @@ Mdb/
 | 依赖 | 安装位置 | 提供内容 |
 | ---- | ---- | ---- |
 | **Spark** 基础库 | `../Libs/Spark/<triplet>` | `Spark::Core`（线程、日志）、`Spark/Types.h` 类型定义 |
-| **DBAdapters** 数据库访问层 | `../Libs/DBAdapters/<triplet>` | `DBInterface` / `AsyncDBWriter` / 四种数据库 Wrapper |
+| **DbAdapters** 数据库访问层 | `../Libs/DbAdapters/<triplet>` | `DbInterface` / `AsyncDBWriter` / 四种数据库 Wrapper |
 | **DuckDB** | `../Libs/duckdb/<triplet>` | `duckdb::duckdb`（DuckDB 后端运行时） |
 
-`<triplet>` 在 Windows 下为 `x64-windows`，Linux / WSL 下为 `x64-linux`。Spark 与 DBAdapters 的构建与安装方法参见各自仓库的 README。
+`<triplet>` 在 Windows 下为 `x64-windows`，Linux / WSL 下为 `x64-linux`。Spark 与 DbAdapters 的构建与安装方法参见各自仓库的 README。
 
 ### 3. vcpkg 第三方依赖
 
@@ -153,7 +153,7 @@ UpdateSubmodule.bat
 
 ```bash
 # 确保 VCPKG_ROOT 已配置（Windows 设为系统环境变量，Linux 写入 ~/.bashrc）
-# 确保 Spark、DBAdapters、duckdb 已安装到 ../Libs/ 对应目录（见上文"预编译依赖"）
+# 确保 Spark、DbAdapters、duckdb 已安装到 ../Libs/ 对应目录（见上文"预编译依赖"）
 ```
 
 ### 4. CMake 编译（推荐使用 Presets）
@@ -190,8 +190,8 @@ cmake --build out/build/WSL-GCC-Release
 #include "Mdb.h"
 #include "MdbTableRegistry.h"
 #include "FullTableList.h"
-#include <DBAdapters/AsyncDBWriter/AsyncDBWriter.h>
-#include <DBAdapters/SqliteWrapper/SqliteWrapper.h>
+#include <DbAdapters/AsyncDBWriter/AsyncDBWriter.h>
+#include <DbAdapters/SqliteWrapper/SqliteWrapper.h>
 #include <Spark/Core/Core.h>
 #include <cstring>
 
@@ -356,7 +356,7 @@ mdb->Dump("./dump");
 ## 十一、补充说明
 
 - **项目定位**：本项目是内存数据库的**实现示例**，重点在"如何实现与使用"；内置金融数据表仅作演示，新业务可基于 `Model/*.xml` + 代码生成快速定义自己的表结构
-- **依赖关系**：Mdb 构建在 [Spark](https://gitee.com/xunmeng2002/Spark.git)（基础能力）与 [DBAdapters](https://gitee.com/xunmeng2002/DBAdapters.git)（统一数据库访问层）之上，二者均为预编译依赖
+- **依赖关系**：Mdb 构建在 [Spark](https://gitee.com/xunmeng2002/Spark.git)（基础能力）与 [DbAdapters](https://gitee.com/xunmeng2002/DbAdapters.git)（统一数据库访问层）之上，二者均为预编译依赖
 - **包含路径**：Mdb 头文件位于 `src/Mdb/`，以 `#include "Mdb.h"` 风格引用
 - **命名空间**：全部接口位于 `mdb` 命名空间；数据库接口复用 `DbAdapters` 命名空间
 - **并发访问**：内存表为多线程安全设计，读操作建议先 `LockShared()` 再访问主键 / 索引容器，避免与写线程竞争

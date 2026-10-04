@@ -2,13 +2,13 @@
 #include "InitMdbFromDB.h"
 #include "MdbTableRegistry.h"
 #include "FullTableList.h"
-#include <DBAdapters/DBInterface/TypedTable.h>
-#include <DBAdapters/DBInterface/SchemaRegistry.h>
-#include <DBAdapters/AsyncDbWriter/AsyncDbWriter.h>
-#include <DBAdapters/SqliteWrapper/SqliteWrapper.h>
-#include <DBAdapters/DuckdbWrapper/DuckdbWrapper.h>
-#include <DBAdapters/MysqlWrapper/MysqlWrapper.h>
-#include <DBAdapters/MariadbWrapper/MariadbWrapper.h>
+#include <DbAdapters/DbInterface/TypedTable.h>
+#include <DbAdapters/DbInterface/SchemaRegistry.h>
+#include <DbAdapters/AsyncDbWriter/AsyncDbWriter.h>
+#include <DbAdapters/SqliteWrapper/SqliteWrapper.h>
+#include <DbAdapters/DuckdbWrapper/DuckdbWrapper.h>
+#include <DbAdapters/MysqlWrapper/MysqlWrapper.h>
+#include <DbAdapters/MariadbWrapper/MariadbWrapper.h>
 #include <Spark/Core/Core.h>
 #include <iostream>
 

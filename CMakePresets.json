@@ -9,7 +9,7 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "cl.exe",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/../Libs/DBAdapters/x64-windows",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/../Libs/DbAdapters/x64-windows",
         "CMAKE_DISABLE_FIND_PACKAGE_ICU": "ON"
       },
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
@@ -48,7 +48,7 @@
         "VCPKG_MAX_CONCURRENCY": "4"
       },
       "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/../Libs/DBAdapters/x64-linux",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/../Libs/DbAdapters/x64-linux",
         "CMAKE_DISABLE_FIND_PACKAGE_ICU": "ON"
       },
       "condition": {

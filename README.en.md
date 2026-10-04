@@ -3,7 +3,7 @@
 [![Language](https://img.shields.io/badge/Language-C++20+-orange.svg)]()
 [![Build](https://img.shields.io/badge/Build-CMake3.20+-green.svg)]()
 
-**Mdb** is a C++ **in-memory database reference implementation (Demo)** built on top of **Spark** and **DBAdapters**, demonstrating how to **implement and use an in-memory database**: data is read and written in memory at high speed, changes are broadcast through a subscription interface, and asynchronously synced to persistent databases (SQLite / DuckDB / MySQL / MariaDB) via DBAdapters' `AsyncDBWriter`. The built-in financial tables are **example data only** — the point is the in-memory database architecture and how it is implemented.
+**Mdb** is a C++ **in-memory database reference implementation (Demo)** built on top of **Spark** and **DbAdapters**, demonstrating how to **implement and use an in-memory database**: data is read and written in memory at high speed, changes are broadcast through a subscription interface, and asynchronously synced to persistent databases (SQLite / DuckDB / MySQL / MariaDB) via DbAdapters' `AsyncDBWriter`. The built-in financial tables are **example data only** — the point is the in-memory database architecture and how it is implemented.
 
 Created by [Fireseeker](https://fireseeker.cn/)
 
@@ -12,7 +12,7 @@ Created by [Fireseeker](https://fireseeker.cn/)
 Mdb is an **implementation example of an in-memory database**; the focus is on demonstrating *how to implement and use* an in-memory database, not on specific business data. It shows the complete implementation path:
 
 1. **Schema-driven**: table models are defined in `Model/*.xml`, and Python scripts (`pump.py` + `pumplist.xml`) auto-generate all table-structure code (record structs, typed table containers, primary-key containers, secondary-index containers) — no manual code;
-2. **In-memory-first + asynchronous persistence**: reads/writes operate on memory first; changes are broadcast through a subscription interface (`MdbSubscriber`) and **asynchronously synced to physical databases** (SQLite / DuckDB / MySQL / MariaDB) via DBAdapters' `AsyncDBWriter`, balancing low latency with data reliability;
+2. **In-memory-first + asynchronous persistence**: reads/writes operate on memory first; changes are broadcast through a subscription interface (`MdbSubscriber`) and **asynchronously synced to physical databases** (SQLite / DuckDB / MySQL / MariaDB) via DbAdapters' `AsyncDBWriter`, balancing low latency with data reliability;
 3. **Retrieval & concurrency**: each table ships with primary-key and secondary-index containers (`Select` / `SelectAll` / `EqualRange`) and supports concurrent reads via `std::shared_mutex`.
 
 Therefore, the 11 built-in financial tables (trading days, accounts, orders, positions, etc.) are **example data only**, used to demonstrate how to describe, create, index, and query different field types (fixed-length strings, enums, dates, integers). To move to your own business, define your own `Model/*.xml` and regenerate the code.
@@ -24,7 +24,7 @@ Built with C++20, the project uses CMake for cross-platform builds and ships wit
 The features below illustrate the key problems to solve when implementing an in-memory database; Mdb provides a reference solution for each:
 
 - ✅ **In-Memory + Disk Dual-Write Architecture**: high-speed in-memory reads/writes with asynchronous disk persistence, balancing performance and safety
-- ✅ **Multi-Database Compatibility**: built on DBAdapters, natively supports MySQL, MariaDB, SQLite, and DuckDB backends
+- ✅ **Multi-Database Compatibility**: built on DbAdapters, natively supports MySQL, MariaDB, SQLite, and DuckDB backends
 - ✅ **Unified Access Interface**: a single in-memory API works across all databases — switching storage engines requires no business logic changes
 - ✅ **Financial Domain Data Tables**: 11 built-in trading business tables covering trading days, contracts, accounts, capital, orders, positions, and trade executions
 - ✅ **Primary Key & Secondary Index Queries**: each table ships with a primary-key container and secondary-index containers, supporting efficient retrieval via `Select` / `SelectAll` / `EqualRange`
@@ -111,10 +111,10 @@ The build depends on three **prebuilt third-party libraries**, which must be ins
 | Dependency | Install Location | Provides |
 | ---- | ---- | ---- |
 | **Spark** foundational library | `../Libs/Spark/<triplet>` | `Spark::Core` (threads, logging), `Spark/Types.h` type definitions |
-| **DBAdapters** database access layer | `../Libs/DBAdapters/<triplet>` | `DBInterface` / `AsyncDBWriter` / four database wrappers |
+| **DbAdapters** database access layer | `../Libs/DbAdapters/<triplet>` | `DbInterface` / `AsyncDBWriter` / four database wrappers |
 | **DuckDB** | `../Libs/duckdb/<triplet>` | `duckdb::duckdb` (DuckDB backend runtime) |
 
-`<triplet>` is `x64-windows` on Windows and `x64-linux` on Linux / WSL. See each repository's README for how to build and install Spark and DBAdapters.
+`<triplet>` is `x64-windows` on Windows and `x64-linux` on Linux / WSL. See each repository's README for how to build and install Spark and DbAdapters.
 
 ### 5.3 vcpkg Dependencies
 
@@ -153,7 +153,7 @@ UpdateSubmodule.bat
 
 ```bash
 # Make sure VCPKG_ROOT is configured (system env var on Windows, ~/.bashrc on Linux)
-# Make sure Spark, DBAdapters, and duckdb are installed into ../Libs/ (see "Prebuilt Dependencies" above)
+# Make sure Spark, DbAdapters, and duckdb are installed into ../Libs/ (see "Prebuilt Dependencies" above)
 ```
 
 ### 6.4 CMake Build (Presets recommended)
@@ -190,8 +190,8 @@ The test program runs the "in-memory DB + async write" full flow against SQLite 
 #include "Mdb.h"
 #include "MdbTableRegistry.h"
 #include "FullTableList.h"
-#include <DBAdapters/AsyncDBWriter/AsyncDBWriter.h>
-#include <DBAdapters/SqliteWrapper/SqliteWrapper.h>
+#include <DbAdapters/AsyncDBWriter/AsyncDBWriter.h>
+#include <DbAdapters/SqliteWrapper/SqliteWrapper.h>
 #include <Spark/Core/Core.h>
 #include <cstring>
 
@@ -356,7 +356,7 @@ The `test/TestMdb/TestDB.cpp` integration test covers:
 ## 11. Additional Notes
 
 - **Project Positioning**: this project is an **implementation example** of an in-memory database — the focus is on "how to implement and use"; the built-in financial tables are for demonstration only, and new businesses can define their own tables via `Model/*.xml` + code generation
-- **Dependencies**: Mdb is built on [Spark](https://gitee.com/xunmeng2002/Spark.git) (foundational capabilities) and [DBAdapters](https://gitee.com/xunmeng2002/DBAdapters.git) (unified database access layer); both are prebuilt dependencies
+- **Dependencies**: Mdb is built on [Spark](https://gitee.com/xunmeng2002/Spark.git) (foundational capabilities) and [DbAdapters](https://gitee.com/xunmeng2002/DbAdapters.git) (unified database access layer); both are prebuilt dependencies
 - **Include Paths**: Mdb headers live in `src/Mdb/`, referenced as `#include "Mdb.h"`
 - **Namespaces**: all interfaces are in the `mdb` namespace; database interfaces reuse the `DbAdapters` namespace
 - **Concurrency**: in-memory tables are thread-safe by design; for reads, consider calling `LockShared()` before accessing primary-key / index containers to avoid contention with writer threads

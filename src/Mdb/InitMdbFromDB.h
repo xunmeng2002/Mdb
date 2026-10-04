@@ -2,7 +2,7 @@
 #pragma once
 #include "Mdb.h"
 #include "TableList.h"
-#include <DBAdapters/DbInterface/Db.h>
+#include <DbAdapters/DbInterface/Db.h>
 
 using DbAdapters::Db;
 namespace Mdb

@@ -2,7 +2,7 @@
 
 > 本文档面向 **Windows（MSVC）** 和 **WSL（GCC）** 两个平台，说明从零搭建项目编译环境所需的全部步骤。
 
-> **项目依赖概览（Mdb）**：除下述通用工具链外，还需准备 **Spark** 基础库、**DBAdapters** 数据库访问层与 **DuckDB** 三个预编译依赖（分别安装到项目父目录 `../Libs/Spark/<triplet>`、`../Libs/DBAdapters/<triplet>`、`../Libs/duckdb/<triplet>`），并由 vcpkg 提供 `sqlite3`、`mysql-connector-cpp`、`mariadb-connector-cpp` 三个数据库驱动。完整说明见仓库根目录 [README](../README.md) 的"环境依赖"章节。
+> **项目依赖概览（Mdb）**：除下述通用工具链外，还需准备 **Spark** 基础库、**DbAdapters** 数据库访问层与 **DuckDB** 三个预编译依赖（分别安装到项目父目录 `../Libs/Spark/<triplet>`、`../Libs/DbAdapters/<triplet>`、`../Libs/duckdb/<triplet>`），并由 vcpkg 提供 `sqlite3`、`mysql-connector-cpp`、`mariadb-connector-cpp` 三个数据库驱动。完整说明见仓库根目录 [README](../README.md) 的"环境依赖"章节。
 
 ---
 
@@ -26,7 +26,7 @@
     - [2.6 验证](#26-验证)
   - [三、常见问题](#三常见问题)
     - [3.1 vcpkg 拉取超时 / 无法连接 GitHub](#31-vcpkg-拉取超时--无法连接-github)
-    - [3.2 VS 提示 "Could not find Spark" / "Could not find DBAdapters" / "Could not find duckdb"](#32-vs-提示-could-not-find-spark--could-not-find-dbadapter--could-not-find-duckdb)
+    - [3.2 VS 提示 "Could not find Spark" / "Could not find DbAdapters" / "Could not find duckdb"](#32-vs-提示-could-not-find-spark--could-not-find-dbadapter--could-not-find-duckdb)
     - [3.3 WSL 中 cmake 找不到 Ninja](#33-wsl-中-cmake-找不到-ninja)
     - [3.4 代理关闭后 Git 报错](#34-代理关闭后-git-报错)
 
@@ -117,7 +117,7 @@ setx VCPKG_ROOT "D:/path/to/vcpkg"
 打开 **Visual Studio**，选择 `x64-Debug` 配置，执行 CMake 配置（生成 cache）：
 
 - 控制台应输出 vcpkg 相关日志（自动安装 `sqlite3`、`mysql-connector-cpp`、`mariadb-connector-cpp` 及其传递依赖）
-- 配置完成后能正确找到 **Spark**、**DBAdapters**、**duckdb** 与各数据库驱动（无 `Could not find ...` 报错）
+- 配置完成后能正确找到 **Spark**、**DbAdapters**、**duckdb** 与各数据库驱动（无 `Could not find ...` 报错）
 - 构建无报错，`bin/Debug/TestDB.exe` 可正常运行
 
 ---
@@ -250,9 +250,9 @@ cmake -S . -B out/build/WSL-GCC-Debug \
 - vcpkg 下载器只读取 `HTTP_PROXY` / `HTTPS_PROXY` 环境变量；项目 CMake 已通过 `reuse_git_proxy_for_vcpkg()` 在未设置环境变量时自动复用 git 代理配置，通常无需额外处理
 - 若仍未生效，请手动设置 `http_proxy` / `https_proxy` 环境变量
 
-### 3.2 VS 提示 "Could not find Spark" / "Could not find DBAdapters" / "Could not find duckdb"
+### 3.2 VS 提示 "Could not find Spark" / "Could not find DbAdapters" / "Could not find duckdb"
 
-- 确认 **Spark**、**DBAdapters** 与 **duckdb** 已安装到项目父目录 `../Libs/` 下对应的平台路径（Windows：`../Libs/Spark/x64-windows`、`../Libs/DBAdapters/x64-windows`、`../Libs/duckdb/x64-windows`；Linux / WSL：`x64-linux`）
+- 确认 **Spark**、**DbAdapters** 与 **duckdb** 已安装到项目父目录 `../Libs/` 下对应的平台路径（Windows：`../Libs/Spark/x64-windows`、`../Libs/DbAdapters/x64-windows`、`../Libs/duckdb/x64-windows`；Linux / WSL：`x64-linux`）
 - 确认安装目录内存在对应的 `*-config.cmake`（由相应仓库执行 `cmake --install` 生成）
 - 确认 vcpkg 已安装，且 `VCPKG_ROOT` 已设置为**系统环境变量**（`restore_vcpkg_root()` 会从 User / Machine 级环境变量读取）
 - 在 VS 中选择 **项目 → 清除缓存并重新生成**，或删除 `out/` 目录后重新配置
