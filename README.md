@@ -225,13 +225,13 @@ int main(int argc, const char* argv[])
     dbWriter->Start();                                      // 启动后台消费线程
 
     // 4. 内存写入，异步落库
-    Exchange* exchange = new Exchange();
+    Exchange* exchange = Exchange::Allocate();
     std::memset(exchange, 0, sizeof(Exchange));
     std::strcpy(exchange->ExchangeID, "SHFE");
     std::strcpy(exchange->ExchangeName, u8"上海期货交易所");
     mdb->exchange->Insert(exchange);                      // 返回 false 表示主键冲突
 
-    Account* account = new Account();
+    Account* account = Account::Allocate();
     std::memset(account, 0, sizeof(Account));
     std::strcpy(account->AccountID, "A001");
     std::strcpy(account->AccountName, u8"张三");
@@ -287,7 +287,7 @@ mdb->capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
 AccountIDType accountID;
 std::strcpy(accountID, "A001");
 Account* oldAccount = mdb->account->primaryKey->Select(accountID);
-Account* newAccount = new Account();
+Account* newAccount = Account::Allocate();
 *newAccount = *oldAccount;                              // 拷贝后修改
 std::strcpy(newAccount->AccountName, u8"李四");
 mdb->account->Update(oldAccount, newAccount);

@@ -32,7 +32,7 @@ namespace testMdb
     TradingDay* PrepareTradingDay()
     {
         auto currDate = TimeUtility::GetLocalDate();
-        TradingDay* tradingDay = new TradingDay();
+        TradingDay* tradingDay = TradingDay::Allocate();
         memset(tradingDay, 0, sizeof(TradingDay));
         tradingDay->Pk = 1;
         TimeUtility::GetPreTradingDay(currDate.c_str(), tradingDay->PreTradingDay);
@@ -42,12 +42,12 @@ namespace testMdb
     list<Exchange*>* PrepareExchanges()
     {
         list<Exchange*>* exchanges = new list<Exchange*>();
-        Exchange* exchange1 = new Exchange();
-        Exchange* exchange2 = new Exchange();
-        Exchange* exchange3 = new Exchange();
-        Exchange* exchange4 = new Exchange();
-        Exchange* exchange5 = new Exchange();
-        Exchange* exchange6 = new Exchange();
+        Exchange* exchange1 = Exchange::Allocate();
+        Exchange* exchange2 = Exchange::Allocate();
+        Exchange* exchange3 = Exchange::Allocate();
+        Exchange* exchange4 = Exchange::Allocate();
+        Exchange* exchange5 = Exchange::Allocate();
+        Exchange* exchange6 = Exchange::Allocate();
         strcpy(exchange1->ExchangeId, "SHFE");
         strcpy(exchange1->ExchangeName, (const char*)(u8"上海期货交易所"));
         strcpy(exchange2->ExchangeId, "INE");
@@ -71,7 +71,7 @@ namespace testMdb
     }
     Account* PrepareAccount(const char* accountId, const char* accountName, const char* password)
     {
-        Account* account = new Account();
+        Account* account = Account::Allocate();
         memset(account, 0, sizeof(Account));
         strcpy(account->AccountId, accountId);
         strcpy(account->AccountName, accountName);

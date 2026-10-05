@@ -225,13 +225,13 @@ int main(int argc, const char* argv[])
     dbWriter->Start();                                      // start background consumer thread
 
     // 4. Write to memory; persisted asynchronously
-    Exchange* exchange = new Exchange();
+    Exchange* exchange = Exchange::Allocate();
     std::memset(exchange, 0, sizeof(Exchange));
     std::strcpy(exchange->ExchangeID, "SHFE");
     std::strcpy(exchange->ExchangeName, "Shanghai Futures Exchange");
     mdb->exchange->Insert(exchange);                      // returns false on primary-key conflict
 
-    Account* account = new Account();
+    Account* account = Account::Allocate();
     std::memset(account, 0, sizeof(Account));
     std::strcpy(account->AccountID, "A001");
     std::strcpy(account->AccountName, "Alice");
@@ -287,7 +287,7 @@ mdb->capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
 AccountIDType accountID;
 std::strcpy(accountID, "A001");
 Account* oldAccount = mdb->account->primaryKey->Select(accountID);
-Account* newAccount = new Account();
+Account* newAccount = Account::Allocate();
 *newAccount = *oldAccount;                              // copy then modify
 std::strcpy(newAccount->AccountName, "Bob");
 mdb->account->Update(oldAccount, newAccount);
