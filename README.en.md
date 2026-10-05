@@ -3,7 +3,7 @@
 [![Language](https://img.shields.io/badge/Language-C++20+-orange.svg)]()
 [![Build](https://img.shields.io/badge/Build-CMake3.20+-green.svg)]()
 
-**Mdb** is a C++ **in-memory database reference implementation (Demo)** built on top of **Spark** and **DbAdapters**, demonstrating how to **implement and use an in-memory database**: data is read and written in memory at high speed, changes are broadcast through a subscription interface, and asynchronously synced to persistent databases (SQLite / DuckDB / MySQL / MariaDB) via DbAdapters' `AsyncDBWriter`. The built-in financial tables are **example data only** — the point is the in-memory database architecture and how it is implemented.
+**Mdb** is a C++ **in-memory database reference implementation (Demo)** built on top of **Spark** and **DbAdapters**, demonstrating how to **implement and use an in-memory database**: data is read and written in memory at high speed, changes are broadcast through a subscription interface, and asynchronously synced to persistent databases (SQLite / DuckDB / MySQL / MariaDB) via DbAdapters' `AsyncDbWriter`. The built-in financial tables are **example data only** — the point is the in-memory database architecture and how it is implemented.
 
 Created by [Fireseeker](https://fireseeker.cn/)
 
@@ -12,7 +12,7 @@ Created by [Fireseeker](https://fireseeker.cn/)
 Mdb is an **implementation example of an in-memory database**; the focus is on demonstrating *how to implement and use* an in-memory database, not on specific business data. It shows the complete implementation path:
 
 1. **Schema-driven**: table models are defined in `Model/*.xml`, and Python scripts (`pump.py` + `pumplist.xml`) auto-generate all table-structure code (record structs, typed table containers, primary-key containers, secondary-index containers) — no manual code;
-2. **In-memory-first + asynchronous persistence**: reads/writes operate on memory first; changes are broadcast through a subscription interface (`MdbSubscriber`) and **asynchronously synced to physical databases** (SQLite / DuckDB / MySQL / MariaDB) via DbAdapters' `AsyncDBWriter`, balancing low latency with data reliability;
+2. **In-memory-first + asynchronous persistence**: reads/writes operate on memory first; changes are broadcast through a subscription interface (`MdbSubscriber`) and **asynchronously synced to physical databases** (SQLite / DuckDB / MySQL / MariaDB) via DbAdapters' `AsyncDbWriter`, balancing low latency with data reliability;
 3. **Retrieval & concurrency**: each table ships with primary-key and secondary-index containers (`Select` / `SelectAll` / `EqualRange`) and supports concurrent reads via `std::shared_mutex`.
 
 Therefore, the 11 built-in financial tables (trading days, accounts, orders, positions, etc.) are **example data only**, used to demonstrate how to describe, create, index, and query different field types (fixed-length strings, enums, dates, integers). To move to your own business, define your own `Model/*.xml` and regenerate the code.
@@ -60,7 +60,7 @@ Mdb/
 │   ├── MdbStructs.h/.cpp          # Record structs + TableSchema for the 11 tables (generated)
 │   ├── MdbTables.h/.cpp           # Typed table containers (TradingDayTable / ExchangeTable / ...)
 │   ├── MdbTableBase.h             # Table base class (MdbTableBase: Subscribe / InitDB / Truncate / Dump)
-│   ├── MdbTableRegistry.h/.cpp    # SchemaRegistry implementation for AsyncDBWriter to resolve table schemas
+│   ├── MdbTableRegistry.h/.cpp    # SchemaRegistry implementation for AsyncDbWriter to resolve table schemas
 │   ├── MdbPrimaryKeys.h/.cpp      # Primary-key index containers (Select / SelectAll / uniqueness check)
 │   ├── MdbIndexes.h/.cpp          # Secondary-index containers (LowerBound / UpperBound / EqualRange)
 │   ├── MdbPrimaryKeyComp.h/.cpp   # Primary-key hash / equality comparators (generated)
@@ -111,7 +111,7 @@ The build depends on three **prebuilt third-party libraries**, which must be ins
 | Dependency | Install Location | Provides |
 | ---- | ---- | ---- |
 | **Spark** foundational library | `../Libs/Spark/<triplet>` | `Spark::Core` (threads, logging), `Spark/Types.h` type definitions |
-| **DbAdapters** database access layer | `../Libs/DbAdapters/<triplet>` | `DbInterface` / `AsyncDBWriter` / four database wrappers |
+| **DbAdapters** database access layer | `../Libs/DbAdapters/<triplet>` | `DbInterface` / `AsyncDbWriter` / four database wrappers |
 | **DuckDB** | `../Libs/duckdb/<triplet>` | `duckdb::duckdb` (DuckDB backend runtime) |
 
 `<triplet>` is `x64-windows` on Windows and `x64-linux` on Linux / WSL. See each repository's README for how to build and install Spark and DbAdapters.
@@ -190,7 +190,7 @@ The test program runs the "in-memory DB + async write" full flow against SQLite 
 #include "Mdb.h"
 #include "MdbTableRegistry.h"
 #include "FullTableList.h"
-#include <DbAdapters/AsyncDBWriter/AsyncDBWriter.h>
+#include <DbAdapters/AsyncDbWriter/AsyncDbWriter.h>
 #include <DbAdapters/SqliteWrapper/SqliteWrapper.h>
 #include <Spark/Core/Core.h>
 #include <cstring>
@@ -214,10 +214,10 @@ int main(int argc, const char* argv[])
     // 2. Persistence chain: DB adapter + schema registry + async writer
     DB* db = new SqliteWrapper("./Test.sqlitedb");          // persist to SQLite
     MdbTableRegistry* schemaRegistry = new MdbTableRegistry(fullTableList);
-    AsyncDBWriter* dbWriter = new AsyncDBWriter(db, schemaRegistry);
+    AsyncDbWriter* dbWriter = new AsyncDbWriter(db, schemaRegistry);
 
     // 3. Bidirectional wiring
-    //    mdb->Subscribe(dbWriter)  : in-memory changes broadcast to AsyncDBWriter for async writes
+    //    mdb->Subscribe(dbWriter)  : in-memory changes broadcast to AsyncDbWriter for async writes
     //    dbWriter->Subscribe(mdb)  : on connect, Mdb::OnDbConnected is called, auto InitDB (create + init)
     mdb->Subscribe(dbWriter);
     dbWriter->Subscribe(mdb);
@@ -283,7 +283,7 @@ mdb->capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
 ### Example 3: Update / Delete / Clear Tables
 
 ```cpp
-// Update: sync to memory and broadcast to AsyncDBWriter via MdbSubscriber for async persistence
+// Update: sync to memory and broadcast to AsyncDbWriter via MdbSubscriber for async persistence
 AccountIDType accountID;
 std::strcpy(accountID, "A001");
 Account* oldAccount = mdb->account->primaryKey->Select(accountID);
