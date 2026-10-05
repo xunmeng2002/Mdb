@@ -1,14 +1,17 @@
 ﻿// 本文件由 ../Templates/Cpp/Mdb/MdbTables.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #include "MdbTables.h"
+#include <DbAdapters/DbInterface/RecordHandle.h>
 #include <Spark/Core/Logger/Logger.h>
 #include <string>
 #include <cstring>
 #include <set>
+#include <utility>
 #include <vector>
 
 using std::string;
 using std::set;
 using namespace Spark::Core;
+using namespace DbAdapters;
 
 namespace Mdb
 {
@@ -47,23 +50,20 @@ namespace Mdb
 		}
 		mdbSubscriber_->OnRecordTruncate(TradingDay::TableId);
 
-		auto records = new std::vector<const void*>();
+		std::vector<RecordHandle> records;
 		{
 			std::shared_lock guard(SharedMutex);
+			records.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
 				auto record = TradingDay::Allocate();
 				memcpy(record, *it, sizeof(TradingDay));
-				records->push_back(record);
+				records.push_back(AdoptRecord(record));
 			}
 		}
-		if (!records->empty())
+		if (!records.empty())
 		{
-			mdbSubscriber_->OnRecordBatchInsert(TradingDay::TableId, records);
-		}
-		else
-		{
-			delete records;
+			mdbSubscriber_->OnRecordBatchInsert(TradingDay::TableId, std::move(records));
 		}
 		DbInited = true;
 	}
@@ -82,7 +82,7 @@ namespace Mdb
 		
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordInsert(TradingDay::TableId, record);
+			mdbSubscriber_->OnRecordInsert(TradingDay::TableId, BorrowRecord(record));
 		}
 		return true;
 	}
@@ -100,10 +100,13 @@ namespace Mdb
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			auto dbRecords = new std::vector<const void*>();
-			dbRecords->reserve(records->size());
-			for (auto* r : *records) dbRecords->push_back(r);
-			mdbSubscriber_->OnRecordBatchInsert(TradingDay::TableId, dbRecords);
+			std::vector<RecordHandle> dbRecords;
+			dbRecords.reserve(records->size());
+			for (auto* r : *records)
+			{
+				dbRecords.push_back(AdoptRecord(r));
+			}
+			mdbSubscriber_->OnRecordBatchInsert(TradingDay::TableId, std::move(dbRecords));
 		}
 		delete records;
 	}
@@ -114,7 +117,7 @@ namespace Mdb
 		EraseIndex(record);
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordErase(TradingDay::TableId, record);
+			mdbSubscriber_->OnRecordErase(TradingDay::TableId, AdoptRecord(record));
 		}
 		else
 		{
@@ -136,7 +139,7 @@ namespace Mdb
 
 		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordUpdate(TradingDay::TableId, newRecord);
+			mdbSubscriber_->OnRecordUpdate(TradingDay::TableId, AdoptRecord(newRecord));
 		}
 		else
 		{
@@ -233,23 +236,20 @@ namespace Mdb
 		}
 		mdbSubscriber_->OnRecordTruncate(Exchange::TableId);
 
-		auto records = new std::vector<const void*>();
+		std::vector<RecordHandle> records;
 		{
 			std::shared_lock guard(SharedMutex);
+			records.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
 				auto record = Exchange::Allocate();
 				memcpy(record, *it, sizeof(Exchange));
-				records->push_back(record);
+				records.push_back(AdoptRecord(record));
 			}
 		}
-		if (!records->empty())
+		if (!records.empty())
 		{
-			mdbSubscriber_->OnRecordBatchInsert(Exchange::TableId, records);
-		}
-		else
-		{
-			delete records;
+			mdbSubscriber_->OnRecordBatchInsert(Exchange::TableId, std::move(records));
 		}
 		DbInited = true;
 	}
@@ -268,7 +268,7 @@ namespace Mdb
 		
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordInsert(Exchange::TableId, record);
+			mdbSubscriber_->OnRecordInsert(Exchange::TableId, BorrowRecord(record));
 		}
 		return true;
 	}
@@ -286,10 +286,13 @@ namespace Mdb
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			auto dbRecords = new std::vector<const void*>();
-			dbRecords->reserve(records->size());
-			for (auto* r : *records) dbRecords->push_back(r);
-			mdbSubscriber_->OnRecordBatchInsert(Exchange::TableId, dbRecords);
+			std::vector<RecordHandle> dbRecords;
+			dbRecords.reserve(records->size());
+			for (auto* r : *records)
+			{
+				dbRecords.push_back(AdoptRecord(r));
+			}
+			mdbSubscriber_->OnRecordBatchInsert(Exchange::TableId, std::move(dbRecords));
 		}
 		delete records;
 	}
@@ -300,7 +303,7 @@ namespace Mdb
 		EraseIndex(record);
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordErase(Exchange::TableId, record);
+			mdbSubscriber_->OnRecordErase(Exchange::TableId, AdoptRecord(record));
 		}
 		else
 		{
@@ -322,7 +325,7 @@ namespace Mdb
 
 		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordUpdate(Exchange::TableId, newRecord);
+			mdbSubscriber_->OnRecordUpdate(Exchange::TableId, AdoptRecord(newRecord));
 		}
 		else
 		{
@@ -419,23 +422,20 @@ namespace Mdb
 		}
 		mdbSubscriber_->OnRecordTruncate(Product::TableId);
 
-		auto records = new std::vector<const void*>();
+		std::vector<RecordHandle> records;
 		{
 			std::shared_lock guard(SharedMutex);
+			records.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
 				auto record = Product::Allocate();
 				memcpy(record, *it, sizeof(Product));
-				records->push_back(record);
+				records.push_back(AdoptRecord(record));
 			}
 		}
-		if (!records->empty())
+		if (!records.empty())
 		{
-			mdbSubscriber_->OnRecordBatchInsert(Product::TableId, records);
-		}
-		else
-		{
-			delete records;
+			mdbSubscriber_->OnRecordBatchInsert(Product::TableId, std::move(records));
 		}
 		DbInited = true;
 	}
@@ -454,7 +454,7 @@ namespace Mdb
 		
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordInsert(Product::TableId, record);
+			mdbSubscriber_->OnRecordInsert(Product::TableId, BorrowRecord(record));
 		}
 		return true;
 	}
@@ -472,10 +472,13 @@ namespace Mdb
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			auto dbRecords = new std::vector<const void*>();
-			dbRecords->reserve(records->size());
-			for (auto* r : *records) dbRecords->push_back(r);
-			mdbSubscriber_->OnRecordBatchInsert(Product::TableId, dbRecords);
+			std::vector<RecordHandle> dbRecords;
+			dbRecords.reserve(records->size());
+			for (auto* r : *records)
+			{
+				dbRecords.push_back(AdoptRecord(r));
+			}
+			mdbSubscriber_->OnRecordBatchInsert(Product::TableId, std::move(dbRecords));
 		}
 		delete records;
 	}
@@ -486,7 +489,7 @@ namespace Mdb
 		EraseIndex(record);
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordErase(Product::TableId, record);
+			mdbSubscriber_->OnRecordErase(Product::TableId, AdoptRecord(record));
 		}
 		else
 		{
@@ -508,7 +511,7 @@ namespace Mdb
 
 		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordUpdate(Product::TableId, newRecord);
+			mdbSubscriber_->OnRecordUpdate(Product::TableId, AdoptRecord(newRecord));
 		}
 		else
 		{
@@ -605,23 +608,20 @@ namespace Mdb
 		}
 		mdbSubscriber_->OnRecordTruncate(Instrument::TableId);
 
-		auto records = new std::vector<const void*>();
+		std::vector<RecordHandle> records;
 		{
 			std::shared_lock guard(SharedMutex);
+			records.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
 				auto record = Instrument::Allocate();
 				memcpy(record, *it, sizeof(Instrument));
-				records->push_back(record);
+				records.push_back(AdoptRecord(record));
 			}
 		}
-		if (!records->empty())
+		if (!records.empty())
 		{
-			mdbSubscriber_->OnRecordBatchInsert(Instrument::TableId, records);
-		}
-		else
-		{
-			delete records;
+			mdbSubscriber_->OnRecordBatchInsert(Instrument::TableId, std::move(records));
 		}
 		DbInited = true;
 	}
@@ -640,7 +640,7 @@ namespace Mdb
 		
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordInsert(Instrument::TableId, record);
+			mdbSubscriber_->OnRecordInsert(Instrument::TableId, BorrowRecord(record));
 		}
 		return true;
 	}
@@ -658,10 +658,13 @@ namespace Mdb
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			auto dbRecords = new std::vector<const void*>();
-			dbRecords->reserve(records->size());
-			for (auto* r : *records) dbRecords->push_back(r);
-			mdbSubscriber_->OnRecordBatchInsert(Instrument::TableId, dbRecords);
+			std::vector<RecordHandle> dbRecords;
+			dbRecords.reserve(records->size());
+			for (auto* r : *records)
+			{
+				dbRecords.push_back(AdoptRecord(r));
+			}
+			mdbSubscriber_->OnRecordBatchInsert(Instrument::TableId, std::move(dbRecords));
 		}
 		delete records;
 	}
@@ -672,7 +675,7 @@ namespace Mdb
 		EraseIndex(record);
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordErase(Instrument::TableId, record);
+			mdbSubscriber_->OnRecordErase(Instrument::TableId, AdoptRecord(record));
 		}
 		else
 		{
@@ -694,7 +697,7 @@ namespace Mdb
 
 		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordUpdate(Instrument::TableId, newRecord);
+			mdbSubscriber_->OnRecordUpdate(Instrument::TableId, AdoptRecord(newRecord));
 		}
 		else
 		{
@@ -794,23 +797,20 @@ namespace Mdb
 		}
 		mdbSubscriber_->OnRecordTruncate(PrimaryAccount::TableId);
 
-		auto records = new std::vector<const void*>();
+		std::vector<RecordHandle> records;
 		{
 			std::shared_lock guard(SharedMutex);
+			records.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
 				auto record = PrimaryAccount::Allocate();
 				memcpy(record, *it, sizeof(PrimaryAccount));
-				records->push_back(record);
+				records.push_back(AdoptRecord(record));
 			}
 		}
-		if (!records->empty())
+		if (!records.empty())
 		{
-			mdbSubscriber_->OnRecordBatchInsert(PrimaryAccount::TableId, records);
-		}
-		else
-		{
-			delete records;
+			mdbSubscriber_->OnRecordBatchInsert(PrimaryAccount::TableId, std::move(records));
 		}
 		DbInited = true;
 	}
@@ -830,7 +830,7 @@ namespace Mdb
 		
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordInsert(PrimaryAccount::TableId, record);
+			mdbSubscriber_->OnRecordInsert(PrimaryAccount::TableId, BorrowRecord(record));
 		}
 		return true;
 	}
@@ -849,10 +849,13 @@ namespace Mdb
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			auto dbRecords = new std::vector<const void*>();
-			dbRecords->reserve(records->size());
-			for (auto* r : *records) dbRecords->push_back(r);
-			mdbSubscriber_->OnRecordBatchInsert(PrimaryAccount::TableId, dbRecords);
+			std::vector<RecordHandle> dbRecords;
+			dbRecords.reserve(records->size());
+			for (auto* r : *records)
+			{
+				dbRecords.push_back(AdoptRecord(r));
+			}
+			mdbSubscriber_->OnRecordBatchInsert(PrimaryAccount::TableId, std::move(dbRecords));
 		}
 		delete records;
 	}
@@ -863,7 +866,7 @@ namespace Mdb
 		EraseIndex(record);
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordErase(PrimaryAccount::TableId, record);
+			mdbSubscriber_->OnRecordErase(PrimaryAccount::TableId, AdoptRecord(record));
 		}
 		else
 		{
@@ -890,7 +893,7 @@ namespace Mdb
 		{
 			auto record = PrimaryAccount::Allocate();
 			memcpy(record, &ComparePrimaryAccount, sizeof(PrimaryAccount));
-			mdbSubscriber_->OnRecordEraseByIndex(PrimaryAccount::TableId, PrimaryAccountIndexOfferId::IndexID, record);
+			mdbSubscriber_->OnRecordEraseByIndex(PrimaryAccount::TableId, PrimaryAccountIndexOfferId::IndexID, AdoptRecord(record));
 		}
 		return static_cast<int>(records.size());
 	}
@@ -919,7 +922,7 @@ namespace Mdb
 
 		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordUpdate(PrimaryAccount::TableId, newRecord);
+			mdbSubscriber_->OnRecordUpdate(PrimaryAccount::TableId, AdoptRecord(newRecord));
 		}
 		else
 		{
@@ -1019,23 +1022,20 @@ namespace Mdb
 		}
 		mdbSubscriber_->OnRecordTruncate(Account::TableId);
 
-		auto records = new std::vector<const void*>();
+		std::vector<RecordHandle> records;
 		{
 			std::shared_lock guard(SharedMutex);
+			records.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
 				auto record = Account::Allocate();
 				memcpy(record, *it, sizeof(Account));
-				records->push_back(record);
+				records.push_back(AdoptRecord(record));
 			}
 		}
-		if (!records->empty())
+		if (!records.empty())
 		{
-			mdbSubscriber_->OnRecordBatchInsert(Account::TableId, records);
-		}
-		else
-		{
-			delete records;
+			mdbSubscriber_->OnRecordBatchInsert(Account::TableId, std::move(records));
 		}
 		DbInited = true;
 	}
@@ -1054,7 +1054,7 @@ namespace Mdb
 		
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordInsert(Account::TableId, record);
+			mdbSubscriber_->OnRecordInsert(Account::TableId, BorrowRecord(record));
 		}
 		return true;
 	}
@@ -1072,10 +1072,13 @@ namespace Mdb
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			auto dbRecords = new std::vector<const void*>();
-			dbRecords->reserve(records->size());
-			for (auto* r : *records) dbRecords->push_back(r);
-			mdbSubscriber_->OnRecordBatchInsert(Account::TableId, dbRecords);
+			std::vector<RecordHandle> dbRecords;
+			dbRecords.reserve(records->size());
+			for (auto* r : *records)
+			{
+				dbRecords.push_back(AdoptRecord(r));
+			}
+			mdbSubscriber_->OnRecordBatchInsert(Account::TableId, std::move(dbRecords));
 		}
 		delete records;
 	}
@@ -1086,7 +1089,7 @@ namespace Mdb
 		EraseIndex(record);
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordErase(Account::TableId, record);
+			mdbSubscriber_->OnRecordErase(Account::TableId, AdoptRecord(record));
 		}
 		else
 		{
@@ -1108,7 +1111,7 @@ namespace Mdb
 
 		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordUpdate(Account::TableId, newRecord);
+			mdbSubscriber_->OnRecordUpdate(Account::TableId, AdoptRecord(newRecord));
 		}
 		else
 		{
@@ -1208,23 +1211,20 @@ namespace Mdb
 		}
 		mdbSubscriber_->OnRecordTruncate(Capital::TableId);
 
-		auto records = new std::vector<const void*>();
+		std::vector<RecordHandle> records;
 		{
 			std::shared_lock guard(SharedMutex);
+			records.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
 				auto record = Capital::Allocate();
 				memcpy(record, *it, sizeof(Capital));
-				records->push_back(record);
+				records.push_back(AdoptRecord(record));
 			}
 		}
-		if (!records->empty())
+		if (!records.empty())
 		{
-			mdbSubscriber_->OnRecordBatchInsert(Capital::TableId, records);
-		}
-		else
-		{
-			delete records;
+			mdbSubscriber_->OnRecordBatchInsert(Capital::TableId, std::move(records));
 		}
 		DbInited = true;
 	}
@@ -1244,7 +1244,7 @@ namespace Mdb
 		
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordInsert(Capital::TableId, record);
+			mdbSubscriber_->OnRecordInsert(Capital::TableId, BorrowRecord(record));
 		}
 		return true;
 	}
@@ -1263,10 +1263,13 @@ namespace Mdb
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			auto dbRecords = new std::vector<const void*>();
-			dbRecords->reserve(records->size());
-			for (auto* r : *records) dbRecords->push_back(r);
-			mdbSubscriber_->OnRecordBatchInsert(Capital::TableId, dbRecords);
+			std::vector<RecordHandle> dbRecords;
+			dbRecords.reserve(records->size());
+			for (auto* r : *records)
+			{
+				dbRecords.push_back(AdoptRecord(r));
+			}
+			mdbSubscriber_->OnRecordBatchInsert(Capital::TableId, std::move(dbRecords));
 		}
 		delete records;
 	}
@@ -1277,7 +1280,7 @@ namespace Mdb
 		EraseIndex(record);
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordErase(Capital::TableId, record);
+			mdbSubscriber_->OnRecordErase(Capital::TableId, AdoptRecord(record));
 		}
 		else
 		{
@@ -1304,7 +1307,7 @@ namespace Mdb
 		{
 			auto record = Capital::Allocate();
 			memcpy(record, &CompareCapital, sizeof(Capital));
-			mdbSubscriber_->OnRecordEraseByIndex(Capital::TableId, CapitalIndexTradingDay::IndexID, record);
+			mdbSubscriber_->OnRecordEraseByIndex(Capital::TableId, CapitalIndexTradingDay::IndexID, AdoptRecord(record));
 		}
 		return static_cast<int>(records.size());
 	}
@@ -1333,7 +1336,7 @@ namespace Mdb
 
 		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordUpdate(Capital::TableId, newRecord);
+			mdbSubscriber_->OnRecordUpdate(Capital::TableId, AdoptRecord(newRecord));
 		}
 		else
 		{
@@ -1439,23 +1442,20 @@ namespace Mdb
 		}
 		mdbSubscriber_->OnRecordTruncate(Position::TableId);
 
-		auto records = new std::vector<const void*>();
+		std::vector<RecordHandle> records;
 		{
 			std::shared_lock guard(SharedMutex);
+			records.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
 				auto record = Position::Allocate();
 				memcpy(record, *it, sizeof(Position));
-				records->push_back(record);
+				records.push_back(AdoptRecord(record));
 			}
 		}
-		if (!records->empty())
+		if (!records.empty())
 		{
-			mdbSubscriber_->OnRecordBatchInsert(Position::TableId, records);
-		}
-		else
-		{
-			delete records;
+			mdbSubscriber_->OnRecordBatchInsert(Position::TableId, std::move(records));
 		}
 		DbInited = true;
 	}
@@ -1476,7 +1476,7 @@ namespace Mdb
 		
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordInsert(Position::TableId, record);
+			mdbSubscriber_->OnRecordInsert(Position::TableId, BorrowRecord(record));
 		}
 		return true;
 	}
@@ -1496,10 +1496,13 @@ namespace Mdb
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			auto dbRecords = new std::vector<const void*>();
-			dbRecords->reserve(records->size());
-			for (auto* r : *records) dbRecords->push_back(r);
-			mdbSubscriber_->OnRecordBatchInsert(Position::TableId, dbRecords);
+			std::vector<RecordHandle> dbRecords;
+			dbRecords.reserve(records->size());
+			for (auto* r : *records)
+			{
+				dbRecords.push_back(AdoptRecord(r));
+			}
+			mdbSubscriber_->OnRecordBatchInsert(Position::TableId, std::move(dbRecords));
 		}
 		delete records;
 	}
@@ -1510,7 +1513,7 @@ namespace Mdb
 		EraseIndex(record);
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordErase(Position::TableId, record);
+			mdbSubscriber_->OnRecordErase(Position::TableId, AdoptRecord(record));
 		}
 		else
 		{
@@ -1537,7 +1540,7 @@ namespace Mdb
 		{
 			auto record = Position::Allocate();
 			memcpy(record, &ComparePosition, sizeof(Position));
-			mdbSubscriber_->OnRecordEraseByIndex(Position::TableId, PositionIndexAccount::IndexID, record);
+			mdbSubscriber_->OnRecordEraseByIndex(Position::TableId, PositionIndexAccount::IndexID, AdoptRecord(record));
 		}
 		return static_cast<int>(records.size());
 	}
@@ -1561,7 +1564,7 @@ namespace Mdb
 		{
 			auto record = Position::Allocate();
 			memcpy(record, &ComparePosition, sizeof(Position));
-			mdbSubscriber_->OnRecordEraseByIndex(Position::TableId, PositionIndexTradingDay::IndexID, record);
+			mdbSubscriber_->OnRecordEraseByIndex(Position::TableId, PositionIndexTradingDay::IndexID, AdoptRecord(record));
 		}
 		return static_cast<int>(records.size());
 	}
@@ -1600,7 +1603,7 @@ namespace Mdb
 
 		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordUpdate(Position::TableId, newRecord);
+			mdbSubscriber_->OnRecordUpdate(Position::TableId, AdoptRecord(newRecord));
 		}
 		else
 		{
@@ -1709,23 +1712,20 @@ namespace Mdb
 		}
 		mdbSubscriber_->OnRecordTruncate(PositionDetail::TableId);
 
-		auto records = new std::vector<const void*>();
+		std::vector<RecordHandle> records;
 		{
 			std::shared_lock guard(SharedMutex);
+			records.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
 				auto record = PositionDetail::Allocate();
 				memcpy(record, *it, sizeof(PositionDetail));
-				records->push_back(record);
+				records.push_back(AdoptRecord(record));
 			}
 		}
-		if (!records->empty())
+		if (!records.empty())
 		{
-			mdbSubscriber_->OnRecordBatchInsert(PositionDetail::TableId, records);
-		}
-		else
-		{
-			delete records;
+			mdbSubscriber_->OnRecordBatchInsert(PositionDetail::TableId, std::move(records));
 		}
 		DbInited = true;
 	}
@@ -1746,7 +1746,7 @@ namespace Mdb
 		
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordInsert(PositionDetail::TableId, record);
+			mdbSubscriber_->OnRecordInsert(PositionDetail::TableId, BorrowRecord(record));
 		}
 		return true;
 	}
@@ -1766,10 +1766,13 @@ namespace Mdb
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			auto dbRecords = new std::vector<const void*>();
-			dbRecords->reserve(records->size());
-			for (auto* r : *records) dbRecords->push_back(r);
-			mdbSubscriber_->OnRecordBatchInsert(PositionDetail::TableId, dbRecords);
+			std::vector<RecordHandle> dbRecords;
+			dbRecords.reserve(records->size());
+			for (auto* r : *records)
+			{
+				dbRecords.push_back(AdoptRecord(r));
+			}
+			mdbSubscriber_->OnRecordBatchInsert(PositionDetail::TableId, std::move(dbRecords));
 		}
 		delete records;
 	}
@@ -1780,7 +1783,7 @@ namespace Mdb
 		EraseIndex(record);
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordErase(PositionDetail::TableId, record);
+			mdbSubscriber_->OnRecordErase(PositionDetail::TableId, AdoptRecord(record));
 		}
 		else
 		{
@@ -1807,7 +1810,7 @@ namespace Mdb
 		{
 			auto record = PositionDetail::Allocate();
 			memcpy(record, &ComparePositionDetail, sizeof(PositionDetail));
-			mdbSubscriber_->OnRecordEraseByIndex(PositionDetail::TableId, PositionDetailIndexTradeMatch::IndexID, record);
+			mdbSubscriber_->OnRecordEraseByIndex(PositionDetail::TableId, PositionDetailIndexTradeMatch::IndexID, AdoptRecord(record));
 		}
 		return static_cast<int>(records.size());
 	}
@@ -1831,7 +1834,7 @@ namespace Mdb
 		{
 			auto record = PositionDetail::Allocate();
 			memcpy(record, &ComparePositionDetail, sizeof(PositionDetail));
-			mdbSubscriber_->OnRecordEraseByIndex(PositionDetail::TableId, PositionDetailIndexTradingDay::IndexID, record);
+			mdbSubscriber_->OnRecordEraseByIndex(PositionDetail::TableId, PositionDetailIndexTradingDay::IndexID, AdoptRecord(record));
 		}
 		return static_cast<int>(records.size());
 	}
@@ -1870,7 +1873,7 @@ namespace Mdb
 
 		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordUpdate(PositionDetail::TableId, newRecord);
+			mdbSubscriber_->OnRecordUpdate(PositionDetail::TableId, AdoptRecord(newRecord));
 		}
 		else
 		{
@@ -1976,23 +1979,20 @@ namespace Mdb
 		}
 		mdbSubscriber_->OnRecordTruncate(Order::TableId);
 
-		auto records = new std::vector<const void*>();
+		std::vector<RecordHandle> records;
 		{
 			std::shared_lock guard(SharedMutex);
+			records.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
 				auto record = Order::Allocate();
 				memcpy(record, *it, sizeof(Order));
-				records->push_back(record);
+				records.push_back(AdoptRecord(record));
 			}
 		}
-		if (!records->empty())
+		if (!records.empty())
 		{
-			mdbSubscriber_->OnRecordBatchInsert(Order::TableId, records);
-		}
-		else
-		{
-			delete records;
+			mdbSubscriber_->OnRecordBatchInsert(Order::TableId, std::move(records));
 		}
 		DbInited = true;
 	}
@@ -2012,7 +2012,7 @@ namespace Mdb
 		
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordInsert(Order::TableId, record);
+			mdbSubscriber_->OnRecordInsert(Order::TableId, BorrowRecord(record));
 		}
 		return true;
 	}
@@ -2031,10 +2031,13 @@ namespace Mdb
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			auto dbRecords = new std::vector<const void*>();
-			dbRecords->reserve(records->size());
-			for (auto* r : *records) dbRecords->push_back(r);
-			mdbSubscriber_->OnRecordBatchInsert(Order::TableId, dbRecords);
+			std::vector<RecordHandle> dbRecords;
+			dbRecords.reserve(records->size());
+			for (auto* r : *records)
+			{
+				dbRecords.push_back(AdoptRecord(r));
+			}
+			mdbSubscriber_->OnRecordBatchInsert(Order::TableId, std::move(dbRecords));
 		}
 		delete records;
 	}
@@ -2045,7 +2048,7 @@ namespace Mdb
 		EraseIndex(record);
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordErase(Order::TableId, record);
+			mdbSubscriber_->OnRecordErase(Order::TableId, AdoptRecord(record));
 		}
 		else
 		{
@@ -2067,7 +2070,7 @@ namespace Mdb
 
 		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordUpdate(Order::TableId, newRecord);
+			mdbSubscriber_->OnRecordUpdate(Order::TableId, AdoptRecord(newRecord));
 		}
 		else
 		{
@@ -2167,23 +2170,20 @@ namespace Mdb
 		}
 		mdbSubscriber_->OnRecordTruncate(Trade::TableId);
 
-		auto records = new std::vector<const void*>();
+		std::vector<RecordHandle> records;
 		{
 			std::shared_lock guard(SharedMutex);
+			records.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
 				auto record = Trade::Allocate();
 				memcpy(record, *it, sizeof(Trade));
-				records->push_back(record);
+				records.push_back(AdoptRecord(record));
 			}
 		}
-		if (!records->empty())
+		if (!records.empty())
 		{
-			mdbSubscriber_->OnRecordBatchInsert(Trade::TableId, records);
-		}
-		else
-		{
-			delete records;
+			mdbSubscriber_->OnRecordBatchInsert(Trade::TableId, std::move(records));
 		}
 		DbInited = true;
 	}
@@ -2202,7 +2202,7 @@ namespace Mdb
 		
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordInsert(Trade::TableId, record);
+			mdbSubscriber_->OnRecordInsert(Trade::TableId, BorrowRecord(record));
 		}
 		return true;
 	}
@@ -2220,10 +2220,13 @@ namespace Mdb
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			auto dbRecords = new std::vector<const void*>();
-			dbRecords->reserve(records->size());
-			for (auto* r : *records) dbRecords->push_back(r);
-			mdbSubscriber_->OnRecordBatchInsert(Trade::TableId, dbRecords);
+			std::vector<RecordHandle> dbRecords;
+			dbRecords.reserve(records->size());
+			for (auto* r : *records)
+			{
+				dbRecords.push_back(AdoptRecord(r));
+			}
+			mdbSubscriber_->OnRecordBatchInsert(Trade::TableId, std::move(dbRecords));
 		}
 		delete records;
 	}
@@ -2234,7 +2237,7 @@ namespace Mdb
 		EraseIndex(record);
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordErase(Trade::TableId, record);
+			mdbSubscriber_->OnRecordErase(Trade::TableId, AdoptRecord(record));
 		}
 		else
 		{
@@ -2256,7 +2259,7 @@ namespace Mdb
 
 		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
 		{
-			mdbSubscriber_->OnRecordUpdate(Trade::TableId, newRecord);
+			mdbSubscriber_->OnRecordUpdate(Trade::TableId, AdoptRecord(newRecord));
 		}
 		else
 		{

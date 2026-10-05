@@ -37,10 +37,9 @@ namespace Mdb
 			Pk, CurrTradingDay, PreTradingDay);
 		return MdbDataStringBuffer;
 	}
-	static void DeallocateTradingDay(void* r) { static_cast<TradingDay*>(r)->Deallocate(); }
 	const TableSchema& TradingDay::GetSchema()
 	{
-		static const TableSchema schema = {"TradingDay", TradingDayFields, 3, TradingDayPKIndices, 1, DeallocateTradingDay, nullptr, 0};
+		static const TableSchema schema = {"TradingDay", TradingDayFields, 3, TradingDayPKIndices, 1, nullptr, 0};
 		return schema;
 	}
 	static const FieldDescriptor ExchangeFields[] = {
@@ -68,10 +67,9 @@ namespace Mdb
 			ExchangeId, ExchangeName);
 		return MdbDataStringBuffer;
 	}
-	static void DeallocateExchange(void* r) { static_cast<Exchange*>(r)->Deallocate(); }
 	const TableSchema& Exchange::GetSchema()
 	{
-		static const TableSchema schema = {"Exchange", ExchangeFields, 2, ExchangePKIndices, 1, DeallocateExchange, nullptr, 0};
+		static const TableSchema schema = {"Exchange", ExchangeFields, 2, ExchangePKIndices, 1, nullptr, 0};
 		return schema;
 	}
 	static const FieldDescriptor ProductFields[] = {
@@ -108,10 +106,9 @@ namespace Mdb
 			ExchangeId, ProductId, ProductName, static_cast<int>(ProductClass), VolumeMultiple, PriceTick, MaxMarketOrderVolume, MinMarketOrderVolume, MaxLimitOrderVolume, MinLimitOrderVolume, SessionName);
 		return MdbDataStringBuffer;
 	}
-	static void DeallocateProduct(void* r) { static_cast<Product*>(r)->Deallocate(); }
 	const TableSchema& Product::GetSchema()
 	{
-		static const TableSchema schema = {"Product", ProductFields, 11, ProductPKIndices, 2, DeallocateProduct, nullptr, 0};
+		static const TableSchema schema = {"Product", ProductFields, 11, ProductPKIndices, 2, nullptr, 0};
 		return schema;
 	}
 	static const FieldDescriptor InstrumentFields[] = {
@@ -152,10 +149,9 @@ namespace Mdb
 			ExchangeId, InstrumentId, ExchangeInstId, InstrumentName, ProductId, static_cast<int>(ProductClass), static_cast<int>(InstrumentClass), Rank, VolumeMultiple, PriceTick, MaxMarketOrderVolume, MinMarketOrderVolume, MaxLimitOrderVolume, MinLimitOrderVolume, SessionName);
 		return MdbDataStringBuffer;
 	}
-	static void DeallocateInstrument(void* r) { static_cast<Instrument*>(r)->Deallocate(); }
 	const TableSchema& Instrument::GetSchema()
 	{
-		static const TableSchema schema = {"Instrument", InstrumentFields, 15, InstrumentPKIndices, 2, DeallocateInstrument, nullptr, 0};
+		static const TableSchema schema = {"Instrument", InstrumentFields, 15, InstrumentPKIndices, 2, nullptr, 0};
 		return schema;
 	}
 	static const FieldDescriptor PrimaryAccountFields[] = {
@@ -194,10 +190,9 @@ namespace Mdb
 			PrimaryAccountId, PrimaryAccountName, static_cast<int>(AccountClass), BrokerPassword, OfferId, IsAllowLogin, IsSimulateAccount, static_cast<int>(LoginStatus), static_cast<int>(InitStatus));
 		return MdbDataStringBuffer;
 	}
-	static void DeallocatePrimaryAccount(void* r) { static_cast<PrimaryAccount*>(r)->Deallocate(); }
 	const TableSchema& PrimaryAccount::GetSchema()
 	{
-		static const TableSchema schema = {"PrimaryAccount", PrimaryAccountFields, 9, PrimaryAccountPKIndices, 1, DeallocatePrimaryAccount, PrimaryAccountIndices, 1};
+		static const TableSchema schema = {"PrimaryAccount", PrimaryAccountFields, 9, PrimaryAccountPKIndices, 1, PrimaryAccountIndices, 1};
 		return schema;
 	}
 	static const FieldDescriptor AccountFields[] = {
@@ -231,10 +226,9 @@ namespace Mdb
 			AccountId, AccountName, static_cast<int>(AccountType), static_cast<int>(AccountStatus), Password, TradeGroupId, RiskGroupId, CommissionGroupId);
 		return MdbDataStringBuffer;
 	}
-	static void DeallocateAccount(void* r) { static_cast<Account*>(r)->Deallocate(); }
 	const TableSchema& Account::GetSchema()
 	{
-		static const TableSchema schema = {"Account", AccountFields, 8, AccountPKIndices, 1, DeallocateAccount, nullptr, 0};
+		static const TableSchema schema = {"Account", AccountFields, 8, AccountPKIndices, 1, nullptr, 0};
 		return schema;
 	}
 	static const FieldDescriptor CapitalFields[] = {
@@ -284,10 +278,9 @@ namespace Mdb
 			TradingDay, AccountId, static_cast<int>(AccountType), Balance, PreBalance, Available, MarketValue, CashIn, CashOut, Margin, Commission, FrozenCash, FrozenMargin, FrozenCommission, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, Deposit, Withdraw);
 		return MdbDataStringBuffer;
 	}
-	static void DeallocateCapital(void* r) { static_cast<Capital*>(r)->Deallocate(); }
 	const TableSchema& Capital::GetSchema()
 	{
-		static const TableSchema schema = {"Capital", CapitalFields, 20, CapitalPKIndices, 2, DeallocateCapital, CapitalIndices, 1};
+		static const TableSchema schema = {"Capital", CapitalFields, 20, CapitalPKIndices, 2, CapitalIndices, 1};
 		return schema;
 	}
 	static const FieldDescriptor PositionFields[] = {
@@ -344,10 +337,9 @@ namespace Mdb
 			TradingDay, AccountId, static_cast<int>(AccountType), ExchangeId, InstrumentId, static_cast<int>(ProductClass), static_cast<int>(PosiDirection), TotalPosition, PositionFrozen, TodayPosition, MarketValue, CashIn, CashOut, Margin, Commission, FrozenCash, FrozenMargin, FrozenCommission, VolumeMultiple, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, SettlementPrice, PreSettlementPrice);
 		return MdbDataStringBuffer;
 	}
-	static void DeallocatePosition(void* r) { static_cast<Position*>(r)->Deallocate(); }
 	const TableSchema& Position::GetSchema()
 	{
-		static const TableSchema schema = {"Position", PositionFields, 25, PositionPKIndices, 5, DeallocatePosition, PositionIndices, 2};
+		static const TableSchema schema = {"Position", PositionFields, 25, PositionPKIndices, 5, PositionIndices, 2};
 		return schema;
 	}
 	static const FieldDescriptor PositionDetailFields[] = {
@@ -404,10 +396,9 @@ namespace Mdb
 			TradingDay, AccountId, static_cast<int>(AccountType), ExchangeId, InstrumentId, static_cast<int>(ProductClass), static_cast<int>(PosiDirection), OpenDate, TradeId, Volume, OpenPrice, MarketValue, CashIn, CashOut, Margin, Commission, VolumeMultiple, CloseProfitByDate, CloseProfitByTrade, PositionProfitByDate, PositionProfitByTrade, SettlementPrice, PreSettlementPrice, CloseVolume, CloseAmount);
 		return MdbDataStringBuffer;
 	}
-	static void DeallocatePositionDetail(void* r) { static_cast<PositionDetail*>(r)->Deallocate(); }
 	const TableSchema& PositionDetail::GetSchema()
 	{
-		static const TableSchema schema = {"PositionDetail", PositionDetailFields, 25, PositionDetailPKIndices, 7, DeallocatePositionDetail, PositionDetailIndices, 2};
+		static const TableSchema schema = {"PositionDetail", PositionDetailFields, 25, PositionDetailPKIndices, 7, PositionDetailIndices, 2};
 		return schema;
 	}
 	static const FieldDescriptor OrderFields[] = {
@@ -466,10 +457,9 @@ namespace Mdb
 			TradingDay, AccountId, static_cast<int>(AccountType), ExchangeId, InstrumentId, static_cast<int>(ProductClass), OrderId, OrderSysId, static_cast<int>(Direction), static_cast<int>(OffsetFlag), static_cast<int>(OrderPriceType), Price, Volume, VolumeTotal, VolumeTraded, VolumeMultiple, static_cast<int>(OrderStatus), OrderDate, OrderTime, CancelDate, CancelTime, SessionId, ClientOrderId, RequestId, OfferId, TradeGroupId, RiskGroupId, CommissionGroupId, FrozenCash, FrozenMargin, FrozenCommission, RebuildMark, IsForceClose);
 		return MdbDataStringBuffer;
 	}
-	static void DeallocateOrder(void* r) { static_cast<Order*>(r)->Deallocate(); }
 	const TableSchema& Order::GetSchema()
 	{
-		static const TableSchema schema = {"Order", OrderFields, 33, OrderPKIndices, 5, DeallocateOrder, nullptr, 0};
+		static const TableSchema schema = {"Order", OrderFields, 33, OrderPKIndices, 5, nullptr, 0};
 		return schema;
 	}
 	static const FieldDescriptor TradeFields[] = {
@@ -513,10 +503,9 @@ namespace Mdb
 			TradingDay, AccountId, static_cast<int>(AccountType), ExchangeId, InstrumentId, static_cast<int>(ProductClass), OrderId, OrderSysId, TradeId, static_cast<int>(Direction), static_cast<int>(OffsetFlag), Price, Volume, VolumeMultiple, TradeAmount, Commission, TradeDate, TradeTime);
 		return MdbDataStringBuffer;
 	}
-	static void DeallocateTrade(void* r) { static_cast<Trade*>(r)->Deallocate(); }
 	const TableSchema& Trade::GetSchema()
 	{
-		static const TableSchema schema = {"Trade", TradeFields, 18, TradePKIndices, 4, DeallocateTrade, nullptr, 0};
+		static const TableSchema schema = {"Trade", TradeFields, 18, TradePKIndices, 4, nullptr, 0};
 		return schema;
 	}
 
