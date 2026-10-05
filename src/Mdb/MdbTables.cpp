@@ -92,9 +92,7 @@ namespace Mdb
 			std::lock_guard guard(SharedMutex);
 			for (auto record : *records)
 			{
-				auto newRecord = TradingDay::Allocate();
-				memcpy(newRecord, record, sizeof(TradingDay));
-				PrimaryKey->Insert(newRecord);
+				PrimaryKey->Insert(record);
 
 			}
 		}
@@ -104,7 +102,7 @@ namespace Mdb
 			dbRecords.reserve(records->size());
 			for (auto* r : *records)
 			{
-				dbRecords.push_back(AdoptRecord(r));
+				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(TradingDay::TableId, std::move(dbRecords));
 		}
@@ -278,9 +276,7 @@ namespace Mdb
 			std::lock_guard guard(SharedMutex);
 			for (auto record : *records)
 			{
-				auto newRecord = Exchange::Allocate();
-				memcpy(newRecord, record, sizeof(Exchange));
-				PrimaryKey->Insert(newRecord);
+				PrimaryKey->Insert(record);
 
 			}
 		}
@@ -290,7 +286,7 @@ namespace Mdb
 			dbRecords.reserve(records->size());
 			for (auto* r : *records)
 			{
-				dbRecords.push_back(AdoptRecord(r));
+				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Exchange::TableId, std::move(dbRecords));
 		}
@@ -464,9 +460,7 @@ namespace Mdb
 			std::lock_guard guard(SharedMutex);
 			for (auto record : *records)
 			{
-				auto newRecord = Product::Allocate();
-				memcpy(newRecord, record, sizeof(Product));
-				PrimaryKey->Insert(newRecord);
+				PrimaryKey->Insert(record);
 
 			}
 		}
@@ -476,7 +470,7 @@ namespace Mdb
 			dbRecords.reserve(records->size());
 			for (auto* r : *records)
 			{
-				dbRecords.push_back(AdoptRecord(r));
+				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Product::TableId, std::move(dbRecords));
 		}
@@ -650,9 +644,7 @@ namespace Mdb
 			std::lock_guard guard(SharedMutex);
 			for (auto record : *records)
 			{
-				auto newRecord = Instrument::Allocate();
-				memcpy(newRecord, record, sizeof(Instrument));
-				PrimaryKey->Insert(newRecord);
+				PrimaryKey->Insert(record);
 
 			}
 		}
@@ -662,7 +654,7 @@ namespace Mdb
 			dbRecords.reserve(records->size());
 			for (auto* r : *records)
 			{
-				dbRecords.push_back(AdoptRecord(r));
+				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Instrument::TableId, std::move(dbRecords));
 		}
@@ -840,11 +832,9 @@ namespace Mdb
 			std::lock_guard guard(SharedMutex);
 			for (auto record : *records)
 			{
-				auto newRecord = PrimaryAccount::Allocate();
-				memcpy(newRecord, record, sizeof(PrimaryAccount));
-				PrimaryKey->Insert(newRecord);
+				PrimaryKey->Insert(record);
 
-				OfferIdIndex->Insert(newRecord);
+				OfferIdIndex->Insert(record);
 			}
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
@@ -853,7 +843,7 @@ namespace Mdb
 			dbRecords.reserve(records->size());
 			for (auto* r : *records)
 			{
-				dbRecords.push_back(AdoptRecord(r));
+				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(PrimaryAccount::TableId, std::move(dbRecords));
 		}
@@ -1064,9 +1054,7 @@ namespace Mdb
 			std::lock_guard guard(SharedMutex);
 			for (auto record : *records)
 			{
-				auto newRecord = Account::Allocate();
-				memcpy(newRecord, record, sizeof(Account));
-				PrimaryKey->Insert(newRecord);
+				PrimaryKey->Insert(record);
 
 			}
 		}
@@ -1076,7 +1064,7 @@ namespace Mdb
 			dbRecords.reserve(records->size());
 			for (auto* r : *records)
 			{
-				dbRecords.push_back(AdoptRecord(r));
+				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Account::TableId, std::move(dbRecords));
 		}
@@ -1254,11 +1242,9 @@ namespace Mdb
 			std::lock_guard guard(SharedMutex);
 			for (auto record : *records)
 			{
-				auto newRecord = Capital::Allocate();
-				memcpy(newRecord, record, sizeof(Capital));
-				PrimaryKey->Insert(newRecord);
+				PrimaryKey->Insert(record);
 
-				TradingDayIndex->Insert(newRecord);
+				TradingDayIndex->Insert(record);
 			}
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
@@ -1267,7 +1253,7 @@ namespace Mdb
 			dbRecords.reserve(records->size());
 			for (auto* r : *records)
 			{
-				dbRecords.push_back(AdoptRecord(r));
+				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Capital::TableId, std::move(dbRecords));
 		}
@@ -1486,12 +1472,10 @@ namespace Mdb
 			std::lock_guard guard(SharedMutex);
 			for (auto record : *records)
 			{
-				auto newRecord = Position::Allocate();
-				memcpy(newRecord, record, sizeof(Position));
-				PrimaryKey->Insert(newRecord);
+				PrimaryKey->Insert(record);
 
-				AccountIndex->Insert(newRecord);
-				TradingDayIndex->Insert(newRecord);
+				AccountIndex->Insert(record);
+				TradingDayIndex->Insert(record);
 			}
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
@@ -1500,7 +1484,7 @@ namespace Mdb
 			dbRecords.reserve(records->size());
 			for (auto* r : *records)
 			{
-				dbRecords.push_back(AdoptRecord(r));
+				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Position::TableId, std::move(dbRecords));
 		}
@@ -1756,12 +1740,10 @@ namespace Mdb
 			std::lock_guard guard(SharedMutex);
 			for (auto record : *records)
 			{
-				auto newRecord = PositionDetail::Allocate();
-				memcpy(newRecord, record, sizeof(PositionDetail));
-				PrimaryKey->Insert(newRecord);
+				PrimaryKey->Insert(record);
 
-				TradeMatchIndex->Insert(newRecord);
-				TradingDayIndex->Insert(newRecord);
+				TradeMatchIndex->Insert(record);
+				TradingDayIndex->Insert(record);
 			}
 		}
 		if (mdbSubscriber_ != nullptr && DbInited)
@@ -1770,7 +1752,7 @@ namespace Mdb
 			dbRecords.reserve(records->size());
 			for (auto* r : *records)
 			{
-				dbRecords.push_back(AdoptRecord(r));
+				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(PositionDetail::TableId, std::move(dbRecords));
 		}
@@ -2022,10 +2004,8 @@ namespace Mdb
 			std::lock_guard guard(SharedMutex);
 			for (auto record : *records)
 			{
-				auto newRecord = Order::Allocate();
-				memcpy(newRecord, record, sizeof(Order));
-				PrimaryKey->Insert(newRecord);
-				ClientOrderIdUniqueKey->Insert(newRecord);
+				PrimaryKey->Insert(record);
+				ClientOrderIdUniqueKey->Insert(record);
 
 			}
 		}
@@ -2035,7 +2015,7 @@ namespace Mdb
 			dbRecords.reserve(records->size());
 			for (auto* r : *records)
 			{
-				dbRecords.push_back(AdoptRecord(r));
+				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Order::TableId, std::move(dbRecords));
 		}
@@ -2212,9 +2192,7 @@ namespace Mdb
 			std::lock_guard guard(SharedMutex);
 			for (auto record : *records)
 			{
-				auto newRecord = Trade::Allocate();
-				memcpy(newRecord, record, sizeof(Trade));
-				PrimaryKey->Insert(newRecord);
+				PrimaryKey->Insert(record);
 
 			}
 		}
@@ -2224,7 +2202,7 @@ namespace Mdb
 			dbRecords.reserve(records->size());
 			for (auto* r : *records)
 			{
-				dbRecords.push_back(AdoptRecord(r));
+				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Trade::TableId, std::move(dbRecords));
 		}

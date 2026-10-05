@@ -140,6 +140,41 @@ namespace testMdb
     }
 
 
+    static bool TestBatchInsertTakesOwnership()
+    {
+        ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
+
+        std::vector<Exchange*>* records = new std::vector<Exchange*>();
+        records->push_back(Exchange::Allocate());
+        records->push_back(Exchange::Allocate());
+        records->push_back(Exchange::Allocate());
+        strcpy((*records)[0]->ExchangeId, "SHFE");
+        strcpy((*records)[1]->ExchangeId, "INE");
+        strcpy((*records)[2]->ExchangeId, "CFFEX");
+
+        Exchange* handedInRecord = (*records)[0];
+        mdb->Exchange->BatchInsert(records);
+
+        int storedRowCount = 0;
+        bool storedHandedInRecord = false;
+        auto storedRange = mdb->Exchange->PrimaryKey->SelectAll();
+        for (auto it = storedRange.first; it != storedRange.second; ++it)
+        {
+            ++storedRowCount;
+            if (*it == handedInRecord)
+            {
+                storedHandedInRecord = true;
+            }
+        }
+
+        mdb->Exchange->TruncateTable();
+        delete mdb;
+
+        WriteLog(LogLevel::Info, "BatchInsert ownership: storedRowCount=%d storedHandedInRecord=%d",
+                 storedRowCount, storedHandedInRecord ? 1 : 0);
+        return storedRowCount == 3 && storedHandedInRecord;
+    }
+
     static void TestMdb(Db* db)
     {
         ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
@@ -277,7 +312,9 @@ int main(int argc, char* argv[])
     //testMdb::TestMysql();
     //testMdb::TestMariadb();
 
+    bool batchInsertOwnershipHolds = testMdb::TestBatchInsertTakesOwnership();
+
     Logger::GetInstance().Stop();
     Logger::GetInstance().Join();
-    return 0;
+    return batchInsertOwnershipHolds ? 0 : 1;
 }
