@@ -30,7 +30,7 @@ The features below illustrate the key problems to solve when implementing an in-
 - ✅ **Primary Key & Secondary Index Queries**: each table ships with a primary-key container and secondary-index containers, supporting efficient retrieval via `Select` / `SelectAll` / `EqualRange`
 - ✅ **Thread Safety**: each table embeds `std::shared_mutex` with `LockShared` / `UnlockShared` for concurrent reads
 - ✅ **Asynchronous Writes**: database persistence runs asynchronously, avoiding blocking of core trading paths; auto-reconnects on disconnection
-- ✅ **Import & Export**: bulk-load in-memory data from a database (`InitMdbFromDB`) or from CSV (`InitMdbFromCsv`), and dump all tables via `Dump`
+- ✅ **Import & Export**: bulk-load in-memory data from a database (`InitMdbFromDb`) or from CSV (`InitMdbFromCsv`), and dump all tables via `Dump`
 - ✅ **Automated Toolchain**: table-model-driven code generation (`MdbStructs` / `MdbTables` / `MdbPrimaryKeys` / `MdbIndexes` are all template-generated)
 
 ## 3. Example Data Table Models
@@ -66,7 +66,7 @@ Mdb/
 │   ├── MdbPrimaryKeyComp.h/.cpp   # Primary-key hash / equality comparators (generated)
 │   ├── MdbIndexComp.h/.cpp        # Index comparators (generated)
 │   ├── TableList.h                # Table list struct (TableList)
-│   ├── InitMdbFromDB.h/.cpp       # Bulk-load in-memory data from a persistent database
+│   ├── InitMdbFromDb.h/.cpp       # Bulk-load in-memory data from a persistent database
 │   └── InitMdbFromCsv.h/.cpp      # Bulk-load in-memory data from a CSV directory
 ├── test/TestMdb/                  # Integration tests (TestDB: full flow across four DBs + async writes)
 │   ├── FullTableList.h            # TableList definition for all 11 tables
@@ -305,11 +305,11 @@ mdb->TruncateTables();
 ### Example 4: Load from DB / CSV and Dump
 
 ```cpp
-#include "InitMdbFromDB.h"
+#include "InitMdbFromDb.h"
 #include "InitMdbFromCsv.h"
 
 // Bulk-load from a persistent database into memory (after tables are created)
-InitMdbFromDB::LoadTables(mdb, db, fullTableList);
+InitMdbFromDb::LoadTables(mdb, db, fullTableList);
 
 // Bulk-load from a CSV directory into memory
 InitMdbFromCsv::LoadTables(mdb, "./dump", fullTableList);

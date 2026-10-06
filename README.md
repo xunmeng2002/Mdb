@@ -30,7 +30,7 @@ Mdb 是一个**内存数据库的实现示例**，重点是演示"如何实现�
 - ✅ **主键 & 二级索引查询**：每张表内置主键容器与二级索引容器，支持 `Select` / `SelectAll` / `EqualRange` 等高效检索
 - ✅ **线程安全**：每张表内置 `std::shared_mutex`，提供 `LockShared` / `UnlockShared` 支持并发读
 - ✅ **异步写入**：数据库落地操作异步执行，避免阻塞核心交易链路；断线自动重连
-- ✅ **导入导出**：支持从数据库（`InitMdbFromDB`）或 CSV（`InitMdbFromCsv`）批量载入内存，支持 `Dump` 全量导出
+- ✅ **导入导出**：支持从数据库（`InitMdbFromDb`）或 CSV（`InitMdbFromCsv`）批量载入内存，支持 `Dump` 全量导出
 - ✅ **自动化工具链**：数据表模型驱动代码生成（`MdbStructs` / `MdbTables` / `MdbPrimaryKeys` / `MdbIndexes` 均由模板自动生成）
 
 ## 三、示例数据表模型
@@ -66,7 +66,7 @@ Mdb/
 │   ├── MdbPrimaryKeyComp.h/.cpp   # 主键哈希 / 相等比较器（代码生成）
 │   ├── MdbIndexComp.h/.cpp        # 索引比较器（代码生成）
 │   ├── TableList.h                # 表清单结构体（TableList）
-│   ├── InitMdbFromDB.h/.cpp       # 从持久化数据库批量载入内存
+│   ├── InitMdbFromDb.h/.cpp       # 从持久化数据库批量载入内存
 │   └── InitMdbFromCsv.h/.cpp      # 从 CSV 目录批量载入内存
 ├── test/TestMdb/                  # 集成测试（TestDB：四库 + 异步写库全流程）
 │   ├── FullTableList.h            # 全量 11 表的 TableList 定义
@@ -305,11 +305,11 @@ mdb->TruncateTables();
 ### 示例 4：从数据库 / CSV 载入与 Dump 导出
 
 ```cpp
-#include "InitMdbFromDB.h"
+#include "InitMdbFromDb.h"
 #include "InitMdbFromCsv.h"
 
 // 从持久化数据库批量载入内存（建表后全表加载）
-InitMdbFromDB::LoadTables(mdb, db, fullTableList);
+InitMdbFromDb::LoadTables(mdb, db, fullTableList);
 
 // 从 CSV 目录批量载入内存
 InitMdbFromCsv::LoadTables(mdb, "./dump", fullTableList);

@@ -4,7 +4,7 @@
 #include <atomic>
 
 
-namespace 
+namespace Mdb
 {
 	class MdbTableBase
 	{

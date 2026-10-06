@@ -6,7 +6,7 @@
     <pump dest="./src/Mdb/TableList.h" tpl="../Templates/Cpp/Mdb/TableList.h.tpl" model="./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/MdbTableRegistry.h" tpl="../Templates/Cpp/Mdb/MdbTableRegistry.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/MdbTableRegistry.cpp" tpl="../Templates/Cpp/Mdb/MdbTableRegistry.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbTableBase.h" tpl="../Templates/Cpp/Mdb/MdbTableBase.h.tpl" model="./Model/Tables/Tables.xml"/>
+    <pump dest="./src/Mdb/MdbTableBase.h" tpl="../Templates/Cpp/Mdb/MdbTableBase.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/MdbTables.h" tpl="../Templates/Cpp/Mdb/MdbTables.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/MdbTables.cpp" tpl="../Templates/Cpp/Mdb/MdbTables.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/MdbPrimaryKeyComp.h" tpl="../Templates/Cpp/Mdb/MdbPrimaryKeyComp.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>

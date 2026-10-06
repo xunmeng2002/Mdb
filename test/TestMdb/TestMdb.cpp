@@ -1,5 +1,5 @@
 #include "Mdb.h"
-#include "InitMdbFromDB.h"
+#include "InitMdbFromDb.h"
 #include "MdbTableRegistry.h"
 #include "FullTableList.h"
 #include <DbAdapters/DbInterface/TypedTable.h>
