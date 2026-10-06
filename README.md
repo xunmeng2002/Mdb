@@ -336,7 +336,7 @@ mdb->Dump("./dump");
 
 ## 九、测试程序
 
-`test/TestMdb/TestDB.cpp` 集成测试覆盖以下内容：
+`test/TestMdb/TestMdb.cpp` 集成测试覆盖以下内容：
 
 | 测试项 | 说明 |
 | ---- | ---- |
@@ -346,6 +346,13 @@ mdb->Dump("./dump");
 | `TestMariadb` | MariaDB 后端全流程（需本机 MariaDB，默认注释关闭） |
 | 主键 / 索引 | `primaryKey->Select` / `SelectAll`、`offerIDIndex->EqualRange` 等检索验证 |
 | 内存操作 | Insert / Update / Erase / TruncateTable 与广播落库验证 |
+| `TestBatchInsertTakesOwnership` | 批插入归属：表直接持有调用方交来的记录（指针恒等） |
+
+退出码为 0 表示全部通过。**批插入的契约断言没有自动化用例**：断言的定义就是中断进程，无法在同一进程里
+既触发又继续；用子进程做死亡测试则会被 Windows 当成崩溃弹出「已停止工作」，故那套机制已整套撤回。要手工
+观察它响一次，临时把 `TestBatchInsertTakesOwnership()` 里第二个 `Exchange` 的 `ExchangeId` 改成与第一个
+相同（`SHFE` / `SHFE`），Debug 构建下运行即打印 `Assertion failed: insertedIntoPrimaryKey, ...` 后终止，
+Release 下同输入正常跑完。
 
 ## 十、许可证 & 声明
 

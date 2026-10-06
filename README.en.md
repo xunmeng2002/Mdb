@@ -336,7 +336,7 @@ Table models are defined in `Model/*.xml`; the Python scripts in the project roo
 
 ## 9. Test Programs
 
-The `test/TestMdb/TestDB.cpp` integration test covers:
+The `test/TestMdb/TestMdb.cpp` integration test covers:
 
 | Test Item | Description |
 | ---- | ---- |
@@ -346,6 +346,16 @@ The `test/TestMdb/TestDB.cpp` integration test covers:
 | `TestMariadb` | MariaDB backend full flow (requires local MariaDB; commented out by default) |
 | Primary key / index | `primaryKey->Select` / `SelectAll`, `offerIDIndex->EqualRange`, etc. |
 | In-memory ops | Insert / Update / Erase / TruncateTable with broadcast persistence verification |
+| `TestBatchInsertTakesOwnership` | Batch-insert ownership: the table holds the records the caller handed in (pointer identity) |
+
+Exit code 0 means everything passed. **The batch-insert contract assertion has no automated test**:
+by definition an assertion terminates the process, so it cannot both fire and continue in the same
+process; a child-process death test, in turn, is treated by Windows as a crash and pops up the
+"has stopped working" dialog, so that mechanism was removed entirely. To watch it fire by hand,
+temporarily give the second `Exchange` in `TestBatchInsertTakesOwnership()` the same `ExchangeId` as
+the first (`SHFE` / `SHFE`); a Debug build then prints
+`Assertion failed: insertedIntoPrimaryKey, ...` and terminates, while the same input runs clean in
+Release.
 
 ## 10. License & Disclaimer
 
