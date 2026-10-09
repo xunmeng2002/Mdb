@@ -87,11 +87,11 @@ namespace Mdb
 		}
 		return true;
 	}
-	void TradingDayTable::BatchInsert(std::vector<TradingDay*>* records)
+	void TradingDayTable::BatchInsert(std::vector<TradingDay*>& records)
 	{
 		{
 			std::lock_guard guard(SharedMutex);
-			for (auto record : *records)
+			for (auto record : records)
 			{
 				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
 				assert(insertedIntoPrimaryKey);
@@ -101,14 +101,14 @@ namespace Mdb
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
 			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records->size());
-			for (auto* r : *records)
+			dbRecords.reserve(records.size());
+			for (auto* r : records)
 			{
 				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(TradingDay::TableId, std::move(dbRecords));
 		}
-		delete records;
+		records.clear();
 	}
 	void TradingDayTable::Erase(TradingDay* record)
 	{
@@ -272,11 +272,11 @@ namespace Mdb
 		}
 		return true;
 	}
-	void ExchangeTable::BatchInsert(std::vector<Exchange*>* records)
+	void ExchangeTable::BatchInsert(std::vector<Exchange*>& records)
 	{
 		{
 			std::lock_guard guard(SharedMutex);
-			for (auto record : *records)
+			for (auto record : records)
 			{
 				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
 				assert(insertedIntoPrimaryKey);
@@ -286,14 +286,14 @@ namespace Mdb
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
 			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records->size());
-			for (auto* r : *records)
+			dbRecords.reserve(records.size());
+			for (auto* r : records)
 			{
 				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Exchange::TableId, std::move(dbRecords));
 		}
-		delete records;
+		records.clear();
 	}
 	void ExchangeTable::Erase(Exchange* record)
 	{
@@ -457,11 +457,11 @@ namespace Mdb
 		}
 		return true;
 	}
-	void ProductTable::BatchInsert(std::vector<Product*>* records)
+	void ProductTable::BatchInsert(std::vector<Product*>& records)
 	{
 		{
 			std::lock_guard guard(SharedMutex);
-			for (auto record : *records)
+			for (auto record : records)
 			{
 				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
 				assert(insertedIntoPrimaryKey);
@@ -471,14 +471,14 @@ namespace Mdb
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
 			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records->size());
-			for (auto* r : *records)
+			dbRecords.reserve(records.size());
+			for (auto* r : records)
 			{
 				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Product::TableId, std::move(dbRecords));
 		}
-		delete records;
+		records.clear();
 	}
 	void ProductTable::Erase(Product* record)
 	{
@@ -642,11 +642,11 @@ namespace Mdb
 		}
 		return true;
 	}
-	void InstrumentTable::BatchInsert(std::vector<Instrument*>* records)
+	void InstrumentTable::BatchInsert(std::vector<Instrument*>& records)
 	{
 		{
 			std::lock_guard guard(SharedMutex);
-			for (auto record : *records)
+			for (auto record : records)
 			{
 				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
 				assert(insertedIntoPrimaryKey);
@@ -656,14 +656,14 @@ namespace Mdb
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
 			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records->size());
-			for (auto* r : *records)
+			dbRecords.reserve(records.size());
+			for (auto* r : records)
 			{
 				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Instrument::TableId, std::move(dbRecords));
 		}
-		delete records;
+		records.clear();
 	}
 	void InstrumentTable::Erase(Instrument* record)
 	{
@@ -831,11 +831,11 @@ namespace Mdb
 		}
 		return true;
 	}
-	void PrimaryAccountTable::BatchInsert(std::vector<PrimaryAccount*>* records)
+	void PrimaryAccountTable::BatchInsert(std::vector<PrimaryAccount*>& records)
 	{
 		{
 			std::lock_guard guard(SharedMutex);
-			for (auto record : *records)
+			for (auto record : records)
 			{
 				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
 				assert(insertedIntoPrimaryKey);
@@ -846,14 +846,14 @@ namespace Mdb
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
 			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records->size());
-			for (auto* r : *records)
+			dbRecords.reserve(records.size());
+			for (auto* r : records)
 			{
 				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(PrimaryAccount::TableId, std::move(dbRecords));
 		}
-		delete records;
+		records.clear();
 	}
 	void PrimaryAccountTable::Erase(PrimaryAccount* record)
 	{
@@ -1054,11 +1054,11 @@ namespace Mdb
 		}
 		return true;
 	}
-	void AccountTable::BatchInsert(std::vector<Account*>* records)
+	void AccountTable::BatchInsert(std::vector<Account*>& records)
 	{
 		{
 			std::lock_guard guard(SharedMutex);
-			for (auto record : *records)
+			for (auto record : records)
 			{
 				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
 				assert(insertedIntoPrimaryKey);
@@ -1068,14 +1068,14 @@ namespace Mdb
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
 			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records->size());
-			for (auto* r : *records)
+			dbRecords.reserve(records.size());
+			for (auto* r : records)
 			{
 				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Account::TableId, std::move(dbRecords));
 		}
-		delete records;
+		records.clear();
 	}
 	void AccountTable::Erase(Account* record)
 	{
@@ -1243,11 +1243,11 @@ namespace Mdb
 		}
 		return true;
 	}
-	void CapitalTable::BatchInsert(std::vector<Capital*>* records)
+	void CapitalTable::BatchInsert(std::vector<Capital*>& records)
 	{
 		{
 			std::lock_guard guard(SharedMutex);
-			for (auto record : *records)
+			for (auto record : records)
 			{
 				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
 				assert(insertedIntoPrimaryKey);
@@ -1258,14 +1258,14 @@ namespace Mdb
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
 			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records->size());
-			for (auto* r : *records)
+			dbRecords.reserve(records.size());
+			for (auto* r : records)
 			{
 				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Capital::TableId, std::move(dbRecords));
 		}
-		delete records;
+		records.clear();
 	}
 	void CapitalTable::Erase(Capital* record)
 	{
@@ -1474,11 +1474,11 @@ namespace Mdb
 		}
 		return true;
 	}
-	void PositionTable::BatchInsert(std::vector<Position*>* records)
+	void PositionTable::BatchInsert(std::vector<Position*>& records)
 	{
 		{
 			std::lock_guard guard(SharedMutex);
-			for (auto record : *records)
+			for (auto record : records)
 			{
 				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
 				assert(insertedIntoPrimaryKey);
@@ -1490,14 +1490,14 @@ namespace Mdb
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
 			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records->size());
-			for (auto* r : *records)
+			dbRecords.reserve(records.size());
+			for (auto* r : records)
 			{
 				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Position::TableId, std::move(dbRecords));
 		}
-		delete records;
+		records.clear();
 	}
 	void PositionTable::Erase(Position* record)
 	{
@@ -1743,11 +1743,11 @@ namespace Mdb
 		}
 		return true;
 	}
-	void PositionDetailTable::BatchInsert(std::vector<PositionDetail*>* records)
+	void PositionDetailTable::BatchInsert(std::vector<PositionDetail*>& records)
 	{
 		{
 			std::lock_guard guard(SharedMutex);
-			for (auto record : *records)
+			for (auto record : records)
 			{
 				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
 				assert(insertedIntoPrimaryKey);
@@ -1759,14 +1759,14 @@ namespace Mdb
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
 			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records->size());
-			for (auto* r : *records)
+			dbRecords.reserve(records.size());
+			for (auto* r : records)
 			{
 				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(PositionDetail::TableId, std::move(dbRecords));
 		}
-		delete records;
+		records.clear();
 	}
 	void PositionDetailTable::Erase(PositionDetail* record)
 	{
@@ -2008,11 +2008,11 @@ namespace Mdb
 		}
 		return true;
 	}
-	void OrderTable::BatchInsert(std::vector<Order*>* records)
+	void OrderTable::BatchInsert(std::vector<Order*>& records)
 	{
 		{
 			std::lock_guard guard(SharedMutex);
-			for (auto record : *records)
+			for (auto record : records)
 			{
 				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
 				assert(insertedIntoPrimaryKey);
@@ -2024,14 +2024,14 @@ namespace Mdb
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
 			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records->size());
-			for (auto* r : *records)
+			dbRecords.reserve(records.size());
+			for (auto* r : records)
 			{
 				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Order::TableId, std::move(dbRecords));
 		}
-		delete records;
+		records.clear();
 	}
 	void OrderTable::Erase(Order* record)
 	{
@@ -2198,11 +2198,11 @@ namespace Mdb
 		}
 		return true;
 	}
-	void TradeTable::BatchInsert(std::vector<Trade*>* records)
+	void TradeTable::BatchInsert(std::vector<Trade*>& records)
 	{
 		{
 			std::lock_guard guard(SharedMutex);
-			for (auto record : *records)
+			for (auto record : records)
 			{
 				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
 				assert(insertedIntoPrimaryKey);
@@ -2212,14 +2212,14 @@ namespace Mdb
 		if (mdbSubscriber_ != nullptr && DbInited)
 		{
 			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records->size());
-			for (auto* r : *records)
+			dbRecords.reserve(records.size());
+			for (auto* r : records)
 			{
 				dbRecords.push_back(BorrowRecord(r));
 			}
 			mdbSubscriber_->OnRecordBatchInsert(Trade::TableId, std::move(dbRecords));
 		}
-		delete records;
+		records.clear();
 	}
 	void TradeTable::Erase(Trade* record)
 	{

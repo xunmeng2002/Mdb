@@ -144,16 +144,17 @@ namespace testMdb
     {
         ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
 
-        std::vector<Exchange*>* records = new std::vector<Exchange*>();
-        records->push_back(Exchange::Allocate());
-        records->push_back(Exchange::Allocate());
-        records->push_back(Exchange::Allocate());
-        strcpy((*records)[0]->ExchangeId, "SHFE");
-        strcpy((*records)[1]->ExchangeId, "INE");
-        strcpy((*records)[2]->ExchangeId, "CFFEX");
+        std::vector<Exchange*> records;
+        records.push_back(Exchange::Allocate());
+        records.push_back(Exchange::Allocate());
+        records.push_back(Exchange::Allocate());
+        strcpy(records[0]->ExchangeId, "SHFE");
+        strcpy(records[1]->ExchangeId, "INE");
+        strcpy(records[2]->ExchangeId, "CFFEX");
 
-        Exchange* handedInRecord = (*records)[0];
+        Exchange* handedInRecord = records[0];
         mdb->Exchange->BatchInsert(records);
+        const bool callerContainerCleared = records.empty();
 
         int storedRowCount = 0;
         bool storedHandedInRecord = false;
@@ -170,9 +171,9 @@ namespace testMdb
         mdb->Exchange->TruncateTable();
         delete mdb;
 
-        WriteLog(LogLevel::Info, "BatchInsert ownership: storedRowCount=%d storedHandedInRecord=%d",
-                 storedRowCount, storedHandedInRecord ? 1 : 0);
-        return storedRowCount == 3 && storedHandedInRecord;
+        WriteLog(LogLevel::Info, "BatchInsert ownership: storedRowCount=%d storedHandedInRecord=%d callerContainerCleared=%d",
+                 storedRowCount, storedHandedInRecord ? 1 : 0, callerContainerCleared ? 1 : 0);
+        return storedRowCount == 3 && storedHandedInRecord && callerContainerCleared;
     }
 
     static void TestMdb(Db* db)
