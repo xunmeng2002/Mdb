@@ -13,7 +13,7 @@ Mdb is an **implementation example of an in-memory database**; the focus is on d
 
 1. **Schema-driven**: table models are defined in `Model/*.xml`, and Python scripts (`pump.py` + `pumplist.xml`) auto-generate all table-structure code (record structs, typed table containers, primary-key containers, secondary-index containers) — no manual code;
 2. **In-memory-first + asynchronous persistence**: reads/writes operate on memory first; changes are broadcast through a subscription interface (`MdbSubscriber`) and **asynchronously synced to physical databases** (SQLite / DuckDB / MySQL / MariaDB) via DbAdapters' `AsyncDbWriter`, balancing low latency with data reliability;
-3. **Retrieval & concurrency**: each table ships with primary-key and secondary-index containers (`Select` / `SelectAll` / `EqualRange`) and supports concurrent reads via `std::shared_mutex`.
+3. **Retrieval & concurrency**: each table ships with primary-key and secondary-index containers (`Select` / `SelectAll` / `EqualRange` / `Range`). Queries return **read leases** (`TableReadLease` / `TableRangeLease`): the lock travels with the result, so writers stay blocked for as long as the lease is alive and pointers/iterators remain valid without copying records.
 
 Therefore, the 11 built-in financial tables (trading days, accounts, orders, positions, etc.) are **example data only**, used to demonstrate how to describe, create, index, and query different field types (fixed-length strings, enums, dates, integers). To move to your own business, define your own `Model/*.xml` and regenerate the code.
 
@@ -27,8 +27,8 @@ The features below illustrate the key problems to solve when implementing an in-
 - ✅ **Multi-Database Compatibility**: built on DbAdapters, natively supports MySQL, MariaDB, SQLite, and DuckDB backends
 - ✅ **Unified Access Interface**: a single in-memory API works across all databases — switching storage engines requires no business logic changes
 - ✅ **Financial Domain Data Tables**: 11 built-in trading business tables covering trading days, contracts, accounts, capital, orders, positions, and trade executions
-- ✅ **Primary Key & Secondary Index Queries**: each table ships with a primary-key container and secondary-index containers, supporting efficient retrieval via `Select` / `SelectAll` / `EqualRange`
-- ✅ **Thread Safety**: each table embeds `std::shared_mutex` with `LockShared` / `UnlockShared` for concurrent reads
+- ✅ **Primary Key & Secondary Index Queries**: each table ships with a primary-key container and secondary-index containers, supporting efficient retrieval via `Select` / `SelectAll` / `EqualRange` / `Range`
+- ✅ **Thread Safety**: each table embeds `std::shared_mutex`; read APIs return RAII read leases while writes take the exclusive lock, so reads and writes never overlap
 - ✅ **Asynchronous Writes**: database persistence runs asynchronously, avoiding blocking of core trading paths; auto-reconnects on disconnection
 - ✅ **Import & Export**: bulk-load in-memory data from a database (`InitMdbFromDb`) or from CSV (`InitMdbFromCsv`), and dump all tables via `Dump`
 - ✅ **Automated Toolchain**: table-model-driven code generation (`MdbStructs` / `MdbTables` / `MdbPrimaryKeys` / `MdbIndexes` are all template-generated)
@@ -60,9 +60,10 @@ Mdb/
 │   ├── MdbStructs.h/.cpp          # Record structs + TableSchema for the 11 tables (generated)
 │   ├── MdbTables.h/.cpp           # Typed table containers (TradingDayTable / ExchangeTable / ...)
 │   ├── MdbTableBase.h             # Table base class (MdbTableBase: Subscribe / InitDB / Truncate / Dump)
+│   ├── MdbReadLease.h             # Read leases (TableReadLease / TableRangeLease: lock travels with the result)
 │   ├── MdbTableRegistry.h/.cpp    # SchemaRegistry implementation for AsyncDbWriter to resolve table schemas
 │   ├── MdbPrimaryKeys.h/.cpp      # Primary-key index containers (Select / SelectAll / uniqueness check)
-│   ├── MdbIndexes.h/.cpp          # Secondary-index containers (LowerBound / UpperBound / EqualRange)
+│   ├── MdbIndexes.h/.cpp          # Secondary-index containers (Range / EqualRange)
 │   ├── MdbPrimaryKeyComp.h/.cpp   # Primary-key hash / equality comparators (generated)
 │   ├── MdbIndexComp.h/.cpp        # Index comparators (generated)
 │   ├── TableList.h                # Table list struct (TableList)
@@ -256,47 +257,64 @@ int main(int argc, const char* argv[])
 ### Example 2: Primary Key & Secondary Index Queries
 
 ```cpp
-// Primary-key lookup: locate a single record by unique primary key
-ExchangeIDType exchangeID("CFFEX");
-Exchange* exchange = mdb->exchange->primaryKey->Select(exchangeID);
-WriteLog(LogLevel::Info, "%s", exchange->GetDebugString());
+// Primary-key lookup: returns a read lease; the record cannot be written while the lease is alive
+ExchangeIdType exchangeId = "CFFEX";
+auto exchange = mdb->Exchange->PrimaryKey->Select(exchangeId);
+if (exchange)
+{
+    WriteLog(LogLevel::Info, "%s", exchange->GetDebugString());
+}
 
-// Full scan over primary key: returns an iterator pair [begin, end)
-auto all = mdb->exchange->primaryKey->SelectAll();
-for (auto it = all.first; it != all.second; ++it)
+// Full scan over primary key: the range lease keeps begin/end and record contents stable
+auto all = mdb->Exchange->PrimaryKey->SelectAll();
+for (auto it = all.begin(); it != all.end(); ++it)
 {
     WriteLog(LogLevel::Info, "%s", (*it)->GetDebugString());
 }
 
-// Secondary-index equality range query (e.g. primary accounts by OfferID)
-OfferIDType offerID = 10001;
-auto range = mdb->primaryAccount->offerIDIndex->EqualRange(offerID);
-for (auto it = range.first; it != range.second; ++it)
+// Secondary-index equality range query (e.g. primary accounts by OfferId)
+OfferIdType offerId = 10001;
+auto range = mdb->PrimaryAccount->OfferIdIndex->EqualRange(offerId);
+for (auto it = range.begin(); it != range.end(); ++it)
 {
     WriteLog(LogLevel::Info, "%s", (*it)->GetDebugString());
 }
+
+// Secondary-index bounded range query: both bounds are taken under one lock
+DateType startTradingDay = "20261001";
+DateType endTradingDay = "20261031";
+auto monthRange = mdb->Capital->TradingDayIndex->Range(startTradingDay, endTradingDay);
 
 // Batch delete by secondary index (e.g. clear capital records for a trading day)
-mdb->capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
+mdb->Capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
 ```
 
 ### Example 3: Update / Delete / Clear Tables
 
 ```cpp
-// Update: sync to memory and broadcast to AsyncDbWriter via MdbSubscriber for async persistence
-AccountIDType accountID;
-std::strcpy(accountID, "A001");
-Account* oldAccount = mdb->account->primaryKey->Select(accountID);
+// Update: read-only under the lease; copy the fields out and release the lease before calling Update
+AccountIdType accountId = "A001";
+Account snapshot;
+Account* oldAccount = nullptr;
+{
+    auto lease = mdb->Account->PrimaryKey->Select(accountId);
+    if (!lease)
+    {
+        return;
+    }
+    oldAccount = const_cast<Account*>(lease.Get());
+    snapshot = *lease;
+}
 Account* newAccount = Account::Allocate();
-*newAccount = *oldAccount;                              // copy then modify
+*newAccount = snapshot;                                 // copy then modify
 std::strcpy(newAccount->AccountName, "Bob");
-mdb->account->Update(oldAccount, newAccount);
+mdb->Account->Update(oldAccount, newAccount);
 
-// Delete a single record (removes from memory and broadcasts the delete for persistence)
-mdb->account->Erase(oldAccount);
+// Delete a single record (also must be called after the lease is released)
+mdb->Account->Erase(oldAccount);
 
 // Clear a single table
-mdb->account->TruncateTable();
+mdb->Account->TruncateTable();
 
 // Clear all tables (broadcast TruncateTables + locally clear each table)
 mdb->TruncateTables();
@@ -344,9 +362,10 @@ The `test/TestMdb/TestMdb.cpp` integration test covers:
 | `TestDuckdb` | DuckDB backend: full in-memory + async write flow |
 | `TestMysql` | MySQL backend full flow (requires local MySQL X Plugin; commented out by default) |
 | `TestMariadb` | MariaDB backend full flow (requires local MariaDB; commented out by default) |
-| Primary key / index | `primaryKey->Select` / `SelectAll`, `offerIDIndex->EqualRange`, etc. |
+| Primary key / index | `primaryKey->Select` / `SelectAll`, `offerIDIndex->EqualRange`, `Range`, etc. |
 | In-memory ops | Insert / Update / Erase / TruncateTable with broadcast persistence verification |
 | `TestBatchInsertTakesOwnership` | Batch-insert ownership: the table holds the records the caller handed in (pointer identity) |
+| `TestReadLeaseBlocksWriter` | Read lease: a writer blocks while the lease is held and completes after release; `ForEach` count and early exit |
 
 Exit code 0 means everything passed. **The batch-insert contract assertion has no automated test**:
 by definition an assertion terminates the process, so it cannot both fire and continue in the same
@@ -369,5 +388,5 @@ Release.
 - **Dependencies**: Mdb is built on [Spark](https://gitee.com/xunmeng2002/Spark.git) (foundational capabilities) and [DbAdapters](https://gitee.com/xunmeng2002/DbAdapters.git) (unified database access layer); both are prebuilt dependencies
 - **Include Paths**: Mdb headers live in `src/Mdb/`, referenced as `#include "Mdb.h"`
 - **Namespaces**: all interfaces are in the `mdb` namespace; database interfaces reuse the `DbAdapters` namespace
-- **Concurrency**: in-memory tables are thread-safe by design; for reads, consider calling `LockShared()` before accessing primary-key / index containers to avoid contention with writer threads
+- **Concurrency**: in-memory tables are thread-safe by design; read APIs return leases holding the shared lock. **Never write to the same table while a lease is alive** (Insert / Update / Erase / TruncateTable) — it will self-deadlock
 - **Code Generation**: after editing `Model/*.xml`, run `python pumpall.py` to regenerate table-structure code without manual edits

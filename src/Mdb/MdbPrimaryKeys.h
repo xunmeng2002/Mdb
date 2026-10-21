@@ -3,6 +3,7 @@
 #include <unordered_set>
 #include "MdbStructs.h"
 #include "MdbPrimaryKeyComp.h"
+#include "MdbReadLease.h"
 
 namespace Mdb
 {
@@ -12,8 +13,8 @@ namespace Mdb
 	public:
 		using iterator = std::unordered_set<TradingDay*, TradingDayHashForTradingDayPrimaryKey, TradingDayEqualForTradingDayPrimaryKey>::iterator;
 		TradingDayPrimaryKey(TradingDayTable* tableOwner, size_t buckets = 1000);
-		TradingDay* Select(const Int32Type& Pk);
-		std::pair<iterator, iterator> SelectAll();
+		TableReadLease<TradingDay> Select(const Int32Type& Pk);
+		TableRangeLease<iterator> SelectAll();
 		
 	protected:
 		bool Insert(TradingDay* const record);
@@ -33,8 +34,8 @@ namespace Mdb
 	public:
 		using iterator = std::unordered_set<Exchange*, ExchangeHashForExchangePrimaryKey, ExchangeEqualForExchangePrimaryKey>::iterator;
 		ExchangePrimaryKey(ExchangeTable* tableOwner, size_t buckets = 1000);
-		Exchange* Select(const ExchangeIdType& ExchangeId);
-		std::pair<iterator, iterator> SelectAll();
+		TableReadLease<Exchange> Select(const ExchangeIdType& ExchangeId);
+		TableRangeLease<iterator> SelectAll();
 		
 	protected:
 		bool Insert(Exchange* const record);
@@ -54,8 +55,8 @@ namespace Mdb
 	public:
 		using iterator = std::unordered_set<Product*, ProductHashForProductPrimaryKey, ProductEqualForProductPrimaryKey>::iterator;
 		ProductPrimaryKey(ProductTable* tableOwner, size_t buckets = 1000);
-		Product* Select(const ExchangeIdType& ExchangeId, const ProductIdType& ProductId);
-		std::pair<iterator, iterator> SelectAll();
+		TableReadLease<Product> Select(const ExchangeIdType& ExchangeId, const ProductIdType& ProductId);
+		TableRangeLease<iterator> SelectAll();
 		
 	protected:
 		bool Insert(Product* const record);
@@ -75,8 +76,8 @@ namespace Mdb
 	public:
 		using iterator = std::unordered_set<Instrument*, InstrumentHashForInstrumentPrimaryKey, InstrumentEqualForInstrumentPrimaryKey>::iterator;
 		InstrumentPrimaryKey(InstrumentTable* tableOwner, size_t buckets = 1000);
-		Instrument* Select(const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId);
-		std::pair<iterator, iterator> SelectAll();
+		TableReadLease<Instrument> Select(const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId);
+		TableRangeLease<iterator> SelectAll();
 		
 	protected:
 		bool Insert(Instrument* const record);
@@ -96,8 +97,8 @@ namespace Mdb
 	public:
 		using iterator = std::unordered_set<PrimaryAccount*, PrimaryAccountHashForPrimaryAccountPrimaryKey, PrimaryAccountEqualForPrimaryAccountPrimaryKey>::iterator;
 		PrimaryAccountPrimaryKey(PrimaryAccountTable* tableOwner, size_t buckets = 1000);
-		PrimaryAccount* Select(const AccountIdType& PrimaryAccountId);
-		std::pair<iterator, iterator> SelectAll();
+		TableReadLease<PrimaryAccount> Select(const AccountIdType& PrimaryAccountId);
+		TableRangeLease<iterator> SelectAll();
 		
 	protected:
 		bool Insert(PrimaryAccount* const record);
@@ -117,8 +118,8 @@ namespace Mdb
 	public:
 		using iterator = std::unordered_set<Account*, AccountHashForAccountPrimaryKey, AccountEqualForAccountPrimaryKey>::iterator;
 		AccountPrimaryKey(AccountTable* tableOwner, size_t buckets = 1000);
-		Account* Select(const AccountIdType& AccountId);
-		std::pair<iterator, iterator> SelectAll();
+		TableReadLease<Account> Select(const AccountIdType& AccountId);
+		TableRangeLease<iterator> SelectAll();
 		
 	protected:
 		bool Insert(Account* const record);
@@ -138,8 +139,8 @@ namespace Mdb
 	public:
 		using iterator = std::unordered_set<Capital*, CapitalHashForCapitalPrimaryKey, CapitalEqualForCapitalPrimaryKey>::iterator;
 		CapitalPrimaryKey(CapitalTable* tableOwner, size_t buckets = 1000);
-		Capital* Select(const DateType& TradingDay, const AccountIdType& AccountId);
-		std::pair<iterator, iterator> SelectAll();
+		TableReadLease<Capital> Select(const DateType& TradingDay, const AccountIdType& AccountId);
+		TableRangeLease<iterator> SelectAll();
 		
 	protected:
 		bool Insert(Capital* const record);
@@ -159,8 +160,8 @@ namespace Mdb
 	public:
 		using iterator = std::unordered_set<Position*, PositionHashForPositionPrimaryKey, PositionEqualForPositionPrimaryKey>::iterator;
 		PositionPrimaryKey(PositionTable* tableOwner, size_t buckets = 1000);
-		Position* Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
-		std::pair<iterator, iterator> SelectAll();
+		TableReadLease<Position> Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
+		TableRangeLease<iterator> SelectAll();
 		
 	protected:
 		bool Insert(Position* const record);
@@ -180,8 +181,8 @@ namespace Mdb
 	public:
 		using iterator = std::unordered_set<PositionDetail*, PositionDetailHashForPositionDetailPrimaryKey, PositionDetailEqualForPositionDetailPrimaryKey>::iterator;
 		PositionDetailPrimaryKey(PositionDetailTable* tableOwner, size_t buckets = 1000);
-		PositionDetail* Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIdType& TradeId);
-		std::pair<iterator, iterator> SelectAll();
+		TableReadLease<PositionDetail> Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIdType& TradeId);
+		TableRangeLease<iterator> SelectAll();
 		
 	protected:
 		bool Insert(PositionDetail* const record);
@@ -201,8 +202,8 @@ namespace Mdb
 	public:
 		using iterator = std::unordered_set<Order*, OrderHashForOrderPrimaryKey, OrderEqualForOrderPrimaryKey>::iterator;
 		OrderPrimaryKey(OrderTable* tableOwner, size_t buckets = 1000);
-		Order* Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const OrderIdType& OrderId);
-		std::pair<iterator, iterator> SelectAll();
+		TableReadLease<Order> Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const OrderIdType& OrderId);
+		TableRangeLease<iterator> SelectAll();
 		
 	protected:
 		bool Insert(Order* const record);
@@ -220,8 +221,8 @@ namespace Mdb
 	{
 	public:
 		OrderUniqueKeyClientOrderId(OrderTable* tableOwner, size_t buckets = 1000);
-		Order* Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const SessionIdType& SessionId, const ClientOrderIdType& ClientOrderId);
-		
+		TableReadLease<Order> Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const SessionIdType& SessionId, const ClientOrderIdType& ClientOrderId);
+
 	protected:
 		bool Insert(Order* const record);
 		void Erase(Order* const record);
@@ -241,8 +242,8 @@ namespace Mdb
 	public:
 		using iterator = std::unordered_set<Trade*, TradeHashForTradePrimaryKey, TradeEqualForTradePrimaryKey>::iterator;
 		TradePrimaryKey(TradeTable* tableOwner, size_t buckets = 1000);
-		Trade* Select(const DateType& TradingDay, const ExchangeIdType& ExchangeId, const TradeIdType& TradeId, const DirectionType& Direction);
-		std::pair<iterator, iterator> SelectAll();
+		TableReadLease<Trade> Select(const DateType& TradingDay, const ExchangeIdType& ExchangeId, const TradeIdType& TradeId, const DirectionType& Direction);
+		TableRangeLease<iterator> SelectAll();
 		
 	protected:
 		bool Insert(Trade* const record);

@@ -3,6 +3,7 @@
 #include "MdbTables.h"
 #include <Spark/Core/Utility/Utility.h>
 #include <string.h>
+#include <utility>
 
 
 using namespace Spark::Core;
@@ -12,23 +13,21 @@ namespace Mdb
 		:table_(tableOwner)
 	{
 	}
-	PrimaryAccountIndexOfferId::iterator PrimaryAccountIndexOfferId::LowerBound(const OfferIdType& OfferId)
+	TableRangeLease<PrimaryAccountIndexOfferId::iterator> PrimaryAccountIndexOfferId::Range(const OfferIdType& lowerOfferId, const OfferIdType& upperOfferId)
 	{
-		FillCompareRecord(OfferId);
+		FillCompareRecord(lowerOfferId);
 		std::shared_lock guard(table_->SharedMutex);
-		return index_.lower_bound(&ComparePrimaryAccount);
+		auto first = index_.lower_bound(&ComparePrimaryAccount);
+		FillCompareRecord(upperOfferId);
+		auto last = index_.upper_bound(&ComparePrimaryAccount);
+		return TableRangeLease<iterator>(std::move(guard), first, last);
 	}
-	PrimaryAccountIndexOfferId::iterator PrimaryAccountIndexOfferId::UpperBound(const OfferIdType& OfferId)
+	TableRangeLease<PrimaryAccountIndexOfferId::iterator> PrimaryAccountIndexOfferId::EqualRange(const OfferIdType& OfferId)
 	{
 		FillCompareRecord(OfferId);
 		std::shared_lock guard(table_->SharedMutex);
-		return index_.upper_bound(&ComparePrimaryAccount);
-	}
-	std::pair<PrimaryAccountIndexOfferId::iterator, PrimaryAccountIndexOfferId::iterator> PrimaryAccountIndexOfferId::EqualRange(const OfferIdType& OfferId)
-	{
-		FillCompareRecord(OfferId);
-		std::shared_lock guard(table_->SharedMutex);
-		return index_.equal_range(&ComparePrimaryAccount);
+		auto range = index_.equal_range(&ComparePrimaryAccount);
+		return TableRangeLease<iterator>(std::move(guard), range.first, range.second);
 	}
 	void PrimaryAccountIndexOfferId::Insert(PrimaryAccount* const record)
 	{
@@ -70,23 +69,21 @@ namespace Mdb
 		:table_(tableOwner)
 	{
 	}
-	CapitalIndexTradingDay::iterator CapitalIndexTradingDay::LowerBound(const DateType& TradingDay)
+	TableRangeLease<CapitalIndexTradingDay::iterator> CapitalIndexTradingDay::Range(const DateType& lowerTradingDay, const DateType& upperTradingDay)
 	{
-		FillCompareRecord(TradingDay);
+		FillCompareRecord(lowerTradingDay);
 		std::shared_lock guard(table_->SharedMutex);
-		return index_.lower_bound(&CompareCapital);
+		auto first = index_.lower_bound(&CompareCapital);
+		FillCompareRecord(upperTradingDay);
+		auto last = index_.upper_bound(&CompareCapital);
+		return TableRangeLease<iterator>(std::move(guard), first, last);
 	}
-	CapitalIndexTradingDay::iterator CapitalIndexTradingDay::UpperBound(const DateType& TradingDay)
+	TableRangeLease<CapitalIndexTradingDay::iterator> CapitalIndexTradingDay::EqualRange(const DateType& TradingDay)
 	{
 		FillCompareRecord(TradingDay);
 		std::shared_lock guard(table_->SharedMutex);
-		return index_.upper_bound(&CompareCapital);
-	}
-	std::pair<CapitalIndexTradingDay::iterator, CapitalIndexTradingDay::iterator> CapitalIndexTradingDay::EqualRange(const DateType& TradingDay)
-	{
-		FillCompareRecord(TradingDay);
-		std::shared_lock guard(table_->SharedMutex);
-		return index_.equal_range(&CompareCapital);
+		auto range = index_.equal_range(&CompareCapital);
+		return TableRangeLease<iterator>(std::move(guard), range.first, range.second);
 	}
 	void CapitalIndexTradingDay::Insert(Capital* const record)
 	{
@@ -128,23 +125,21 @@ namespace Mdb
 		:table_(tableOwner)
 	{
 	}
-	PositionIndexAccount::iterator PositionIndexAccount::LowerBound(const DateType& TradingDay, const AccountIdType& AccountId)
+	TableRangeLease<PositionIndexAccount::iterator> PositionIndexAccount::Range(const DateType& lowerTradingDay, const AccountIdType& lowerAccountId, const DateType& upperTradingDay, const AccountIdType& upperAccountId)
 	{
-		FillCompareRecord(TradingDay, AccountId);
+		FillCompareRecord(lowerTradingDay, lowerAccountId);
 		std::shared_lock guard(table_->SharedMutex);
-		return index_.lower_bound(&ComparePosition);
+		auto first = index_.lower_bound(&ComparePosition);
+		FillCompareRecord(upperTradingDay, upperAccountId);
+		auto last = index_.upper_bound(&ComparePosition);
+		return TableRangeLease<iterator>(std::move(guard), first, last);
 	}
-	PositionIndexAccount::iterator PositionIndexAccount::UpperBound(const DateType& TradingDay, const AccountIdType& AccountId)
+	TableRangeLease<PositionIndexAccount::iterator> PositionIndexAccount::EqualRange(const DateType& TradingDay, const AccountIdType& AccountId)
 	{
 		FillCompareRecord(TradingDay, AccountId);
 		std::shared_lock guard(table_->SharedMutex);
-		return index_.upper_bound(&ComparePosition);
-	}
-	std::pair<PositionIndexAccount::iterator, PositionIndexAccount::iterator> PositionIndexAccount::EqualRange(const DateType& TradingDay, const AccountIdType& AccountId)
-	{
-		FillCompareRecord(TradingDay, AccountId);
-		std::shared_lock guard(table_->SharedMutex);
-		return index_.equal_range(&ComparePosition);
+		auto range = index_.equal_range(&ComparePosition);
+		return TableRangeLease<iterator>(std::move(guard), range.first, range.second);
 	}
 	void PositionIndexAccount::Insert(Position* const record)
 	{
@@ -187,23 +182,21 @@ namespace Mdb
 		:table_(tableOwner)
 	{
 	}
-	PositionIndexTradingDay::iterator PositionIndexTradingDay::LowerBound(const DateType& TradingDay)
+	TableRangeLease<PositionIndexTradingDay::iterator> PositionIndexTradingDay::Range(const DateType& lowerTradingDay, const DateType& upperTradingDay)
 	{
-		FillCompareRecord(TradingDay);
+		FillCompareRecord(lowerTradingDay);
 		std::shared_lock guard(table_->SharedMutex);
-		return index_.lower_bound(&ComparePosition);
+		auto first = index_.lower_bound(&ComparePosition);
+		FillCompareRecord(upperTradingDay);
+		auto last = index_.upper_bound(&ComparePosition);
+		return TableRangeLease<iterator>(std::move(guard), first, last);
 	}
-	PositionIndexTradingDay::iterator PositionIndexTradingDay::UpperBound(const DateType& TradingDay)
+	TableRangeLease<PositionIndexTradingDay::iterator> PositionIndexTradingDay::EqualRange(const DateType& TradingDay)
 	{
 		FillCompareRecord(TradingDay);
 		std::shared_lock guard(table_->SharedMutex);
-		return index_.upper_bound(&ComparePosition);
-	}
-	std::pair<PositionIndexTradingDay::iterator, PositionIndexTradingDay::iterator> PositionIndexTradingDay::EqualRange(const DateType& TradingDay)
-	{
-		FillCompareRecord(TradingDay);
-		std::shared_lock guard(table_->SharedMutex);
-		return index_.equal_range(&ComparePosition);
+		auto range = index_.equal_range(&ComparePosition);
+		return TableRangeLease<iterator>(std::move(guard), range.first, range.second);
 	}
 	void PositionIndexTradingDay::Insert(Position* const record)
 	{
@@ -245,23 +238,21 @@ namespace Mdb
 		:table_(tableOwner)
 	{
 	}
-	PositionDetailIndexTradeMatch::iterator PositionDetailIndexTradeMatch::LowerBound(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection)
+	TableRangeLease<PositionDetailIndexTradeMatch::iterator> PositionDetailIndexTradeMatch::Range(const DateType& lowerTradingDay, const AccountIdType& lowerAccountId, const ExchangeIdType& lowerExchangeId, const InstrumentIdType& lowerInstrumentId, const PosiDirectionType& lowerPosiDirection, const DateType& upperTradingDay, const AccountIdType& upperAccountId, const ExchangeIdType& upperExchangeId, const InstrumentIdType& upperInstrumentId, const PosiDirectionType& upperPosiDirection)
 	{
-		FillCompareRecord(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection);
+		FillCompareRecord(lowerTradingDay, lowerAccountId, lowerExchangeId, lowerInstrumentId, lowerPosiDirection);
 		std::shared_lock guard(table_->SharedMutex);
-		return index_.lower_bound(&ComparePositionDetail);
+		auto first = index_.lower_bound(&ComparePositionDetail);
+		FillCompareRecord(upperTradingDay, upperAccountId, upperExchangeId, upperInstrumentId, upperPosiDirection);
+		auto last = index_.upper_bound(&ComparePositionDetail);
+		return TableRangeLease<iterator>(std::move(guard), first, last);
 	}
-	PositionDetailIndexTradeMatch::iterator PositionDetailIndexTradeMatch::UpperBound(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection)
+	TableRangeLease<PositionDetailIndexTradeMatch::iterator> PositionDetailIndexTradeMatch::EqualRange(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection)
 	{
 		FillCompareRecord(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection);
 		std::shared_lock guard(table_->SharedMutex);
-		return index_.upper_bound(&ComparePositionDetail);
-	}
-	std::pair<PositionDetailIndexTradeMatch::iterator, PositionDetailIndexTradeMatch::iterator> PositionDetailIndexTradeMatch::EqualRange(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection)
-	{
-		FillCompareRecord(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection);
-		std::shared_lock guard(table_->SharedMutex);
-		return index_.equal_range(&ComparePositionDetail);
+		auto range = index_.equal_range(&ComparePositionDetail);
+		return TableRangeLease<iterator>(std::move(guard), range.first, range.second);
 	}
 	void PositionDetailIndexTradeMatch::Insert(PositionDetail* const record)
 	{
@@ -307,23 +298,21 @@ namespace Mdb
 		:table_(tableOwner)
 	{
 	}
-	PositionDetailIndexTradingDay::iterator PositionDetailIndexTradingDay::LowerBound(const DateType& TradingDay)
+	TableRangeLease<PositionDetailIndexTradingDay::iterator> PositionDetailIndexTradingDay::Range(const DateType& lowerTradingDay, const DateType& upperTradingDay)
 	{
-		FillCompareRecord(TradingDay);
+		FillCompareRecord(lowerTradingDay);
 		std::shared_lock guard(table_->SharedMutex);
-		return index_.lower_bound(&ComparePositionDetail);
+		auto first = index_.lower_bound(&ComparePositionDetail);
+		FillCompareRecord(upperTradingDay);
+		auto last = index_.upper_bound(&ComparePositionDetail);
+		return TableRangeLease<iterator>(std::move(guard), first, last);
 	}
-	PositionDetailIndexTradingDay::iterator PositionDetailIndexTradingDay::UpperBound(const DateType& TradingDay)
+	TableRangeLease<PositionDetailIndexTradingDay::iterator> PositionDetailIndexTradingDay::EqualRange(const DateType& TradingDay)
 	{
 		FillCompareRecord(TradingDay);
 		std::shared_lock guard(table_->SharedMutex);
-		return index_.upper_bound(&ComparePositionDetail);
-	}
-	std::pair<PositionDetailIndexTradingDay::iterator, PositionDetailIndexTradingDay::iterator> PositionDetailIndexTradingDay::EqualRange(const DateType& TradingDay)
-	{
-		FillCompareRecord(TradingDay);
-		std::shared_lock guard(table_->SharedMutex);
-		return index_.equal_range(&ComparePositionDetail);
+		auto range = index_.equal_range(&ComparePositionDetail);
+		return TableRangeLease<iterator>(std::move(guard), range.first, range.second);
 	}
 	void PositionDetailIndexTradingDay::Insert(PositionDetail* const record)
 	{

@@ -13,6 +13,7 @@ class Item:
 class Table:
     def __init__(self):
         self.Name = ""
+        self.DbName = ""
         self.Id = 0
         self.Desc = ""
         self.Batch = ""
@@ -41,6 +42,7 @@ def GetTables(tableFile, items, tables) -> str:
     for tableNode in root.getElementsByTagName("table"):
         table = Table()
         table.Name = tableNode.getAttribute("name")
+        table.DbName = tableNode.getAttribute("dbname")
         tableId = tableNode.getAttribute("id")
         if tableId:
             table.Id = int(tableId, 16)
@@ -87,6 +89,7 @@ def AddItemNode(dom, parentNode, item):
 def AddTableNode(dom, parentNode, table):
     tableNode = dom.createElement('table')
     tableNode.setAttribute("name", table.Name)
+    tableNode.setAttribute("dbname", table.DbName)
     tableNode.setAttribute("id", f"0x{table.Id:04X}")
     tableNode.setAttribute("desc", table.Desc)
     tableNode.setAttribute("batch", table.Batch)

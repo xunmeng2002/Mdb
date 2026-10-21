@@ -1,3 +1,3 @@
 #!/bin/bash
 
-git submodule update --remote submodules/CMakeCommon
+git submodule update --init --remote submodules/CMakeCommon

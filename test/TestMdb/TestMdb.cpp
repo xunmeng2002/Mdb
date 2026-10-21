@@ -10,7 +10,10 @@
 #include <DbAdapters/MysqlWrapper/MysqlWrapper.h>
 #include <DbAdapters/MariadbWrapper/MariadbWrapper.h>
 #include <Spark/Core/Core.h>
+#include <atomic>
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 using namespace std;
 using namespace Spark::Core;
@@ -84,10 +87,11 @@ namespace testMdb
         return account;
     }
 
-    static void InitTradingDay(::Mdb::Mdb* mdb)
+    static TradingDay* InitTradingDay(::Mdb::Mdb* mdb)
     {
         auto tradingDay = PrepareTradingDay();
         mdb->TradingDay->Insert(tradingDay);
+        return tradingDay;
     }
     static void InitExchange(::Mdb::Mdb* mdb)
     {
@@ -105,15 +109,15 @@ namespace testMdb
         mdb->Account->Insert(account);
     }
 
-    void Print(TradingDay* tradingDay)
+    void Print(const TradingDay* tradingDay)
     {
         WriteLog(LogLevel::Info, "%s", tradingDay->GetDebugString());
     }
-    void Print(Exchange* exchange)
+    void Print(const Exchange* exchange)
     {
         WriteLog(LogLevel::Info, "%s", exchange->GetDebugString());
     }
-    void Print(Account* account)
+    void Print(const Account* account)
     {
         WriteLog(LogLevel::Info, "%s", account->GetDebugString());
     }
@@ -158,13 +162,15 @@ namespace testMdb
 
         int storedRowCount = 0;
         bool storedHandedInRecord = false;
-        auto storedRange = mdb->Exchange->PrimaryKey->SelectAll();
-        for (auto it = storedRange.first; it != storedRange.second; ++it)
         {
-            ++storedRowCount;
-            if (*it == handedInRecord)
+            auto storedRange = mdb->Exchange->PrimaryKey->SelectAll();
+            for (auto it = storedRange.begin(); it != storedRange.end(); ++it)
             {
-                storedHandedInRecord = true;
+                ++storedRowCount;
+                if (*it == handedInRecord)
+                {
+                    storedHandedInRecord = true;
+                }
             }
         }
 
@@ -174,6 +180,67 @@ namespace testMdb
         WriteLog(LogLevel::Info, "BatchInsert ownership: storedRowCount=%d storedHandedInRecord=%d callerContainerCleared=%d",
                  storedRowCount, storedHandedInRecord ? 1 : 0, callerContainerCleared ? 1 : 0);
         return storedRowCount == 3 && storedHandedInRecord && callerContainerCleared;
+    }
+
+    static bool TestReadLeaseBlocksWriter()
+    {
+        ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
+
+        Exchange* firstExchange = Exchange::Allocate();
+        strcpy(firstExchange->ExchangeId, "SHFE");
+        mdb->Exchange->Insert(firstExchange);
+
+        std::atomic<bool> writerStarted{ false };
+        std::atomic<bool> writerCompleted{ false };
+        std::thread writer([mdb, &writerStarted, &writerCompleted]()
+        {
+            Exchange* secondExchange = Exchange::Allocate();
+            strcpy(secondExchange->ExchangeId, "INE");
+            writerStarted = true;
+            mdb->Exchange->Insert(secondExchange);
+            writerCompleted = true;
+        });
+
+        bool leaseSawRecord = false;
+        bool writerBlockedWhileLeaseHeld = false;
+        ExchangeIdType exchangeId = "SHFE";
+        {
+            auto lease = mdb->Exchange->PrimaryKey->Select(exchangeId);
+            leaseSawRecord = static_cast<bool>(lease);
+            while (!writerStarted.load())
+            {
+                std::this_thread::yield();
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            writerBlockedWhileLeaseHeld = !writerCompleted.load();
+        }
+        writer.join();
+        const bool writerRanAfterLeaseReleased = writerCompleted.load();
+
+        int rowCount = 0;
+        mdb->Exchange->ForEach([&rowCount](const Exchange*)
+        {
+            ++rowCount;
+            return true;
+        });
+
+        int visitedBeforeStop = 0;
+        mdb->Exchange->ForEach([&visitedBeforeStop](const Exchange*)
+        {
+            ++visitedBeforeStop;
+            return false;
+        });
+
+        mdb->Exchange->TruncateTable();
+        delete mdb;
+
+        WriteLog(LogLevel::Info,
+                 "Read lease: sawRecord=%d writerBlockedWhileLeaseHeld=%d writerRanAfterLeaseReleased=%d "
+                 "rowCount=%d visitedBeforeStop=%d",
+                 leaseSawRecord ? 1 : 0, writerBlockedWhileLeaseHeld ? 1 : 0,
+                 writerRanAfterLeaseReleased ? 1 : 0, rowCount, visitedBeforeStop);
+        return leaseSawRecord && writerBlockedWhileLeaseHeld && writerRanAfterLeaseReleased &&
+               rowCount == 2 && visitedBeforeStop == 1;
     }
 
     static void TestMdb(Db* db)
@@ -187,22 +254,28 @@ namespace testMdb
 
         this_thread::sleep_for(chrono::seconds(1));
 
-        InitTradingDay(mdb);
+        TradingDay* tradingDayRecord = InitTradingDay(mdb);
         InitExchange(mdb);
         InitAccount(mdb);
 
         ExchangeIdType exchangeID("CFFEX");
-        auto exchange = mdb->Exchange->PrimaryKey->Select(exchangeID);
-        Print(exchange);
-
-        auto tradingDay = mdb->TradingDay->PrimaryKey->Select(1);
-        Print(tradingDay);
-        mdb->TradingDay->Erase(tradingDay);
-        mdb->TradingDay->TruncateTable();
-        auto exchangePair = mdb->Exchange->PrimaryKey->SelectAll();
-        for (auto& it = exchangePair.first; it != exchangePair.second; ++it)
         {
-            Print(*it);
+            auto exchange = mdb->Exchange->PrimaryKey->Select(exchangeID);
+            Print(exchange.Get());
+        }
+
+        {
+            auto tradingDay = mdb->TradingDay->PrimaryKey->Select(1);
+            Print(tradingDay.Get());
+        }
+        mdb->TradingDay->Erase(tradingDayRecord);
+        mdb->TradingDay->TruncateTable();
+        {
+            auto exchangeRange = mdb->Exchange->PrimaryKey->SelectAll();
+            for (auto it = exchangeRange.begin(); it != exchangeRange.end(); ++it)
+            {
+                Print(*it);
+            }
         }
 
         this_thread::sleep_for(chrono::seconds(1));
@@ -313,9 +386,10 @@ int main(int argc, char* argv[])
     //testMdb::TestMysql();
     //testMdb::TestMariadb();
 
-    bool batchInsertOwnershipHolds = testMdb::TestBatchInsertTakesOwnership();
+    const bool batchInsertOwnershipHolds = testMdb::TestBatchInsertTakesOwnership();
+    const bool readLeaseHolds = testMdb::TestReadLeaseBlocksWriter();
 
     Logger::GetInstance().Stop();
     Logger::GetInstance().Join();
-    return batchInsertOwnershipHolds ? 0 : 1;
+    return (batchInsertOwnershipHolds && readLeaseHolds) ? 0 : 1;
 }

@@ -23,6 +23,18 @@ namespace Mdb
 		void LockShared();
 		void UnlockShared();
 		virtual void InitDb() override;
+		template <typename Visitor>
+		void ForEach(Visitor&& visitor)
+		{
+			std::shared_lock guard(SharedMutex);
+			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
+			{
+				if (!visitor(*it))
+				{
+					break;
+				}
+			}
+		}
 		bool Insert(TradingDay* record);
 		void BatchInsert(std::vector<TradingDay*>& records);
 		void Erase(TradingDay* record);
@@ -51,6 +63,18 @@ namespace Mdb
 		void LockShared();
 		void UnlockShared();
 		virtual void InitDb() override;
+		template <typename Visitor>
+		void ForEach(Visitor&& visitor)
+		{
+			std::shared_lock guard(SharedMutex);
+			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
+			{
+				if (!visitor(*it))
+				{
+					break;
+				}
+			}
+		}
 		bool Insert(Exchange* record);
 		void BatchInsert(std::vector<Exchange*>& records);
 		void Erase(Exchange* record);
@@ -79,6 +103,18 @@ namespace Mdb
 		void LockShared();
 		void UnlockShared();
 		virtual void InitDb() override;
+		template <typename Visitor>
+		void ForEach(Visitor&& visitor)
+		{
+			std::shared_lock guard(SharedMutex);
+			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
+			{
+				if (!visitor(*it))
+				{
+					break;
+				}
+			}
+		}
 		bool Insert(Product* record);
 		void BatchInsert(std::vector<Product*>& records);
 		void Erase(Product* record);
@@ -107,6 +143,18 @@ namespace Mdb
 		void LockShared();
 		void UnlockShared();
 		virtual void InitDb() override;
+		template <typename Visitor>
+		void ForEach(Visitor&& visitor)
+		{
+			std::shared_lock guard(SharedMutex);
+			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
+			{
+				if (!visitor(*it))
+				{
+					break;
+				}
+			}
+		}
 		bool Insert(Instrument* record);
 		void BatchInsert(std::vector<Instrument*>& records);
 		void Erase(Instrument* record);
@@ -135,6 +183,18 @@ namespace Mdb
 		void LockShared();
 		void UnlockShared();
 		virtual void InitDb() override;
+		template <typename Visitor>
+		void ForEach(Visitor&& visitor)
+		{
+			std::shared_lock guard(SharedMutex);
+			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
+			{
+				if (!visitor(*it))
+				{
+					break;
+				}
+			}
+		}
 		bool Insert(PrimaryAccount* record);
 		void BatchInsert(std::vector<PrimaryAccount*>& records);
 		void Erase(PrimaryAccount* record);
@@ -165,6 +225,18 @@ namespace Mdb
 		void LockShared();
 		void UnlockShared();
 		virtual void InitDb() override;
+		template <typename Visitor>
+		void ForEach(Visitor&& visitor)
+		{
+			std::shared_lock guard(SharedMutex);
+			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
+			{
+				if (!visitor(*it))
+				{
+					break;
+				}
+			}
+		}
 		bool Insert(Account* record);
 		void BatchInsert(std::vector<Account*>& records);
 		void Erase(Account* record);
@@ -193,6 +265,18 @@ namespace Mdb
 		void LockShared();
 		void UnlockShared();
 		virtual void InitDb() override;
+		template <typename Visitor>
+		void ForEach(Visitor&& visitor)
+		{
+			std::shared_lock guard(SharedMutex);
+			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
+			{
+				if (!visitor(*it))
+				{
+					break;
+				}
+			}
+		}
 		bool Insert(Capital* record);
 		void BatchInsert(std::vector<Capital*>& records);
 		void Erase(Capital* record);
@@ -223,6 +307,18 @@ namespace Mdb
 		void LockShared();
 		void UnlockShared();
 		virtual void InitDb() override;
+		template <typename Visitor>
+		void ForEach(Visitor&& visitor)
+		{
+			std::shared_lock guard(SharedMutex);
+			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
+			{
+				if (!visitor(*it))
+				{
+					break;
+				}
+			}
+		}
 		bool Insert(Position* record);
 		void BatchInsert(std::vector<Position*>& records);
 		void Erase(Position* record);
@@ -255,6 +351,18 @@ namespace Mdb
 		void LockShared();
 		void UnlockShared();
 		virtual void InitDb() override;
+		template <typename Visitor>
+		void ForEach(Visitor&& visitor)
+		{
+			std::shared_lock guard(SharedMutex);
+			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
+			{
+				if (!visitor(*it))
+				{
+					break;
+				}
+			}
+		}
 		bool Insert(PositionDetail* record);
 		void BatchInsert(std::vector<PositionDetail*>& records);
 		void Erase(PositionDetail* record);
@@ -287,6 +395,18 @@ namespace Mdb
 		void LockShared();
 		void UnlockShared();
 		virtual void InitDb() override;
+		template <typename Visitor>
+		void ForEach(Visitor&& visitor)
+		{
+			std::shared_lock guard(SharedMutex);
+			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
+			{
+				if (!visitor(*it))
+				{
+					break;
+				}
+			}
+		}
 		bool Insert(Order* record);
 		void BatchInsert(std::vector<Order*>& records);
 		void Erase(Order* record);
@@ -316,6 +436,18 @@ namespace Mdb
 		void LockShared();
 		void UnlockShared();
 		virtual void InitDb() override;
+		template <typename Visitor>
+		void ForEach(Visitor&& visitor)
+		{
+			std::shared_lock guard(SharedMutex);
+			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
+			{
+				if (!visitor(*it))
+				{
+					break;
+				}
+			}
+		}
 		bool Insert(Trade* record);
 		void BatchInsert(std::vector<Trade*>& records);
 		void Erase(Trade* record);

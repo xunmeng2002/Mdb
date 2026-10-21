@@ -2,6 +2,7 @@
 #pragma once
 #include "MdbStructs.h"
 #include "MdbIndexComp.h"
+#include "MdbReadLease.h"
 #include <set>
 
 using std::multiset;
@@ -16,9 +17,8 @@ namespace Mdb
 		static constexpr unsigned int IndexID = 0x0000;
 	
 		PrimaryAccountIndexOfferId(PrimaryAccountTable* tableOwner);
-		iterator LowerBound(const OfferIdType& OfferId);
-		iterator UpperBound(const OfferIdType& OfferId);
-		std::pair<iterator, iterator> EqualRange(const OfferIdType& OfferId);
+		TableRangeLease<iterator> Range(const OfferIdType& lowerOfferId, const OfferIdType& upperOfferId);
+		TableRangeLease<iterator> EqualRange(const OfferIdType& OfferId);
 	
 	protected:
 		void Insert(PrimaryAccount* const record);
@@ -43,9 +43,8 @@ namespace Mdb
 		static constexpr unsigned int IndexID = 0x0000;
 	
 		CapitalIndexTradingDay(CapitalTable* tableOwner);
-		iterator LowerBound(const DateType& TradingDay);
-		iterator UpperBound(const DateType& TradingDay);
-		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay);
+		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const DateType& upperTradingDay);
+		TableRangeLease<iterator> EqualRange(const DateType& TradingDay);
 	
 	protected:
 		void Insert(Capital* const record);
@@ -70,9 +69,8 @@ namespace Mdb
 		static constexpr unsigned int IndexID = 0x0000;
 	
 		PositionIndexAccount(PositionTable* tableOwner);
-		iterator LowerBound(const DateType& TradingDay, const AccountIdType& AccountId);
-		iterator UpperBound(const DateType& TradingDay, const AccountIdType& AccountId);
-		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay, const AccountIdType& AccountId);
+		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const AccountIdType& lowerAccountId, const DateType& upperTradingDay, const AccountIdType& upperAccountId);
+		TableRangeLease<iterator> EqualRange(const DateType& TradingDay, const AccountIdType& AccountId);
 	
 	protected:
 		void Insert(Position* const record);
@@ -96,9 +94,8 @@ namespace Mdb
 		static constexpr unsigned int IndexID = 0x0001;
 	
 		PositionIndexTradingDay(PositionTable* tableOwner);
-		iterator LowerBound(const DateType& TradingDay);
-		iterator UpperBound(const DateType& TradingDay);
-		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay);
+		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const DateType& upperTradingDay);
+		TableRangeLease<iterator> EqualRange(const DateType& TradingDay);
 	
 	protected:
 		void Insert(Position* const record);
@@ -123,9 +120,8 @@ namespace Mdb
 		static constexpr unsigned int IndexID = 0x0000;
 	
 		PositionDetailIndexTradeMatch(PositionDetailTable* tableOwner);
-		iterator LowerBound(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
-		iterator UpperBound(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
-		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
+		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const AccountIdType& lowerAccountId, const ExchangeIdType& lowerExchangeId, const InstrumentIdType& lowerInstrumentId, const PosiDirectionType& lowerPosiDirection, const DateType& upperTradingDay, const AccountIdType& upperAccountId, const ExchangeIdType& upperExchangeId, const InstrumentIdType& upperInstrumentId, const PosiDirectionType& upperPosiDirection);
+		TableRangeLease<iterator> EqualRange(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
 	
 	protected:
 		void Insert(PositionDetail* const record);
@@ -149,9 +145,8 @@ namespace Mdb
 		static constexpr unsigned int IndexID = 0x0001;
 	
 		PositionDetailIndexTradingDay(PositionDetailTable* tableOwner);
-		iterator LowerBound(const DateType& TradingDay);
-		iterator UpperBound(const DateType& TradingDay);
-		std::pair<iterator, iterator> EqualRange(const DateType& TradingDay);
+		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const DateType& upperTradingDay);
+		TableRangeLease<iterator> EqualRange(const DateType& TradingDay);
 	
 	protected:
 		void Insert(PositionDetail* const record);

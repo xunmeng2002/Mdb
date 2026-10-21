@@ -13,7 +13,7 @@ Mdb 是一个**内存数据库的实现示例**，重点是演示"如何实现�
 
 1. **表结构驱动**：数据表模型由 `Model/*.xml` 定义，通过 Python 脚本（`pump.py` + `pumplist.xml`）自动生成全部表结构代码（记录结构体、类型化表容器、主键容器、二级索引容器），无需手写；
 2. **内存优先 + 异步落库**：业务读写优先操作内存，变更通过订阅接口（`MdbSubscriber`）广播，由 DbAdapters 的 `AsyncDbWriter` **异步同步至物理数据库**（SQLite / DuckDB / MySQL / MariaDB），兼顾低时延与数据可靠；
-3. **检索与并发**：每张表内置主键容器与二级索引容器（`Select` / `SelectAll` / `EqualRange`），并以 `std::shared_mutex` 支持并发读。
+3. **检索与并发**：每张表内置主键容器与二级索引容器（`Select` / `SelectAll` / `EqualRange` / `Range`），查询返回**读租约**（`TableReadLease` / `TableRangeLease`）：锁随结果走，租约存活期间写线程被挡在外面，因此无需拷贝记录也能保证指针与迭代器有效。
 
 因此，内置的 11 张金融数据表（交易日、账户、订单、持仓等）**仅作为示例数据**，用于演示不同类型字段（定长字符串、枚举、日期、整数）的建表与检索方式；要迁移到自己的业务，只需照葫芦画瓢定义自己的 `Model/*.xml` 并重新生成代码即可。
 
@@ -27,8 +27,8 @@ Mdb 是一个**内存数据库的实现示例**，重点是演示"如何实现�
 - ✅ **多数据库兼容**：基于 DbAdapters，原生支持 MySQL、MariaDB、SQLite、DuckDB 四大数据库后端
 - ✅ **统一访问接口**：一套内存接口对接所有数据库，切换存储引擎无需修改业务逻辑
 - ✅ **金融专属数据表**：内置 11 张交易业务数据表，覆盖交易日、合约、账户、资金、订单、持仓、成交等核心场景
-- ✅ **主键 & 二级索引查询**：每张表内置主键容器与二级索引容器，支持 `Select` / `SelectAll` / `EqualRange` 等高效检索
-- ✅ **线程安全**：每张表内置 `std::shared_mutex`，提供 `LockShared` / `UnlockShared` 支持并发读
+- ✅ **主键 & 二级索引查询**：每张表内置主键容器与二级索引容器，支持 `Select` / `SelectAll` / `EqualRange` / `Range` 等高效检索
+- ✅ **线程安全**：每张表内置 `std::shared_mutex`；读接口返回 RAII 读租约，写接口持独占锁，租约与写操作不会交叠
 - ✅ **异步写入**：数据库落地操作异步执行，避免阻塞核心交易链路；断线自动重连
 - ✅ **导入导出**：支持从数据库（`InitMdbFromDb`）或 CSV（`InitMdbFromCsv`）批量载入内存，支持 `Dump` 全量导出
 - ✅ **自动化工具链**：数据表模型驱动代码生成（`MdbStructs` / `MdbTables` / `MdbPrimaryKeys` / `MdbIndexes` 均由模板自动生成）
@@ -60,9 +60,10 @@ Mdb/
 │   ├── MdbStructs.h/.cpp          # 11 张表的记录结构体 + TableSchema（代码生成）
 │   ├── MdbTables.h/.cpp           # 类型化表容器（TradingDayTable / ExchangeTable / ...）
 │   ├── MdbTableBase.h             # 表基类（MdbTableBase：订阅 / InitDB / Truncate / Dump）
+│   ├── MdbReadLease.h             # 读租约（TableReadLease / TableRangeLease：锁随结果走）
 │   ├── MdbTableRegistry.h/.cpp    # SchemaRegistry 实现，供 AsyncDbWriter 反查表结构
 │   ├── MdbPrimaryKeys.h/.cpp      # 主键索引容器（Select / SelectAll / 唯一性校验）
-│   ├── MdbIndexes.h/.cpp          # 二级索引容器（LowerBound / UpperBound / EqualRange）
+│   ├── MdbIndexes.h/.cpp          # 二级索引容器（Range / EqualRange）
 │   ├── MdbPrimaryKeyComp.h/.cpp   # 主键哈希 / 相等比较器（代码生成）
 │   ├── MdbIndexComp.h/.cpp        # 索引比较器（代码生成）
 │   ├── TableList.h                # 表清单结构体（TableList）
@@ -256,47 +257,64 @@ int main(int argc, const char* argv[])
 ### 示例 2：主键 & 二级索引查询
 
 ```cpp
-// 主键查询：按唯一主键定位单条记录
-ExchangeIDType exchangeID("CFFEX");
-Exchange* exchange = mdb->exchange->primaryKey->Select(exchangeID);
-WriteLog(LogLevel::Info, "%s", exchange->GetDebugString());
+// 主键查询：返回读租约，租约存活期间记录不会被并发写改掉
+ExchangeIdType exchangeId = "CFFEX";
+auto exchange = mdb->Exchange->PrimaryKey->Select(exchangeId);
+if (exchange)
+{
+    WriteLog(LogLevel::Info, "%s", exchange->GetDebugString());
+}
 
-// 主键全量遍历：返回 [begin, end) 迭代器对
-auto all = mdb->exchange->primaryKey->SelectAll();
-for (auto it = all.first; it != all.second; ++it)
+// 主键全量遍历：范围租约保证 begin/end 与记录内容在遍历期间稳定
+auto all = mdb->Exchange->PrimaryKey->SelectAll();
+for (auto it = all.begin(); it != all.end(); ++it)
 {
     WriteLog(LogLevel::Info, "%s", (*it)->GetDebugString());
 }
 
-// 二级索引等值区间查询（如按报盘代码 OfferID 查主账户）
-OfferIDType offerID = 10001;
-auto range = mdb->primaryAccount->offerIDIndex->EqualRange(offerID);
-for (auto it = range.first; it != range.second; ++it)
+// 二级索引等值区间查询（如按报盘代码 OfferId 查主账户）
+OfferIdType offerId = 10001;
+auto range = mdb->PrimaryAccount->OfferIdIndex->EqualRange(offerId);
+for (auto it = range.begin(); it != range.end(); ++it)
 {
     WriteLog(LogLevel::Info, "%s", (*it)->GetDebugString());
 }
+
+// 二级索引上下界区间查询：同一把锁内取 [lower, upper]，区间本身不会被写线程拆开
+DateType startTradingDay = "20261001";
+DateType endTradingDay = "20261031";
+auto monthRange = mdb->Capital->TradingDayIndex->Range(startTradingDay, endTradingDay);
 
 // 按二级索引批量删除（如清空某交易日的资金记录）
-mdb->capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
+mdb->Capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
 ```
 
 ### 示例 3：更新 / 删除 / 清表
 
 ```cpp
-// 更新：内存同步更新，并通过 MdbSubscriber 广播到 AsyncDbWriter 异步落库
-AccountIDType accountID;
-std::strcpy(accountID, "A001");
-Account* oldAccount = mdb->account->primaryKey->Select(accountID);
+// 更新：租约内只读；先拷出字段并结束租约，再调用 Update
+AccountIdType accountId = "A001";
+Account snapshot;
+Account* oldAccount = nullptr;
+{
+    auto lease = mdb->Account->PrimaryKey->Select(accountId);
+    if (!lease)
+    {
+        return;
+    }
+    oldAccount = const_cast<Account*>(lease.Get());
+    snapshot = *lease;
+}
 Account* newAccount = Account::Allocate();
-*newAccount = *oldAccount;                              // 拷贝后修改
+*newAccount = snapshot;                                 // 拷贝后修改
 std::strcpy(newAccount->AccountName, u8"李四");
-mdb->account->Update(oldAccount, newAccount);
+mdb->Account->Update(oldAccount, newAccount);
 
-// 删除单条记录（同步删除内存并广播落库删除）
-mdb->account->Erase(oldAccount);
+// 删除单条记录（同步删除内存并广播落库删除；同样必须在租约结束后调用）
+mdb->Account->Erase(oldAccount);
 
 // 清空单表
-mdb->account->TruncateTable();
+mdb->Account->TruncateTable();
 
 // 清空全部表（广播 TruncateTables + 各表本地清空）
 mdb->TruncateTables();
@@ -344,7 +362,8 @@ mdb->Dump("./dump");
 | `TestDuckdb` | DuckDB 后端：内存库 + 异步写库全流程 |
 | `TestMysql` | MySQL 后端全流程（需本机 MySQL X Plugin，默认注释关闭） |
 | `TestMariadb` | MariaDB 后端全流程（需本机 MariaDB，默认注释关闭） |
-| 主键 / 索引 | `primaryKey->Select` / `SelectAll`、`offerIDIndex->EqualRange` 等检索验证 |
+| 主键 / 索引 | `primaryKey->Select` / `SelectAll`、`offerIDIndex->EqualRange`、`Range` 等检索验证 |
+| `TestReadLeaseBlocksWriter` | 读租约：持租约时写线程被阻塞，租约释放后写入完成；`ForEach` 计数与提前退出 |
 | 内存操作 | Insert / Update / Erase / TruncateTable 与广播落库验证 |
 | `TestBatchInsertTakesOwnership` | 批插入归属：表直接持有调用方交来的记录（指针恒等） |
 
@@ -366,5 +385,5 @@ Release 下同输入正常跑完。
 - **依赖关系**：Mdb 构建在 [Spark](https://gitee.com/xunmeng2002/Spark.git)（基础能力）与 [DbAdapters](https://gitee.com/xunmeng2002/DbAdapters.git)（统一数据库访问层）之上，二者均为预编译依赖
 - **包含路径**：Mdb 头文件位于 `src/Mdb/`，以 `#include "Mdb.h"` 风格引用
 - **命名空间**：全部接口位于 `mdb` 命名空间；数据库接口复用 `DbAdapters` 命名空间
-- **并发访问**：内存表为多线程安全设计，读操作建议先 `LockShared()` 再访问主键 / 索引容器，避免与写线程竞争
+- **并发访问**：内存表为多线程安全设计，读接口返回的租约持有共享锁；**租约存活期间不得对同一张表执行写操作**（Insert / Update / Erase / TruncateTable），否则会自锁
 - **代码生成**：修改 `Model/*.xml` 后运行 `python pumpall.py` 可重新生成表结构代码，无需手写

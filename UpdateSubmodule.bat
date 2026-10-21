@@ -1,3 +1,3 @@
 @echo off
 echo Updating CMakeCommon submodule...
-git submodule update --remote submodules/CMakeCommon
+git submodule update --init --remote submodules/CMakeCommon
