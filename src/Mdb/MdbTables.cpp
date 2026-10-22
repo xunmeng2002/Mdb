@@ -5,6 +5,7 @@
 #include <cassert>
 #include <string>
 #include <cstring>
+#include <memory>
 #include <set>
 #include <utility>
 #include <vector>
@@ -18,21 +19,33 @@ namespace Mdb
 {
 	TradingDayTable::TradingDayTable()
 	{
-		mdbSubscriber_ = nullptr;
-		PrimaryKey = new TradingDayPrimaryKey(this);
+		PrimaryKey = new TradingDayTablePrimaryKey(this);
 	}
 	TradingDayTable::~TradingDayTable()
 	{
 		delete PrimaryKey;
 		PrimaryKey = nullptr;
 	}
+	unsigned int TradingDayTable::GetTableId() const
+	{
+		return TradingDay::TableId;
+	}
 	void TradingDayTable::Subscribe(MdbSubscriber* subscriber)
 	{
-		mdbSubscriber_ = subscriber;
+		if (subscriber == nullptr)
+		{
+			return;
+		}
+		subscribers_.push_back(subscriber);
+	}
+	void TradingDayTable::SubscribeReplica(MdbReplicaSubscriber* replica)
+	{
+		replicaSubscriber_ = replica;
 	}
 	void TradingDayTable::UnSubscribe()
 	{
-		mdbSubscriber_ = nullptr;
+		subscribers_.clear();
+		replicaSubscriber_ = nullptr;
 	}
 	void TradingDayTable::LockShared()
 	{
@@ -44,29 +57,25 @@ namespace Mdb
 	}
 	void TradingDayTable::InitDb()
 	{
-		if (mdbSubscriber_ == nullptr)
+		if (replicaSubscriber_ == nullptr)
 		{
-			DbInited = true;
 			return;
 		}
-		mdbSubscriber_->OnRecordTruncate(TradingDay::TableId);
-
-		std::vector<RecordHandle> records;
+		// 清表、拷贝、批量、就绪置位全部在一次读租约内完成：
+		// 这期间的写入被阻塞，释放租约后到达的增量必然排在批量之后
+		std::shared_lock guard(SharedMutex);
+		replicaSubscriber_->OnSnapshotBegin(TradingDay::TableId);
+		if (!PrimaryKey->index_.empty())
 		{
-			std::shared_lock guard(SharedMutex);
-			records.reserve(PrimaryKey->index_.size());
+			std::vector<RowChangeEventPtr> events;
+			events.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
-				auto record = TradingDay::Allocate();
-				memcpy(record, *it, sizeof(TradingDay));
-				records.push_back(AdoptRecord(record));
+				events.push_back(MakeInsertEvent(*it));
 			}
+			replicaSubscriber_->OnRowBatchChange(events);
 		}
-		if (!records.empty())
-		{
-			mdbSubscriber_->OnRecordBatchInsert(TradingDay::TableId, std::move(records));
-		}
-		DbInited = true;
+		replicaSubscriber_->OnSnapshotComplete(TradingDay::TableId);
 	}
 	bool TradingDayTable::Insert(TradingDay* record)
 	{
@@ -81,33 +90,20 @@ namespace Mdb
 		PrimaryKey->Insert(record);
 
 		
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordInsert(TradingDay::TableId, BorrowRecord(record));
-		}
+		EmitRowInsert(record);
 		return true;
 	}
 	void TradingDayTable::BatchInsert(std::vector<TradingDay*>& records)
 	{
+		std::lock_guard guard(SharedMutex);
+		for (auto record : records)
 		{
-			std::lock_guard guard(SharedMutex);
-			for (auto record : records)
-			{
-				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
-				assert(insertedIntoPrimaryKey);
+			[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
+			assert(insertedIntoPrimaryKey);
 
-			}
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records.size());
-			for (auto* r : records)
-			{
-				dbRecords.push_back(BorrowRecord(r));
-			}
-			mdbSubscriber_->OnRecordBatchInsert(TradingDay::TableId, std::move(dbRecords));
-		}
+		// 通知在写锁内发出：放到解锁后会让并发 Update 的事件先于本批到达订阅者
+		EmitRowBatchInsert(records);
 		records.clear();
 	}
 	void TradingDayTable::Erase(TradingDay* record)
@@ -115,14 +111,7 @@ namespace Mdb
 		std::lock_guard guard(SharedMutex);
 		EraseUniqueKey(record);
 		EraseIndex(record);
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordErase(TradingDay::TableId, AdoptRecord(record));
-		}
-		else
-		{
-			record->Deallocate();
-		}
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
 	}
 	bool TradingDayTable::Update(TradingDay* const oldRecord, TradingDay* const newRecord, bool updateDB)
 	{
@@ -137,14 +126,8 @@ namespace Mdb
 
 		::memcpy(oldRecord, newRecord, sizeof(TradingDay));
 
-		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordUpdate(TradingDay::TableId, AdoptRecord(newRecord));
-		}
-		else
-		{
-			newRecord->Deallocate();
-		}
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
 		return true;
 	}
 	void TradingDayTable::TruncateTables()
@@ -164,14 +147,11 @@ namespace Mdb
 			(*it)->Deallocate();
 		}
 		PrimaryKey->index_.clear();
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordTruncate(TradingDay::TableId);
-		}
+		EmitRowChange(RowChangeType::Truncate, 0, true, RecordHandle());
 	}
 	void TradingDayTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//t_TradingDay.csv";
+		string fileName = string(dir) + "//TradingDay.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -200,24 +180,98 @@ namespace Mdb
 	void TradingDayTable::EraseIndex(TradingDay* record)
 	{
 	}
+	bool TradingDayTable::HasSubscribers() const
+	{
+		return replicaSubscriber_ != nullptr || !subscribers_.empty();
+	}
+	RowChangeEventPtr TradingDayTable::MakeInsertEvent(const TradingDay* record)
+	{
+		auto eventRecord = TradingDay::Allocate();
+		memcpy(eventRecord, record, sizeof(TradingDay));
+		return std::make_shared<const RowChangeEvent>(TradingDay::TableId, RowChangeType::Insert, 0, ++sequence_, true, AdoptRecord(eventRecord));
+	}
+	void TradingDayTable::PublishRowChange(const RowChangeEventPtr& event)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowChange(event);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowChange(event);
+		}
+	}
+	void TradingDayTable::PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowBatchChange(events);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowBatchChange(events);
+		}
+	}
+	void TradingDayTable::EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(std::make_shared<const RowChangeEvent>(TradingDay::TableId, type, indexId, ++sequence_, persistDatabase, std::move(record)));
+	}
+	void TradingDayTable::EmitRowInsert(const TradingDay* record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(MakeInsertEvent(record));
+	}
+	void TradingDayTable::EmitRowBatchInsert(const std::vector<TradingDay*>& records)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		std::vector<RowChangeEventPtr> events;
+		events.reserve(records.size());
+		for (const TradingDay* record : records)
+		{
+			events.push_back(MakeInsertEvent(record));
+		}
+		PublishRowBatchChange(events);
+	}
 
 	ExchangeTable::ExchangeTable()
 	{
-		mdbSubscriber_ = nullptr;
-		PrimaryKey = new ExchangePrimaryKey(this);
+		PrimaryKey = new ExchangeTablePrimaryKey(this);
 	}
 	ExchangeTable::~ExchangeTable()
 	{
 		delete PrimaryKey;
 		PrimaryKey = nullptr;
 	}
+	unsigned int ExchangeTable::GetTableId() const
+	{
+		return Exchange::TableId;
+	}
 	void ExchangeTable::Subscribe(MdbSubscriber* subscriber)
 	{
-		mdbSubscriber_ = subscriber;
+		if (subscriber == nullptr)
+		{
+			return;
+		}
+		subscribers_.push_back(subscriber);
+	}
+	void ExchangeTable::SubscribeReplica(MdbReplicaSubscriber* replica)
+	{
+		replicaSubscriber_ = replica;
 	}
 	void ExchangeTable::UnSubscribe()
 	{
-		mdbSubscriber_ = nullptr;
+		subscribers_.clear();
+		replicaSubscriber_ = nullptr;
 	}
 	void ExchangeTable::LockShared()
 	{
@@ -229,29 +283,25 @@ namespace Mdb
 	}
 	void ExchangeTable::InitDb()
 	{
-		if (mdbSubscriber_ == nullptr)
+		if (replicaSubscriber_ == nullptr)
 		{
-			DbInited = true;
 			return;
 		}
-		mdbSubscriber_->OnRecordTruncate(Exchange::TableId);
-
-		std::vector<RecordHandle> records;
+		// 清表、拷贝、批量、就绪置位全部在一次读租约内完成：
+		// 这期间的写入被阻塞，释放租约后到达的增量必然排在批量之后
+		std::shared_lock guard(SharedMutex);
+		replicaSubscriber_->OnSnapshotBegin(Exchange::TableId);
+		if (!PrimaryKey->index_.empty())
 		{
-			std::shared_lock guard(SharedMutex);
-			records.reserve(PrimaryKey->index_.size());
+			std::vector<RowChangeEventPtr> events;
+			events.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
-				auto record = Exchange::Allocate();
-				memcpy(record, *it, sizeof(Exchange));
-				records.push_back(AdoptRecord(record));
+				events.push_back(MakeInsertEvent(*it));
 			}
+			replicaSubscriber_->OnRowBatchChange(events);
 		}
-		if (!records.empty())
-		{
-			mdbSubscriber_->OnRecordBatchInsert(Exchange::TableId, std::move(records));
-		}
-		DbInited = true;
+		replicaSubscriber_->OnSnapshotComplete(Exchange::TableId);
 	}
 	bool ExchangeTable::Insert(Exchange* record)
 	{
@@ -266,33 +316,20 @@ namespace Mdb
 		PrimaryKey->Insert(record);
 
 		
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordInsert(Exchange::TableId, BorrowRecord(record));
-		}
+		EmitRowInsert(record);
 		return true;
 	}
 	void ExchangeTable::BatchInsert(std::vector<Exchange*>& records)
 	{
+		std::lock_guard guard(SharedMutex);
+		for (auto record : records)
 		{
-			std::lock_guard guard(SharedMutex);
-			for (auto record : records)
-			{
-				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
-				assert(insertedIntoPrimaryKey);
+			[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
+			assert(insertedIntoPrimaryKey);
 
-			}
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records.size());
-			for (auto* r : records)
-			{
-				dbRecords.push_back(BorrowRecord(r));
-			}
-			mdbSubscriber_->OnRecordBatchInsert(Exchange::TableId, std::move(dbRecords));
-		}
+		// 通知在写锁内发出：放到解锁后会让并发 Update 的事件先于本批到达订阅者
+		EmitRowBatchInsert(records);
 		records.clear();
 	}
 	void ExchangeTable::Erase(Exchange* record)
@@ -300,14 +337,7 @@ namespace Mdb
 		std::lock_guard guard(SharedMutex);
 		EraseUniqueKey(record);
 		EraseIndex(record);
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordErase(Exchange::TableId, AdoptRecord(record));
-		}
-		else
-		{
-			record->Deallocate();
-		}
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
 	}
 	bool ExchangeTable::Update(Exchange* const oldRecord, Exchange* const newRecord, bool updateDB)
 	{
@@ -322,14 +352,8 @@ namespace Mdb
 
 		::memcpy(oldRecord, newRecord, sizeof(Exchange));
 
-		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordUpdate(Exchange::TableId, AdoptRecord(newRecord));
-		}
-		else
-		{
-			newRecord->Deallocate();
-		}
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
 		return true;
 	}
 	void ExchangeTable::TruncateTables()
@@ -349,14 +373,11 @@ namespace Mdb
 			(*it)->Deallocate();
 		}
 		PrimaryKey->index_.clear();
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordTruncate(Exchange::TableId);
-		}
+		EmitRowChange(RowChangeType::Truncate, 0, true, RecordHandle());
 	}
 	void ExchangeTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//t_Exchange.csv";
+		string fileName = string(dir) + "//Exchange.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -385,24 +406,98 @@ namespace Mdb
 	void ExchangeTable::EraseIndex(Exchange* record)
 	{
 	}
+	bool ExchangeTable::HasSubscribers() const
+	{
+		return replicaSubscriber_ != nullptr || !subscribers_.empty();
+	}
+	RowChangeEventPtr ExchangeTable::MakeInsertEvent(const Exchange* record)
+	{
+		auto eventRecord = Exchange::Allocate();
+		memcpy(eventRecord, record, sizeof(Exchange));
+		return std::make_shared<const RowChangeEvent>(Exchange::TableId, RowChangeType::Insert, 0, ++sequence_, true, AdoptRecord(eventRecord));
+	}
+	void ExchangeTable::PublishRowChange(const RowChangeEventPtr& event)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowChange(event);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowChange(event);
+		}
+	}
+	void ExchangeTable::PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowBatchChange(events);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowBatchChange(events);
+		}
+	}
+	void ExchangeTable::EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(std::make_shared<const RowChangeEvent>(Exchange::TableId, type, indexId, ++sequence_, persistDatabase, std::move(record)));
+	}
+	void ExchangeTable::EmitRowInsert(const Exchange* record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(MakeInsertEvent(record));
+	}
+	void ExchangeTable::EmitRowBatchInsert(const std::vector<Exchange*>& records)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		std::vector<RowChangeEventPtr> events;
+		events.reserve(records.size());
+		for (const Exchange* record : records)
+		{
+			events.push_back(MakeInsertEvent(record));
+		}
+		PublishRowBatchChange(events);
+	}
 
 	ProductTable::ProductTable()
 	{
-		mdbSubscriber_ = nullptr;
-		PrimaryKey = new ProductPrimaryKey(this);
+		PrimaryKey = new ProductTablePrimaryKey(this);
 	}
 	ProductTable::~ProductTable()
 	{
 		delete PrimaryKey;
 		PrimaryKey = nullptr;
 	}
+	unsigned int ProductTable::GetTableId() const
+	{
+		return Product::TableId;
+	}
 	void ProductTable::Subscribe(MdbSubscriber* subscriber)
 	{
-		mdbSubscriber_ = subscriber;
+		if (subscriber == nullptr)
+		{
+			return;
+		}
+		subscribers_.push_back(subscriber);
+	}
+	void ProductTable::SubscribeReplica(MdbReplicaSubscriber* replica)
+	{
+		replicaSubscriber_ = replica;
 	}
 	void ProductTable::UnSubscribe()
 	{
-		mdbSubscriber_ = nullptr;
+		subscribers_.clear();
+		replicaSubscriber_ = nullptr;
 	}
 	void ProductTable::LockShared()
 	{
@@ -414,29 +509,25 @@ namespace Mdb
 	}
 	void ProductTable::InitDb()
 	{
-		if (mdbSubscriber_ == nullptr)
+		if (replicaSubscriber_ == nullptr)
 		{
-			DbInited = true;
 			return;
 		}
-		mdbSubscriber_->OnRecordTruncate(Product::TableId);
-
-		std::vector<RecordHandle> records;
+		// 清表、拷贝、批量、就绪置位全部在一次读租约内完成：
+		// 这期间的写入被阻塞，释放租约后到达的增量必然排在批量之后
+		std::shared_lock guard(SharedMutex);
+		replicaSubscriber_->OnSnapshotBegin(Product::TableId);
+		if (!PrimaryKey->index_.empty())
 		{
-			std::shared_lock guard(SharedMutex);
-			records.reserve(PrimaryKey->index_.size());
+			std::vector<RowChangeEventPtr> events;
+			events.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
-				auto record = Product::Allocate();
-				memcpy(record, *it, sizeof(Product));
-				records.push_back(AdoptRecord(record));
+				events.push_back(MakeInsertEvent(*it));
 			}
+			replicaSubscriber_->OnRowBatchChange(events);
 		}
-		if (!records.empty())
-		{
-			mdbSubscriber_->OnRecordBatchInsert(Product::TableId, std::move(records));
-		}
-		DbInited = true;
+		replicaSubscriber_->OnSnapshotComplete(Product::TableId);
 	}
 	bool ProductTable::Insert(Product* record)
 	{
@@ -451,33 +542,20 @@ namespace Mdb
 		PrimaryKey->Insert(record);
 
 		
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordInsert(Product::TableId, BorrowRecord(record));
-		}
+		EmitRowInsert(record);
 		return true;
 	}
 	void ProductTable::BatchInsert(std::vector<Product*>& records)
 	{
+		std::lock_guard guard(SharedMutex);
+		for (auto record : records)
 		{
-			std::lock_guard guard(SharedMutex);
-			for (auto record : records)
-			{
-				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
-				assert(insertedIntoPrimaryKey);
+			[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
+			assert(insertedIntoPrimaryKey);
 
-			}
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records.size());
-			for (auto* r : records)
-			{
-				dbRecords.push_back(BorrowRecord(r));
-			}
-			mdbSubscriber_->OnRecordBatchInsert(Product::TableId, std::move(dbRecords));
-		}
+		// 通知在写锁内发出：放到解锁后会让并发 Update 的事件先于本批到达订阅者
+		EmitRowBatchInsert(records);
 		records.clear();
 	}
 	void ProductTable::Erase(Product* record)
@@ -485,14 +563,7 @@ namespace Mdb
 		std::lock_guard guard(SharedMutex);
 		EraseUniqueKey(record);
 		EraseIndex(record);
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordErase(Product::TableId, AdoptRecord(record));
-		}
-		else
-		{
-			record->Deallocate();
-		}
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
 	}
 	bool ProductTable::Update(Product* const oldRecord, Product* const newRecord, bool updateDB)
 	{
@@ -507,14 +578,8 @@ namespace Mdb
 
 		::memcpy(oldRecord, newRecord, sizeof(Product));
 
-		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordUpdate(Product::TableId, AdoptRecord(newRecord));
-		}
-		else
-		{
-			newRecord->Deallocate();
-		}
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
 		return true;
 	}
 	void ProductTable::TruncateTables()
@@ -534,14 +599,11 @@ namespace Mdb
 			(*it)->Deallocate();
 		}
 		PrimaryKey->index_.clear();
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordTruncate(Product::TableId);
-		}
+		EmitRowChange(RowChangeType::Truncate, 0, true, RecordHandle());
 	}
 	void ProductTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//t_Product.csv";
+		string fileName = string(dir) + "//Product.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -570,24 +632,98 @@ namespace Mdb
 	void ProductTable::EraseIndex(Product* record)
 	{
 	}
+	bool ProductTable::HasSubscribers() const
+	{
+		return replicaSubscriber_ != nullptr || !subscribers_.empty();
+	}
+	RowChangeEventPtr ProductTable::MakeInsertEvent(const Product* record)
+	{
+		auto eventRecord = Product::Allocate();
+		memcpy(eventRecord, record, sizeof(Product));
+		return std::make_shared<const RowChangeEvent>(Product::TableId, RowChangeType::Insert, 0, ++sequence_, true, AdoptRecord(eventRecord));
+	}
+	void ProductTable::PublishRowChange(const RowChangeEventPtr& event)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowChange(event);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowChange(event);
+		}
+	}
+	void ProductTable::PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowBatchChange(events);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowBatchChange(events);
+		}
+	}
+	void ProductTable::EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(std::make_shared<const RowChangeEvent>(Product::TableId, type, indexId, ++sequence_, persistDatabase, std::move(record)));
+	}
+	void ProductTable::EmitRowInsert(const Product* record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(MakeInsertEvent(record));
+	}
+	void ProductTable::EmitRowBatchInsert(const std::vector<Product*>& records)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		std::vector<RowChangeEventPtr> events;
+		events.reserve(records.size());
+		for (const Product* record : records)
+		{
+			events.push_back(MakeInsertEvent(record));
+		}
+		PublishRowBatchChange(events);
+	}
 
 	InstrumentTable::InstrumentTable()
 	{
-		mdbSubscriber_ = nullptr;
-		PrimaryKey = new InstrumentPrimaryKey(this);
+		PrimaryKey = new InstrumentTablePrimaryKey(this);
 	}
 	InstrumentTable::~InstrumentTable()
 	{
 		delete PrimaryKey;
 		PrimaryKey = nullptr;
 	}
+	unsigned int InstrumentTable::GetTableId() const
+	{
+		return Instrument::TableId;
+	}
 	void InstrumentTable::Subscribe(MdbSubscriber* subscriber)
 	{
-		mdbSubscriber_ = subscriber;
+		if (subscriber == nullptr)
+		{
+			return;
+		}
+		subscribers_.push_back(subscriber);
+	}
+	void InstrumentTable::SubscribeReplica(MdbReplicaSubscriber* replica)
+	{
+		replicaSubscriber_ = replica;
 	}
 	void InstrumentTable::UnSubscribe()
 	{
-		mdbSubscriber_ = nullptr;
+		subscribers_.clear();
+		replicaSubscriber_ = nullptr;
 	}
 	void InstrumentTable::LockShared()
 	{
@@ -599,29 +735,25 @@ namespace Mdb
 	}
 	void InstrumentTable::InitDb()
 	{
-		if (mdbSubscriber_ == nullptr)
+		if (replicaSubscriber_ == nullptr)
 		{
-			DbInited = true;
 			return;
 		}
-		mdbSubscriber_->OnRecordTruncate(Instrument::TableId);
-
-		std::vector<RecordHandle> records;
+		// 清表、拷贝、批量、就绪置位全部在一次读租约内完成：
+		// 这期间的写入被阻塞，释放租约后到达的增量必然排在批量之后
+		std::shared_lock guard(SharedMutex);
+		replicaSubscriber_->OnSnapshotBegin(Instrument::TableId);
+		if (!PrimaryKey->index_.empty())
 		{
-			std::shared_lock guard(SharedMutex);
-			records.reserve(PrimaryKey->index_.size());
+			std::vector<RowChangeEventPtr> events;
+			events.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
-				auto record = Instrument::Allocate();
-				memcpy(record, *it, sizeof(Instrument));
-				records.push_back(AdoptRecord(record));
+				events.push_back(MakeInsertEvent(*it));
 			}
+			replicaSubscriber_->OnRowBatchChange(events);
 		}
-		if (!records.empty())
-		{
-			mdbSubscriber_->OnRecordBatchInsert(Instrument::TableId, std::move(records));
-		}
-		DbInited = true;
+		replicaSubscriber_->OnSnapshotComplete(Instrument::TableId);
 	}
 	bool InstrumentTable::Insert(Instrument* record)
 	{
@@ -636,33 +768,20 @@ namespace Mdb
 		PrimaryKey->Insert(record);
 
 		
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordInsert(Instrument::TableId, BorrowRecord(record));
-		}
+		EmitRowInsert(record);
 		return true;
 	}
 	void InstrumentTable::BatchInsert(std::vector<Instrument*>& records)
 	{
+		std::lock_guard guard(SharedMutex);
+		for (auto record : records)
 		{
-			std::lock_guard guard(SharedMutex);
-			for (auto record : records)
-			{
-				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
-				assert(insertedIntoPrimaryKey);
+			[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
+			assert(insertedIntoPrimaryKey);
 
-			}
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records.size());
-			for (auto* r : records)
-			{
-				dbRecords.push_back(BorrowRecord(r));
-			}
-			mdbSubscriber_->OnRecordBatchInsert(Instrument::TableId, std::move(dbRecords));
-		}
+		// 通知在写锁内发出：放到解锁后会让并发 Update 的事件先于本批到达订阅者
+		EmitRowBatchInsert(records);
 		records.clear();
 	}
 	void InstrumentTable::Erase(Instrument* record)
@@ -670,14 +789,7 @@ namespace Mdb
 		std::lock_guard guard(SharedMutex);
 		EraseUniqueKey(record);
 		EraseIndex(record);
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordErase(Instrument::TableId, AdoptRecord(record));
-		}
-		else
-		{
-			record->Deallocate();
-		}
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
 	}
 	bool InstrumentTable::Update(Instrument* const oldRecord, Instrument* const newRecord, bool updateDB)
 	{
@@ -692,14 +804,8 @@ namespace Mdb
 
 		::memcpy(oldRecord, newRecord, sizeof(Instrument));
 
-		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordUpdate(Instrument::TableId, AdoptRecord(newRecord));
-		}
-		else
-		{
-			newRecord->Deallocate();
-		}
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
 		return true;
 	}
 	void InstrumentTable::TruncateTables()
@@ -719,14 +825,11 @@ namespace Mdb
 			(*it)->Deallocate();
 		}
 		PrimaryKey->index_.clear();
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordTruncate(Instrument::TableId);
-		}
+		EmitRowChange(RowChangeType::Truncate, 0, true, RecordHandle());
 	}
 	void InstrumentTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//t_Instrument.csv";
+		string fileName = string(dir) + "//Instrument.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -755,12 +858,73 @@ namespace Mdb
 	void InstrumentTable::EraseIndex(Instrument* record)
 	{
 	}
+	bool InstrumentTable::HasSubscribers() const
+	{
+		return replicaSubscriber_ != nullptr || !subscribers_.empty();
+	}
+	RowChangeEventPtr InstrumentTable::MakeInsertEvent(const Instrument* record)
+	{
+		auto eventRecord = Instrument::Allocate();
+		memcpy(eventRecord, record, sizeof(Instrument));
+		return std::make_shared<const RowChangeEvent>(Instrument::TableId, RowChangeType::Insert, 0, ++sequence_, true, AdoptRecord(eventRecord));
+	}
+	void InstrumentTable::PublishRowChange(const RowChangeEventPtr& event)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowChange(event);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowChange(event);
+		}
+	}
+	void InstrumentTable::PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowBatchChange(events);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowBatchChange(events);
+		}
+	}
+	void InstrumentTable::EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(std::make_shared<const RowChangeEvent>(Instrument::TableId, type, indexId, ++sequence_, persistDatabase, std::move(record)));
+	}
+	void InstrumentTable::EmitRowInsert(const Instrument* record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(MakeInsertEvent(record));
+	}
+	void InstrumentTable::EmitRowBatchInsert(const std::vector<Instrument*>& records)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		std::vector<RowChangeEventPtr> events;
+		events.reserve(records.size());
+		for (const Instrument* record : records)
+		{
+			events.push_back(MakeInsertEvent(record));
+		}
+		PublishRowBatchChange(events);
+	}
 
 	PrimaryAccountTable::PrimaryAccountTable()
 	{
-		mdbSubscriber_ = nullptr;
-		PrimaryKey = new PrimaryAccountPrimaryKey(this);
-		OfferIdIndex = new PrimaryAccountIndexOfferId(this);
+		PrimaryKey = new PrimaryAccountTablePrimaryKey(this);
+		OfferIdIndex = new PrimaryAccountTableIndexOfferId(this);
 	}
 	PrimaryAccountTable::~PrimaryAccountTable()
 	{
@@ -769,13 +933,26 @@ namespace Mdb
 		delete OfferIdIndex;
 		OfferIdIndex = nullptr;
 	}
+	unsigned int PrimaryAccountTable::GetTableId() const
+	{
+		return PrimaryAccount::TableId;
+	}
 	void PrimaryAccountTable::Subscribe(MdbSubscriber* subscriber)
 	{
-		mdbSubscriber_ = subscriber;
+		if (subscriber == nullptr)
+		{
+			return;
+		}
+		subscribers_.push_back(subscriber);
+	}
+	void PrimaryAccountTable::SubscribeReplica(MdbReplicaSubscriber* replica)
+	{
+		replicaSubscriber_ = replica;
 	}
 	void PrimaryAccountTable::UnSubscribe()
 	{
-		mdbSubscriber_ = nullptr;
+		subscribers_.clear();
+		replicaSubscriber_ = nullptr;
 	}
 	void PrimaryAccountTable::LockShared()
 	{
@@ -787,29 +964,25 @@ namespace Mdb
 	}
 	void PrimaryAccountTable::InitDb()
 	{
-		if (mdbSubscriber_ == nullptr)
+		if (replicaSubscriber_ == nullptr)
 		{
-			DbInited = true;
 			return;
 		}
-		mdbSubscriber_->OnRecordTruncate(PrimaryAccount::TableId);
-
-		std::vector<RecordHandle> records;
+		// 清表、拷贝、批量、就绪置位全部在一次读租约内完成：
+		// 这期间的写入被阻塞，释放租约后到达的增量必然排在批量之后
+		std::shared_lock guard(SharedMutex);
+		replicaSubscriber_->OnSnapshotBegin(PrimaryAccount::TableId);
+		if (!PrimaryKey->index_.empty())
 		{
-			std::shared_lock guard(SharedMutex);
-			records.reserve(PrimaryKey->index_.size());
+			std::vector<RowChangeEventPtr> events;
+			events.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
-				auto record = PrimaryAccount::Allocate();
-				memcpy(record, *it, sizeof(PrimaryAccount));
-				records.push_back(AdoptRecord(record));
+				events.push_back(MakeInsertEvent(*it));
 			}
+			replicaSubscriber_->OnRowBatchChange(events);
 		}
-		if (!records.empty())
-		{
-			mdbSubscriber_->OnRecordBatchInsert(PrimaryAccount::TableId, std::move(records));
-		}
-		DbInited = true;
+		replicaSubscriber_->OnSnapshotComplete(PrimaryAccount::TableId);
 	}
 	bool PrimaryAccountTable::Insert(PrimaryAccount* record)
 	{
@@ -825,34 +998,21 @@ namespace Mdb
 
 		OfferIdIndex->Insert(record);
 		
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordInsert(PrimaryAccount::TableId, BorrowRecord(record));
-		}
+		EmitRowInsert(record);
 		return true;
 	}
 	void PrimaryAccountTable::BatchInsert(std::vector<PrimaryAccount*>& records)
 	{
+		std::lock_guard guard(SharedMutex);
+		for (auto record : records)
 		{
-			std::lock_guard guard(SharedMutex);
-			for (auto record : records)
-			{
-				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
-				assert(insertedIntoPrimaryKey);
+			[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
+			assert(insertedIntoPrimaryKey);
 
-				OfferIdIndex->Insert(record);
-			}
+			OfferIdIndex->Insert(record);
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records.size());
-			for (auto* r : records)
-			{
-				dbRecords.push_back(BorrowRecord(r));
-			}
-			mdbSubscriber_->OnRecordBatchInsert(PrimaryAccount::TableId, std::move(dbRecords));
-		}
+		// 通知在写锁内发出：放到解锁后会让并发 Update 的事件先于本批到达订阅者
+		EmitRowBatchInsert(records);
 		records.clear();
 	}
 	void PrimaryAccountTable::Erase(PrimaryAccount* record)
@@ -860,14 +1020,7 @@ namespace Mdb
 		std::lock_guard guard(SharedMutex);
 		EraseUniqueKey(record);
 		EraseIndex(record);
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordErase(PrimaryAccount::TableId, AdoptRecord(record));
-		}
-		else
-		{
-			record->Deallocate();
-		}
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
 	}
 	int PrimaryAccountTable::EraseByOfferIdIndex(const OfferIdType& OfferId)
 	{
@@ -885,11 +1038,11 @@ namespace Mdb
 			EraseIndex(record);
 			record->Deallocate();
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
+		if (HasSubscribers())
 		{
-			auto record = PrimaryAccount::Allocate();
-			memcpy(record, &ComparePrimaryAccount, sizeof(PrimaryAccount));
-			mdbSubscriber_->OnRecordEraseByIndex(PrimaryAccount::TableId, PrimaryAccountIndexOfferId::IndexID, AdoptRecord(record));
+			auto compareRecord = PrimaryAccount::Allocate();
+			memcpy(compareRecord, &ComparePrimaryAccount, sizeof(PrimaryAccount));
+			EmitRowChange(RowChangeType::EraseByIndex, PrimaryAccountTableIndexOfferId::IndexID, true, AdoptRecord(compareRecord));
 		}
 		return static_cast<int>(records.size());
 	}
@@ -905,7 +1058,7 @@ namespace Mdb
 		}
 
 		bool OfferIdIndexUpdate = OfferIdIndex->NeedUpdate(oldRecord, newRecord);
-		PrimaryAccountIndexOfferId::iterator itOfferId;
+		PrimaryAccountTableIndexOfferId::iterator itOfferId;
 		if (OfferIdIndexUpdate)
 		{
 			itOfferId = OfferIdIndex->FindNode(oldRecord);
@@ -916,14 +1069,8 @@ namespace Mdb
 			OfferIdIndex->Update(itOfferId);
 		}
 
-		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordUpdate(PrimaryAccount::TableId, AdoptRecord(newRecord));
-		}
-		else
-		{
-			newRecord->Deallocate();
-		}
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
 		return true;
 	}
 	void PrimaryAccountTable::TruncateTables()
@@ -945,14 +1092,11 @@ namespace Mdb
 		}
 		PrimaryKey->index_.clear();
 		OfferIdIndex->index_.clear();
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordTruncate(PrimaryAccount::TableId);
-		}
+		EmitRowChange(RowChangeType::Truncate, 0, true, RecordHandle());
 	}
 	void PrimaryAccountTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//t_PrimaryAccount.csv";
+		string fileName = string(dir) + "//PrimaryAccount.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -982,24 +1126,98 @@ namespace Mdb
 	{
 		OfferIdIndex->Erase(record);
 	}
+	bool PrimaryAccountTable::HasSubscribers() const
+	{
+		return replicaSubscriber_ != nullptr || !subscribers_.empty();
+	}
+	RowChangeEventPtr PrimaryAccountTable::MakeInsertEvent(const PrimaryAccount* record)
+	{
+		auto eventRecord = PrimaryAccount::Allocate();
+		memcpy(eventRecord, record, sizeof(PrimaryAccount));
+		return std::make_shared<const RowChangeEvent>(PrimaryAccount::TableId, RowChangeType::Insert, 0, ++sequence_, true, AdoptRecord(eventRecord));
+	}
+	void PrimaryAccountTable::PublishRowChange(const RowChangeEventPtr& event)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowChange(event);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowChange(event);
+		}
+	}
+	void PrimaryAccountTable::PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowBatchChange(events);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowBatchChange(events);
+		}
+	}
+	void PrimaryAccountTable::EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(std::make_shared<const RowChangeEvent>(PrimaryAccount::TableId, type, indexId, ++sequence_, persistDatabase, std::move(record)));
+	}
+	void PrimaryAccountTable::EmitRowInsert(const PrimaryAccount* record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(MakeInsertEvent(record));
+	}
+	void PrimaryAccountTable::EmitRowBatchInsert(const std::vector<PrimaryAccount*>& records)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		std::vector<RowChangeEventPtr> events;
+		events.reserve(records.size());
+		for (const PrimaryAccount* record : records)
+		{
+			events.push_back(MakeInsertEvent(record));
+		}
+		PublishRowBatchChange(events);
+	}
 
 	AccountTable::AccountTable()
 	{
-		mdbSubscriber_ = nullptr;
-		PrimaryKey = new AccountPrimaryKey(this);
+		PrimaryKey = new AccountTablePrimaryKey(this);
 	}
 	AccountTable::~AccountTable()
 	{
 		delete PrimaryKey;
 		PrimaryKey = nullptr;
 	}
+	unsigned int AccountTable::GetTableId() const
+	{
+		return Account::TableId;
+	}
 	void AccountTable::Subscribe(MdbSubscriber* subscriber)
 	{
-		mdbSubscriber_ = subscriber;
+		if (subscriber == nullptr)
+		{
+			return;
+		}
+		subscribers_.push_back(subscriber);
+	}
+	void AccountTable::SubscribeReplica(MdbReplicaSubscriber* replica)
+	{
+		replicaSubscriber_ = replica;
 	}
 	void AccountTable::UnSubscribe()
 	{
-		mdbSubscriber_ = nullptr;
+		subscribers_.clear();
+		replicaSubscriber_ = nullptr;
 	}
 	void AccountTable::LockShared()
 	{
@@ -1011,29 +1229,25 @@ namespace Mdb
 	}
 	void AccountTable::InitDb()
 	{
-		if (mdbSubscriber_ == nullptr)
+		if (replicaSubscriber_ == nullptr)
 		{
-			DbInited = true;
 			return;
 		}
-		mdbSubscriber_->OnRecordTruncate(Account::TableId);
-
-		std::vector<RecordHandle> records;
+		// 清表、拷贝、批量、就绪置位全部在一次读租约内完成：
+		// 这期间的写入被阻塞，释放租约后到达的增量必然排在批量之后
+		std::shared_lock guard(SharedMutex);
+		replicaSubscriber_->OnSnapshotBegin(Account::TableId);
+		if (!PrimaryKey->index_.empty())
 		{
-			std::shared_lock guard(SharedMutex);
-			records.reserve(PrimaryKey->index_.size());
+			std::vector<RowChangeEventPtr> events;
+			events.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
-				auto record = Account::Allocate();
-				memcpy(record, *it, sizeof(Account));
-				records.push_back(AdoptRecord(record));
+				events.push_back(MakeInsertEvent(*it));
 			}
+			replicaSubscriber_->OnRowBatchChange(events);
 		}
-		if (!records.empty())
-		{
-			mdbSubscriber_->OnRecordBatchInsert(Account::TableId, std::move(records));
-		}
-		DbInited = true;
+		replicaSubscriber_->OnSnapshotComplete(Account::TableId);
 	}
 	bool AccountTable::Insert(Account* record)
 	{
@@ -1048,33 +1262,20 @@ namespace Mdb
 		PrimaryKey->Insert(record);
 
 		
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordInsert(Account::TableId, BorrowRecord(record));
-		}
+		EmitRowInsert(record);
 		return true;
 	}
 	void AccountTable::BatchInsert(std::vector<Account*>& records)
 	{
+		std::lock_guard guard(SharedMutex);
+		for (auto record : records)
 		{
-			std::lock_guard guard(SharedMutex);
-			for (auto record : records)
-			{
-				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
-				assert(insertedIntoPrimaryKey);
+			[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
+			assert(insertedIntoPrimaryKey);
 
-			}
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records.size());
-			for (auto* r : records)
-			{
-				dbRecords.push_back(BorrowRecord(r));
-			}
-			mdbSubscriber_->OnRecordBatchInsert(Account::TableId, std::move(dbRecords));
-		}
+		// 通知在写锁内发出：放到解锁后会让并发 Update 的事件先于本批到达订阅者
+		EmitRowBatchInsert(records);
 		records.clear();
 	}
 	void AccountTable::Erase(Account* record)
@@ -1082,14 +1283,7 @@ namespace Mdb
 		std::lock_guard guard(SharedMutex);
 		EraseUniqueKey(record);
 		EraseIndex(record);
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordErase(Account::TableId, AdoptRecord(record));
-		}
-		else
-		{
-			record->Deallocate();
-		}
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
 	}
 	bool AccountTable::Update(Account* const oldRecord, Account* const newRecord, bool updateDB)
 	{
@@ -1104,14 +1298,8 @@ namespace Mdb
 
 		::memcpy(oldRecord, newRecord, sizeof(Account));
 
-		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordUpdate(Account::TableId, AdoptRecord(newRecord));
-		}
-		else
-		{
-			newRecord->Deallocate();
-		}
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
 		return true;
 	}
 	void AccountTable::TruncateTables()
@@ -1131,14 +1319,11 @@ namespace Mdb
 			(*it)->Deallocate();
 		}
 		PrimaryKey->index_.clear();
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordTruncate(Account::TableId);
-		}
+		EmitRowChange(RowChangeType::Truncate, 0, true, RecordHandle());
 	}
 	void AccountTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//t_Account.csv";
+		string fileName = string(dir) + "//Account.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -1167,12 +1352,73 @@ namespace Mdb
 	void AccountTable::EraseIndex(Account* record)
 	{
 	}
+	bool AccountTable::HasSubscribers() const
+	{
+		return replicaSubscriber_ != nullptr || !subscribers_.empty();
+	}
+	RowChangeEventPtr AccountTable::MakeInsertEvent(const Account* record)
+	{
+		auto eventRecord = Account::Allocate();
+		memcpy(eventRecord, record, sizeof(Account));
+		return std::make_shared<const RowChangeEvent>(Account::TableId, RowChangeType::Insert, 0, ++sequence_, true, AdoptRecord(eventRecord));
+	}
+	void AccountTable::PublishRowChange(const RowChangeEventPtr& event)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowChange(event);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowChange(event);
+		}
+	}
+	void AccountTable::PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowBatchChange(events);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowBatchChange(events);
+		}
+	}
+	void AccountTable::EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(std::make_shared<const RowChangeEvent>(Account::TableId, type, indexId, ++sequence_, persistDatabase, std::move(record)));
+	}
+	void AccountTable::EmitRowInsert(const Account* record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(MakeInsertEvent(record));
+	}
+	void AccountTable::EmitRowBatchInsert(const std::vector<Account*>& records)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		std::vector<RowChangeEventPtr> events;
+		events.reserve(records.size());
+		for (const Account* record : records)
+		{
+			events.push_back(MakeInsertEvent(record));
+		}
+		PublishRowBatchChange(events);
+	}
 
 	CapitalTable::CapitalTable()
 	{
-		mdbSubscriber_ = nullptr;
-		PrimaryKey = new CapitalPrimaryKey(this);
-		TradingDayIndex = new CapitalIndexTradingDay(this);
+		PrimaryKey = new CapitalTablePrimaryKey(this);
+		TradingDayIndex = new CapitalTableIndexTradingDay(this);
 	}
 	CapitalTable::~CapitalTable()
 	{
@@ -1181,13 +1427,26 @@ namespace Mdb
 		delete TradingDayIndex;
 		TradingDayIndex = nullptr;
 	}
+	unsigned int CapitalTable::GetTableId() const
+	{
+		return Capital::TableId;
+	}
 	void CapitalTable::Subscribe(MdbSubscriber* subscriber)
 	{
-		mdbSubscriber_ = subscriber;
+		if (subscriber == nullptr)
+		{
+			return;
+		}
+		subscribers_.push_back(subscriber);
+	}
+	void CapitalTable::SubscribeReplica(MdbReplicaSubscriber* replica)
+	{
+		replicaSubscriber_ = replica;
 	}
 	void CapitalTable::UnSubscribe()
 	{
-		mdbSubscriber_ = nullptr;
+		subscribers_.clear();
+		replicaSubscriber_ = nullptr;
 	}
 	void CapitalTable::LockShared()
 	{
@@ -1199,29 +1458,25 @@ namespace Mdb
 	}
 	void CapitalTable::InitDb()
 	{
-		if (mdbSubscriber_ == nullptr)
+		if (replicaSubscriber_ == nullptr)
 		{
-			DbInited = true;
 			return;
 		}
-		mdbSubscriber_->OnRecordTruncate(Capital::TableId);
-
-		std::vector<RecordHandle> records;
+		// 清表、拷贝、批量、就绪置位全部在一次读租约内完成：
+		// 这期间的写入被阻塞，释放租约后到达的增量必然排在批量之后
+		std::shared_lock guard(SharedMutex);
+		replicaSubscriber_->OnSnapshotBegin(Capital::TableId);
+		if (!PrimaryKey->index_.empty())
 		{
-			std::shared_lock guard(SharedMutex);
-			records.reserve(PrimaryKey->index_.size());
+			std::vector<RowChangeEventPtr> events;
+			events.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
-				auto record = Capital::Allocate();
-				memcpy(record, *it, sizeof(Capital));
-				records.push_back(AdoptRecord(record));
+				events.push_back(MakeInsertEvent(*it));
 			}
+			replicaSubscriber_->OnRowBatchChange(events);
 		}
-		if (!records.empty())
-		{
-			mdbSubscriber_->OnRecordBatchInsert(Capital::TableId, std::move(records));
-		}
-		DbInited = true;
+		replicaSubscriber_->OnSnapshotComplete(Capital::TableId);
 	}
 	bool CapitalTable::Insert(Capital* record)
 	{
@@ -1237,34 +1492,21 @@ namespace Mdb
 
 		TradingDayIndex->Insert(record);
 		
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordInsert(Capital::TableId, BorrowRecord(record));
-		}
+		EmitRowInsert(record);
 		return true;
 	}
 	void CapitalTable::BatchInsert(std::vector<Capital*>& records)
 	{
+		std::lock_guard guard(SharedMutex);
+		for (auto record : records)
 		{
-			std::lock_guard guard(SharedMutex);
-			for (auto record : records)
-			{
-				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
-				assert(insertedIntoPrimaryKey);
+			[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
+			assert(insertedIntoPrimaryKey);
 
-				TradingDayIndex->Insert(record);
-			}
+			TradingDayIndex->Insert(record);
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records.size());
-			for (auto* r : records)
-			{
-				dbRecords.push_back(BorrowRecord(r));
-			}
-			mdbSubscriber_->OnRecordBatchInsert(Capital::TableId, std::move(dbRecords));
-		}
+		// 通知在写锁内发出：放到解锁后会让并发 Update 的事件先于本批到达订阅者
+		EmitRowBatchInsert(records);
 		records.clear();
 	}
 	void CapitalTable::Erase(Capital* record)
@@ -1272,14 +1514,7 @@ namespace Mdb
 		std::lock_guard guard(SharedMutex);
 		EraseUniqueKey(record);
 		EraseIndex(record);
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordErase(Capital::TableId, AdoptRecord(record));
-		}
-		else
-		{
-			record->Deallocate();
-		}
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
 	}
 	int CapitalTable::EraseByTradingDayIndex(const DateType& TradingDay)
 	{
@@ -1297,11 +1532,11 @@ namespace Mdb
 			EraseIndex(record);
 			record->Deallocate();
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
+		if (HasSubscribers())
 		{
-			auto record = Capital::Allocate();
-			memcpy(record, &CompareCapital, sizeof(Capital));
-			mdbSubscriber_->OnRecordEraseByIndex(Capital::TableId, CapitalIndexTradingDay::IndexID, AdoptRecord(record));
+			auto compareRecord = Capital::Allocate();
+			memcpy(compareRecord, &CompareCapital, sizeof(Capital));
+			EmitRowChange(RowChangeType::EraseByIndex, CapitalTableIndexTradingDay::IndexID, true, AdoptRecord(compareRecord));
 		}
 		return static_cast<int>(records.size());
 	}
@@ -1317,7 +1552,7 @@ namespace Mdb
 		}
 
 		bool TradingDayIndexUpdate = TradingDayIndex->NeedUpdate(oldRecord, newRecord);
-		CapitalIndexTradingDay::iterator itTradingDay;
+		CapitalTableIndexTradingDay::iterator itTradingDay;
 		if (TradingDayIndexUpdate)
 		{
 			itTradingDay = TradingDayIndex->FindNode(oldRecord);
@@ -1328,14 +1563,8 @@ namespace Mdb
 			TradingDayIndex->Update(itTradingDay);
 		}
 
-		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordUpdate(Capital::TableId, AdoptRecord(newRecord));
-		}
-		else
-		{
-			newRecord->Deallocate();
-		}
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
 		return true;
 	}
 	void CapitalTable::TruncateTables()
@@ -1357,14 +1586,11 @@ namespace Mdb
 		}
 		PrimaryKey->index_.clear();
 		TradingDayIndex->index_.clear();
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordTruncate(Capital::TableId);
-		}
+		EmitRowChange(RowChangeType::Truncate, 0, true, RecordHandle());
 	}
 	void CapitalTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//t_Capital.csv";
+		string fileName = string(dir) + "//Capital.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -1394,13 +1620,74 @@ namespace Mdb
 	{
 		TradingDayIndex->Erase(record);
 	}
+	bool CapitalTable::HasSubscribers() const
+	{
+		return replicaSubscriber_ != nullptr || !subscribers_.empty();
+	}
+	RowChangeEventPtr CapitalTable::MakeInsertEvent(const Capital* record)
+	{
+		auto eventRecord = Capital::Allocate();
+		memcpy(eventRecord, record, sizeof(Capital));
+		return std::make_shared<const RowChangeEvent>(Capital::TableId, RowChangeType::Insert, 0, ++sequence_, true, AdoptRecord(eventRecord));
+	}
+	void CapitalTable::PublishRowChange(const RowChangeEventPtr& event)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowChange(event);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowChange(event);
+		}
+	}
+	void CapitalTable::PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowBatchChange(events);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowBatchChange(events);
+		}
+	}
+	void CapitalTable::EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(std::make_shared<const RowChangeEvent>(Capital::TableId, type, indexId, ++sequence_, persistDatabase, std::move(record)));
+	}
+	void CapitalTable::EmitRowInsert(const Capital* record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(MakeInsertEvent(record));
+	}
+	void CapitalTable::EmitRowBatchInsert(const std::vector<Capital*>& records)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		std::vector<RowChangeEventPtr> events;
+		events.reserve(records.size());
+		for (const Capital* record : records)
+		{
+			events.push_back(MakeInsertEvent(record));
+		}
+		PublishRowBatchChange(events);
+	}
 
 	PositionTable::PositionTable()
 	{
-		mdbSubscriber_ = nullptr;
-		PrimaryKey = new PositionPrimaryKey(this);
-		AccountIndex = new PositionIndexAccount(this);
-		TradingDayIndex = new PositionIndexTradingDay(this);
+		PrimaryKey = new PositionTablePrimaryKey(this);
+		AccountIndex = new PositionTableIndexAccount(this);
+		TradingDayIndex = new PositionTableIndexTradingDay(this);
 	}
 	PositionTable::~PositionTable()
 	{
@@ -1411,13 +1698,26 @@ namespace Mdb
 		delete TradingDayIndex;
 		TradingDayIndex = nullptr;
 	}
+	unsigned int PositionTable::GetTableId() const
+	{
+		return Position::TableId;
+	}
 	void PositionTable::Subscribe(MdbSubscriber* subscriber)
 	{
-		mdbSubscriber_ = subscriber;
+		if (subscriber == nullptr)
+		{
+			return;
+		}
+		subscribers_.push_back(subscriber);
+	}
+	void PositionTable::SubscribeReplica(MdbReplicaSubscriber* replica)
+	{
+		replicaSubscriber_ = replica;
 	}
 	void PositionTable::UnSubscribe()
 	{
-		mdbSubscriber_ = nullptr;
+		subscribers_.clear();
+		replicaSubscriber_ = nullptr;
 	}
 	void PositionTable::LockShared()
 	{
@@ -1429,29 +1729,25 @@ namespace Mdb
 	}
 	void PositionTable::InitDb()
 	{
-		if (mdbSubscriber_ == nullptr)
+		if (replicaSubscriber_ == nullptr)
 		{
-			DbInited = true;
 			return;
 		}
-		mdbSubscriber_->OnRecordTruncate(Position::TableId);
-
-		std::vector<RecordHandle> records;
+		// 清表、拷贝、批量、就绪置位全部在一次读租约内完成：
+		// 这期间的写入被阻塞，释放租约后到达的增量必然排在批量之后
+		std::shared_lock guard(SharedMutex);
+		replicaSubscriber_->OnSnapshotBegin(Position::TableId);
+		if (!PrimaryKey->index_.empty())
 		{
-			std::shared_lock guard(SharedMutex);
-			records.reserve(PrimaryKey->index_.size());
+			std::vector<RowChangeEventPtr> events;
+			events.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
-				auto record = Position::Allocate();
-				memcpy(record, *it, sizeof(Position));
-				records.push_back(AdoptRecord(record));
+				events.push_back(MakeInsertEvent(*it));
 			}
+			replicaSubscriber_->OnRowBatchChange(events);
 		}
-		if (!records.empty())
-		{
-			mdbSubscriber_->OnRecordBatchInsert(Position::TableId, std::move(records));
-		}
-		DbInited = true;
+		replicaSubscriber_->OnSnapshotComplete(Position::TableId);
 	}
 	bool PositionTable::Insert(Position* record)
 	{
@@ -1468,35 +1764,22 @@ namespace Mdb
 		AccountIndex->Insert(record);
 		TradingDayIndex->Insert(record);
 		
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordInsert(Position::TableId, BorrowRecord(record));
-		}
+		EmitRowInsert(record);
 		return true;
 	}
 	void PositionTable::BatchInsert(std::vector<Position*>& records)
 	{
+		std::lock_guard guard(SharedMutex);
+		for (auto record : records)
 		{
-			std::lock_guard guard(SharedMutex);
-			for (auto record : records)
-			{
-				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
-				assert(insertedIntoPrimaryKey);
+			[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
+			assert(insertedIntoPrimaryKey);
 
-				AccountIndex->Insert(record);
-				TradingDayIndex->Insert(record);
-			}
+			AccountIndex->Insert(record);
+			TradingDayIndex->Insert(record);
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records.size());
-			for (auto* r : records)
-			{
-				dbRecords.push_back(BorrowRecord(r));
-			}
-			mdbSubscriber_->OnRecordBatchInsert(Position::TableId, std::move(dbRecords));
-		}
+		// 通知在写锁内发出：放到解锁后会让并发 Update 的事件先于本批到达订阅者
+		EmitRowBatchInsert(records);
 		records.clear();
 	}
 	void PositionTable::Erase(Position* record)
@@ -1504,14 +1787,7 @@ namespace Mdb
 		std::lock_guard guard(SharedMutex);
 		EraseUniqueKey(record);
 		EraseIndex(record);
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordErase(Position::TableId, AdoptRecord(record));
-		}
-		else
-		{
-			record->Deallocate();
-		}
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
 	}
 	int PositionTable::EraseByAccountIndex(const DateType& TradingDay, const AccountIdType& AccountId)
 	{
@@ -1529,11 +1805,11 @@ namespace Mdb
 			EraseIndex(record);
 			record->Deallocate();
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
+		if (HasSubscribers())
 		{
-			auto record = Position::Allocate();
-			memcpy(record, &ComparePosition, sizeof(Position));
-			mdbSubscriber_->OnRecordEraseByIndex(Position::TableId, PositionIndexAccount::IndexID, AdoptRecord(record));
+			auto compareRecord = Position::Allocate();
+			memcpy(compareRecord, &ComparePosition, sizeof(Position));
+			EmitRowChange(RowChangeType::EraseByIndex, PositionTableIndexAccount::IndexID, true, AdoptRecord(compareRecord));
 		}
 		return static_cast<int>(records.size());
 	}
@@ -1553,11 +1829,11 @@ namespace Mdb
 			EraseIndex(record);
 			record->Deallocate();
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
+		if (HasSubscribers())
 		{
-			auto record = Position::Allocate();
-			memcpy(record, &ComparePosition, sizeof(Position));
-			mdbSubscriber_->OnRecordEraseByIndex(Position::TableId, PositionIndexTradingDay::IndexID, AdoptRecord(record));
+			auto compareRecord = Position::Allocate();
+			memcpy(compareRecord, &ComparePosition, sizeof(Position));
+			EmitRowChange(RowChangeType::EraseByIndex, PositionTableIndexTradingDay::IndexID, true, AdoptRecord(compareRecord));
 		}
 		return static_cast<int>(records.size());
 	}
@@ -1573,13 +1849,13 @@ namespace Mdb
 		}
 
 		bool AccountIndexUpdate = AccountIndex->NeedUpdate(oldRecord, newRecord);
-		PositionIndexAccount::iterator itAccount;
+		PositionTableIndexAccount::iterator itAccount;
 		if (AccountIndexUpdate)
 		{
 			itAccount = AccountIndex->FindNode(oldRecord);
 		}
 		bool TradingDayIndexUpdate = TradingDayIndex->NeedUpdate(oldRecord, newRecord);
-		PositionIndexTradingDay::iterator itTradingDay;
+		PositionTableIndexTradingDay::iterator itTradingDay;
 		if (TradingDayIndexUpdate)
 		{
 			itTradingDay = TradingDayIndex->FindNode(oldRecord);
@@ -1594,14 +1870,8 @@ namespace Mdb
 			TradingDayIndex->Update(itTradingDay);
 		}
 
-		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordUpdate(Position::TableId, AdoptRecord(newRecord));
-		}
-		else
-		{
-			newRecord->Deallocate();
-		}
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
 		return true;
 	}
 	void PositionTable::TruncateTables()
@@ -1625,14 +1895,11 @@ namespace Mdb
 		PrimaryKey->index_.clear();
 		AccountIndex->index_.clear();
 		TradingDayIndex->index_.clear();
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordTruncate(Position::TableId);
-		}
+		EmitRowChange(RowChangeType::Truncate, 0, true, RecordHandle());
 	}
 	void PositionTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//t_Position.csv";
+		string fileName = string(dir) + "//Position.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -1663,13 +1930,74 @@ namespace Mdb
 		AccountIndex->Erase(record);
 		TradingDayIndex->Erase(record);
 	}
+	bool PositionTable::HasSubscribers() const
+	{
+		return replicaSubscriber_ != nullptr || !subscribers_.empty();
+	}
+	RowChangeEventPtr PositionTable::MakeInsertEvent(const Position* record)
+	{
+		auto eventRecord = Position::Allocate();
+		memcpy(eventRecord, record, sizeof(Position));
+		return std::make_shared<const RowChangeEvent>(Position::TableId, RowChangeType::Insert, 0, ++sequence_, true, AdoptRecord(eventRecord));
+	}
+	void PositionTable::PublishRowChange(const RowChangeEventPtr& event)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowChange(event);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowChange(event);
+		}
+	}
+	void PositionTable::PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowBatchChange(events);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowBatchChange(events);
+		}
+	}
+	void PositionTable::EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(std::make_shared<const RowChangeEvent>(Position::TableId, type, indexId, ++sequence_, persistDatabase, std::move(record)));
+	}
+	void PositionTable::EmitRowInsert(const Position* record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(MakeInsertEvent(record));
+	}
+	void PositionTable::EmitRowBatchInsert(const std::vector<Position*>& records)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		std::vector<RowChangeEventPtr> events;
+		events.reserve(records.size());
+		for (const Position* record : records)
+		{
+			events.push_back(MakeInsertEvent(record));
+		}
+		PublishRowBatchChange(events);
+	}
 
 	PositionDetailTable::PositionDetailTable()
 	{
-		mdbSubscriber_ = nullptr;
-		PrimaryKey = new PositionDetailPrimaryKey(this);
-		TradeMatchIndex = new PositionDetailIndexTradeMatch(this);
-		TradingDayIndex = new PositionDetailIndexTradingDay(this);
+		PrimaryKey = new PositionDetailTablePrimaryKey(this);
+		TradeMatchIndex = new PositionDetailTableIndexTradeMatch(this);
+		TradingDayIndex = new PositionDetailTableIndexTradingDay(this);
 	}
 	PositionDetailTable::~PositionDetailTable()
 	{
@@ -1680,13 +2008,26 @@ namespace Mdb
 		delete TradingDayIndex;
 		TradingDayIndex = nullptr;
 	}
+	unsigned int PositionDetailTable::GetTableId() const
+	{
+		return PositionDetail::TableId;
+	}
 	void PositionDetailTable::Subscribe(MdbSubscriber* subscriber)
 	{
-		mdbSubscriber_ = subscriber;
+		if (subscriber == nullptr)
+		{
+			return;
+		}
+		subscribers_.push_back(subscriber);
+	}
+	void PositionDetailTable::SubscribeReplica(MdbReplicaSubscriber* replica)
+	{
+		replicaSubscriber_ = replica;
 	}
 	void PositionDetailTable::UnSubscribe()
 	{
-		mdbSubscriber_ = nullptr;
+		subscribers_.clear();
+		replicaSubscriber_ = nullptr;
 	}
 	void PositionDetailTable::LockShared()
 	{
@@ -1698,29 +2039,25 @@ namespace Mdb
 	}
 	void PositionDetailTable::InitDb()
 	{
-		if (mdbSubscriber_ == nullptr)
+		if (replicaSubscriber_ == nullptr)
 		{
-			DbInited = true;
 			return;
 		}
-		mdbSubscriber_->OnRecordTruncate(PositionDetail::TableId);
-
-		std::vector<RecordHandle> records;
+		// 清表、拷贝、批量、就绪置位全部在一次读租约内完成：
+		// 这期间的写入被阻塞，释放租约后到达的增量必然排在批量之后
+		std::shared_lock guard(SharedMutex);
+		replicaSubscriber_->OnSnapshotBegin(PositionDetail::TableId);
+		if (!PrimaryKey->index_.empty())
 		{
-			std::shared_lock guard(SharedMutex);
-			records.reserve(PrimaryKey->index_.size());
+			std::vector<RowChangeEventPtr> events;
+			events.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
-				auto record = PositionDetail::Allocate();
-				memcpy(record, *it, sizeof(PositionDetail));
-				records.push_back(AdoptRecord(record));
+				events.push_back(MakeInsertEvent(*it));
 			}
+			replicaSubscriber_->OnRowBatchChange(events);
 		}
-		if (!records.empty())
-		{
-			mdbSubscriber_->OnRecordBatchInsert(PositionDetail::TableId, std::move(records));
-		}
-		DbInited = true;
+		replicaSubscriber_->OnSnapshotComplete(PositionDetail::TableId);
 	}
 	bool PositionDetailTable::Insert(PositionDetail* record)
 	{
@@ -1737,35 +2074,22 @@ namespace Mdb
 		TradeMatchIndex->Insert(record);
 		TradingDayIndex->Insert(record);
 		
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordInsert(PositionDetail::TableId, BorrowRecord(record));
-		}
+		EmitRowInsert(record);
 		return true;
 	}
 	void PositionDetailTable::BatchInsert(std::vector<PositionDetail*>& records)
 	{
+		std::lock_guard guard(SharedMutex);
+		for (auto record : records)
 		{
-			std::lock_guard guard(SharedMutex);
-			for (auto record : records)
-			{
-				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
-				assert(insertedIntoPrimaryKey);
+			[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
+			assert(insertedIntoPrimaryKey);
 
-				TradeMatchIndex->Insert(record);
-				TradingDayIndex->Insert(record);
-			}
+			TradeMatchIndex->Insert(record);
+			TradingDayIndex->Insert(record);
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records.size());
-			for (auto* r : records)
-			{
-				dbRecords.push_back(BorrowRecord(r));
-			}
-			mdbSubscriber_->OnRecordBatchInsert(PositionDetail::TableId, std::move(dbRecords));
-		}
+		// 通知在写锁内发出：放到解锁后会让并发 Update 的事件先于本批到达订阅者
+		EmitRowBatchInsert(records);
 		records.clear();
 	}
 	void PositionDetailTable::Erase(PositionDetail* record)
@@ -1773,14 +2097,7 @@ namespace Mdb
 		std::lock_guard guard(SharedMutex);
 		EraseUniqueKey(record);
 		EraseIndex(record);
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordErase(PositionDetail::TableId, AdoptRecord(record));
-		}
-		else
-		{
-			record->Deallocate();
-		}
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
 	}
 	int PositionDetailTable::EraseByTradeMatchIndex(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection)
 	{
@@ -1798,11 +2115,11 @@ namespace Mdb
 			EraseIndex(record);
 			record->Deallocate();
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
+		if (HasSubscribers())
 		{
-			auto record = PositionDetail::Allocate();
-			memcpy(record, &ComparePositionDetail, sizeof(PositionDetail));
-			mdbSubscriber_->OnRecordEraseByIndex(PositionDetail::TableId, PositionDetailIndexTradeMatch::IndexID, AdoptRecord(record));
+			auto compareRecord = PositionDetail::Allocate();
+			memcpy(compareRecord, &ComparePositionDetail, sizeof(PositionDetail));
+			EmitRowChange(RowChangeType::EraseByIndex, PositionDetailTableIndexTradeMatch::IndexID, true, AdoptRecord(compareRecord));
 		}
 		return static_cast<int>(records.size());
 	}
@@ -1822,11 +2139,11 @@ namespace Mdb
 			EraseIndex(record);
 			record->Deallocate();
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
+		if (HasSubscribers())
 		{
-			auto record = PositionDetail::Allocate();
-			memcpy(record, &ComparePositionDetail, sizeof(PositionDetail));
-			mdbSubscriber_->OnRecordEraseByIndex(PositionDetail::TableId, PositionDetailIndexTradingDay::IndexID, AdoptRecord(record));
+			auto compareRecord = PositionDetail::Allocate();
+			memcpy(compareRecord, &ComparePositionDetail, sizeof(PositionDetail));
+			EmitRowChange(RowChangeType::EraseByIndex, PositionDetailTableIndexTradingDay::IndexID, true, AdoptRecord(compareRecord));
 		}
 		return static_cast<int>(records.size());
 	}
@@ -1842,13 +2159,13 @@ namespace Mdb
 		}
 
 		bool TradeMatchIndexUpdate = TradeMatchIndex->NeedUpdate(oldRecord, newRecord);
-		PositionDetailIndexTradeMatch::iterator itTradeMatch;
+		PositionDetailTableIndexTradeMatch::iterator itTradeMatch;
 		if (TradeMatchIndexUpdate)
 		{
 			itTradeMatch = TradeMatchIndex->FindNode(oldRecord);
 		}
 		bool TradingDayIndexUpdate = TradingDayIndex->NeedUpdate(oldRecord, newRecord);
-		PositionDetailIndexTradingDay::iterator itTradingDay;
+		PositionDetailTableIndexTradingDay::iterator itTradingDay;
 		if (TradingDayIndexUpdate)
 		{
 			itTradingDay = TradingDayIndex->FindNode(oldRecord);
@@ -1863,14 +2180,8 @@ namespace Mdb
 			TradingDayIndex->Update(itTradingDay);
 		}
 
-		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordUpdate(PositionDetail::TableId, AdoptRecord(newRecord));
-		}
-		else
-		{
-			newRecord->Deallocate();
-		}
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
 		return true;
 	}
 	void PositionDetailTable::TruncateTables()
@@ -1894,14 +2205,11 @@ namespace Mdb
 		PrimaryKey->index_.clear();
 		TradeMatchIndex->index_.clear();
 		TradingDayIndex->index_.clear();
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordTruncate(PositionDetail::TableId);
-		}
+		EmitRowChange(RowChangeType::Truncate, 0, true, RecordHandle());
 	}
 	void PositionDetailTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//t_PositionDetail.csv";
+		string fileName = string(dir) + "//PositionDetail.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -1932,12 +2240,73 @@ namespace Mdb
 		TradeMatchIndex->Erase(record);
 		TradingDayIndex->Erase(record);
 	}
+	bool PositionDetailTable::HasSubscribers() const
+	{
+		return replicaSubscriber_ != nullptr || !subscribers_.empty();
+	}
+	RowChangeEventPtr PositionDetailTable::MakeInsertEvent(const PositionDetail* record)
+	{
+		auto eventRecord = PositionDetail::Allocate();
+		memcpy(eventRecord, record, sizeof(PositionDetail));
+		return std::make_shared<const RowChangeEvent>(PositionDetail::TableId, RowChangeType::Insert, 0, ++sequence_, true, AdoptRecord(eventRecord));
+	}
+	void PositionDetailTable::PublishRowChange(const RowChangeEventPtr& event)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowChange(event);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowChange(event);
+		}
+	}
+	void PositionDetailTable::PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowBatchChange(events);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowBatchChange(events);
+		}
+	}
+	void PositionDetailTable::EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(std::make_shared<const RowChangeEvent>(PositionDetail::TableId, type, indexId, ++sequence_, persistDatabase, std::move(record)));
+	}
+	void PositionDetailTable::EmitRowInsert(const PositionDetail* record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(MakeInsertEvent(record));
+	}
+	void PositionDetailTable::EmitRowBatchInsert(const std::vector<PositionDetail*>& records)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		std::vector<RowChangeEventPtr> events;
+		events.reserve(records.size());
+		for (const PositionDetail* record : records)
+		{
+			events.push_back(MakeInsertEvent(record));
+		}
+		PublishRowBatchChange(events);
+	}
 
 	OrderTable::OrderTable()
 	{
-		mdbSubscriber_ = nullptr;
-		PrimaryKey = new OrderPrimaryKey(this);
-		ClientOrderIdUniqueKey = new OrderUniqueKeyClientOrderId(this);
+		PrimaryKey = new OrderTablePrimaryKey(this);
+		ClientOrderIdUniqueKey = new OrderTableUniqueKeyClientOrderId(this);
 	}
 	OrderTable::~OrderTable()
 	{
@@ -1946,13 +2315,26 @@ namespace Mdb
 		delete ClientOrderIdUniqueKey;
 		ClientOrderIdUniqueKey = nullptr;
 	}
+	unsigned int OrderTable::GetTableId() const
+	{
+		return Order::TableId;
+	}
 	void OrderTable::Subscribe(MdbSubscriber* subscriber)
 	{
-		mdbSubscriber_ = subscriber;
+		if (subscriber == nullptr)
+		{
+			return;
+		}
+		subscribers_.push_back(subscriber);
+	}
+	void OrderTable::SubscribeReplica(MdbReplicaSubscriber* replica)
+	{
+		replicaSubscriber_ = replica;
 	}
 	void OrderTable::UnSubscribe()
 	{
-		mdbSubscriber_ = nullptr;
+		subscribers_.clear();
+		replicaSubscriber_ = nullptr;
 	}
 	void OrderTable::LockShared()
 	{
@@ -1964,29 +2346,25 @@ namespace Mdb
 	}
 	void OrderTable::InitDb()
 	{
-		if (mdbSubscriber_ == nullptr)
+		if (replicaSubscriber_ == nullptr)
 		{
-			DbInited = true;
 			return;
 		}
-		mdbSubscriber_->OnRecordTruncate(Order::TableId);
-
-		std::vector<RecordHandle> records;
+		// 清表、拷贝、批量、就绪置位全部在一次读租约内完成：
+		// 这期间的写入被阻塞，释放租约后到达的增量必然排在批量之后
+		std::shared_lock guard(SharedMutex);
+		replicaSubscriber_->OnSnapshotBegin(Order::TableId);
+		if (!PrimaryKey->index_.empty())
 		{
-			std::shared_lock guard(SharedMutex);
-			records.reserve(PrimaryKey->index_.size());
+			std::vector<RowChangeEventPtr> events;
+			events.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
-				auto record = Order::Allocate();
-				memcpy(record, *it, sizeof(Order));
-				records.push_back(AdoptRecord(record));
+				events.push_back(MakeInsertEvent(*it));
 			}
+			replicaSubscriber_->OnRowBatchChange(events);
 		}
-		if (!records.empty())
-		{
-			mdbSubscriber_->OnRecordBatchInsert(Order::TableId, std::move(records));
-		}
-		DbInited = true;
+		replicaSubscriber_->OnSnapshotComplete(Order::TableId);
 	}
 	bool OrderTable::Insert(Order* record)
 	{
@@ -2002,35 +2380,22 @@ namespace Mdb
 		ClientOrderIdUniqueKey->Insert(record);
 
 		
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordInsert(Order::TableId, BorrowRecord(record));
-		}
+		EmitRowInsert(record);
 		return true;
 	}
 	void OrderTable::BatchInsert(std::vector<Order*>& records)
 	{
+		std::lock_guard guard(SharedMutex);
+		for (auto record : records)
 		{
-			std::lock_guard guard(SharedMutex);
-			for (auto record : records)
-			{
-				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
-				assert(insertedIntoPrimaryKey);
-				[[maybe_unused]] const bool insertedIntoClientOrderIdUniqueKey = ClientOrderIdUniqueKey->Insert(record);
-				assert(insertedIntoClientOrderIdUniqueKey);
+			[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
+			assert(insertedIntoPrimaryKey);
+			[[maybe_unused]] const bool insertedIntoClientOrderIdUniqueKey = ClientOrderIdUniqueKey->Insert(record);
+			assert(insertedIntoClientOrderIdUniqueKey);
 
-			}
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records.size());
-			for (auto* r : records)
-			{
-				dbRecords.push_back(BorrowRecord(r));
-			}
-			mdbSubscriber_->OnRecordBatchInsert(Order::TableId, std::move(dbRecords));
-		}
+		// 通知在写锁内发出：放到解锁后会让并发 Update 的事件先于本批到达订阅者
+		EmitRowBatchInsert(records);
 		records.clear();
 	}
 	void OrderTable::Erase(Order* record)
@@ -2038,14 +2403,7 @@ namespace Mdb
 		std::lock_guard guard(SharedMutex);
 		EraseUniqueKey(record);
 		EraseIndex(record);
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordErase(Order::TableId, AdoptRecord(record));
-		}
-		else
-		{
-			record->Deallocate();
-		}
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
 	}
 	bool OrderTable::Update(Order* const oldRecord, Order* const newRecord, bool updateDB)
 	{
@@ -2060,14 +2418,8 @@ namespace Mdb
 
 		::memcpy(oldRecord, newRecord, sizeof(Order));
 
-		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordUpdate(Order::TableId, AdoptRecord(newRecord));
-		}
-		else
-		{
-			newRecord->Deallocate();
-		}
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
 		return true;
 	}
 	void OrderTable::TruncateTables()
@@ -2089,14 +2441,11 @@ namespace Mdb
 		}
 		PrimaryKey->index_.clear();
 		ClientOrderIdUniqueKey->index_.clear();
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordTruncate(Order::TableId);
-		}
+		EmitRowChange(RowChangeType::Truncate, 0, true, RecordHandle());
 	}
 	void OrderTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//t_Order.csv";
+		string fileName = string(dir) + "//Order.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -2126,24 +2475,98 @@ namespace Mdb
 	void OrderTable::EraseIndex(Order* record)
 	{
 	}
+	bool OrderTable::HasSubscribers() const
+	{
+		return replicaSubscriber_ != nullptr || !subscribers_.empty();
+	}
+	RowChangeEventPtr OrderTable::MakeInsertEvent(const Order* record)
+	{
+		auto eventRecord = Order::Allocate();
+		memcpy(eventRecord, record, sizeof(Order));
+		return std::make_shared<const RowChangeEvent>(Order::TableId, RowChangeType::Insert, 0, ++sequence_, true, AdoptRecord(eventRecord));
+	}
+	void OrderTable::PublishRowChange(const RowChangeEventPtr& event)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowChange(event);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowChange(event);
+		}
+	}
+	void OrderTable::PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowBatchChange(events);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowBatchChange(events);
+		}
+	}
+	void OrderTable::EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(std::make_shared<const RowChangeEvent>(Order::TableId, type, indexId, ++sequence_, persistDatabase, std::move(record)));
+	}
+	void OrderTable::EmitRowInsert(const Order* record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(MakeInsertEvent(record));
+	}
+	void OrderTable::EmitRowBatchInsert(const std::vector<Order*>& records)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		std::vector<RowChangeEventPtr> events;
+		events.reserve(records.size());
+		for (const Order* record : records)
+		{
+			events.push_back(MakeInsertEvent(record));
+		}
+		PublishRowBatchChange(events);
+	}
 
 	TradeTable::TradeTable()
 	{
-		mdbSubscriber_ = nullptr;
-		PrimaryKey = new TradePrimaryKey(this);
+		PrimaryKey = new TradeTablePrimaryKey(this);
 	}
 	TradeTable::~TradeTable()
 	{
 		delete PrimaryKey;
 		PrimaryKey = nullptr;
 	}
+	unsigned int TradeTable::GetTableId() const
+	{
+		return Trade::TableId;
+	}
 	void TradeTable::Subscribe(MdbSubscriber* subscriber)
 	{
-		mdbSubscriber_ = subscriber;
+		if (subscriber == nullptr)
+		{
+			return;
+		}
+		subscribers_.push_back(subscriber);
+	}
+	void TradeTable::SubscribeReplica(MdbReplicaSubscriber* replica)
+	{
+		replicaSubscriber_ = replica;
 	}
 	void TradeTable::UnSubscribe()
 	{
-		mdbSubscriber_ = nullptr;
+		subscribers_.clear();
+		replicaSubscriber_ = nullptr;
 	}
 	void TradeTable::LockShared()
 	{
@@ -2155,29 +2578,25 @@ namespace Mdb
 	}
 	void TradeTable::InitDb()
 	{
-		if (mdbSubscriber_ == nullptr)
+		if (replicaSubscriber_ == nullptr)
 		{
-			DbInited = true;
 			return;
 		}
-		mdbSubscriber_->OnRecordTruncate(Trade::TableId);
-
-		std::vector<RecordHandle> records;
+		// 清表、拷贝、批量、就绪置位全部在一次读租约内完成：
+		// 这期间的写入被阻塞，释放租约后到达的增量必然排在批量之后
+		std::shared_lock guard(SharedMutex);
+		replicaSubscriber_->OnSnapshotBegin(Trade::TableId);
+		if (!PrimaryKey->index_.empty())
 		{
-			std::shared_lock guard(SharedMutex);
-			records.reserve(PrimaryKey->index_.size());
+			std::vector<RowChangeEventPtr> events;
+			events.reserve(PrimaryKey->index_.size());
 			for (auto it = PrimaryKey->index_.begin(); it != PrimaryKey->index_.end(); ++it)
 			{
-				auto record = Trade::Allocate();
-				memcpy(record, *it, sizeof(Trade));
-				records.push_back(AdoptRecord(record));
+				events.push_back(MakeInsertEvent(*it));
 			}
+			replicaSubscriber_->OnRowBatchChange(events);
 		}
-		if (!records.empty())
-		{
-			mdbSubscriber_->OnRecordBatchInsert(Trade::TableId, std::move(records));
-		}
-		DbInited = true;
+		replicaSubscriber_->OnSnapshotComplete(Trade::TableId);
 	}
 	bool TradeTable::Insert(Trade* record)
 	{
@@ -2192,33 +2611,20 @@ namespace Mdb
 		PrimaryKey->Insert(record);
 
 		
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordInsert(Trade::TableId, BorrowRecord(record));
-		}
+		EmitRowInsert(record);
 		return true;
 	}
 	void TradeTable::BatchInsert(std::vector<Trade*>& records)
 	{
+		std::lock_guard guard(SharedMutex);
+		for (auto record : records)
 		{
-			std::lock_guard guard(SharedMutex);
-			for (auto record : records)
-			{
-				[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
-				assert(insertedIntoPrimaryKey);
+			[[maybe_unused]] const bool insertedIntoPrimaryKey = PrimaryKey->Insert(record);
+			assert(insertedIntoPrimaryKey);
 
-			}
 		}
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			std::vector<RecordHandle> dbRecords;
-			dbRecords.reserve(records.size());
-			for (auto* r : records)
-			{
-				dbRecords.push_back(BorrowRecord(r));
-			}
-			mdbSubscriber_->OnRecordBatchInsert(Trade::TableId, std::move(dbRecords));
-		}
+		// 通知在写锁内发出：放到解锁后会让并发 Update 的事件先于本批到达订阅者
+		EmitRowBatchInsert(records);
 		records.clear();
 	}
 	void TradeTable::Erase(Trade* record)
@@ -2226,14 +2632,7 @@ namespace Mdb
 		std::lock_guard guard(SharedMutex);
 		EraseUniqueKey(record);
 		EraseIndex(record);
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordErase(Trade::TableId, AdoptRecord(record));
-		}
-		else
-		{
-			record->Deallocate();
-		}
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
 	}
 	bool TradeTable::Update(Trade* const oldRecord, Trade* const newRecord, bool updateDB)
 	{
@@ -2248,14 +2647,8 @@ namespace Mdb
 
 		::memcpy(oldRecord, newRecord, sizeof(Trade));
 
-		if (updateDB && mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordUpdate(Trade::TableId, AdoptRecord(newRecord));
-		}
-		else
-		{
-			newRecord->Deallocate();
-		}
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
 		return true;
 	}
 	void TradeTable::TruncateTables()
@@ -2275,14 +2668,11 @@ namespace Mdb
 			(*it)->Deallocate();
 		}
 		PrimaryKey->index_.clear();
-		if (mdbSubscriber_ != nullptr && DbInited)
-		{
-			mdbSubscriber_->OnRecordTruncate(Trade::TableId);
-		}
+		EmitRowChange(RowChangeType::Truncate, 0, true, RecordHandle());
 	}
 	void TradeTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//t_Trade.csv";
+		string fileName = string(dir) + "//Trade.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -2310,6 +2700,68 @@ namespace Mdb
 	}
 	void TradeTable::EraseIndex(Trade* record)
 	{
+	}
+	bool TradeTable::HasSubscribers() const
+	{
+		return replicaSubscriber_ != nullptr || !subscribers_.empty();
+	}
+	RowChangeEventPtr TradeTable::MakeInsertEvent(const Trade* record)
+	{
+		auto eventRecord = Trade::Allocate();
+		memcpy(eventRecord, record, sizeof(Trade));
+		return std::make_shared<const RowChangeEvent>(Trade::TableId, RowChangeType::Insert, 0, ++sequence_, true, AdoptRecord(eventRecord));
+	}
+	void TradeTable::PublishRowChange(const RowChangeEventPtr& event)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowChange(event);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowChange(event);
+		}
+	}
+	void TradeTable::PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events)
+	{
+		if (replicaSubscriber_ != nullptr)
+		{
+			replicaSubscriber_->OnRowBatchChange(events);
+		}
+		for (MdbSubscriber* subscriber : subscribers_)
+		{
+			subscriber->OnRowBatchChange(events);
+		}
+	}
+	void TradeTable::EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(std::make_shared<const RowChangeEvent>(Trade::TableId, type, indexId, ++sequence_, persistDatabase, std::move(record)));
+	}
+	void TradeTable::EmitRowInsert(const Trade* record)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PublishRowChange(MakeInsertEvent(record));
+	}
+	void TradeTable::EmitRowBatchInsert(const std::vector<Trade*>& records)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		std::vector<RowChangeEventPtr> events;
+		events.reserve(records.size());
+		for (const Trade* record : records)
+		{
+			events.push_back(MakeInsertEvent(record));
+		}
+		PublishRowBatchChange(events);
 	}
 
 }

@@ -12,7 +12,7 @@ Created by [Fireseeker](https://fireseeker.cn/)
 Mdb 是一个**内存数据库的实现示例**，重点是演示"如何实现并使用内存数据库"，而不是具体的业务数据。它展示了内存数据库的完整实现路径：
 
 1. **表结构驱动**：数据表模型由 `Model/*.xml` 定义，通过 Python 脚本（`pump.py` + `pumplist.xml`）自动生成全部表结构代码（记录结构体、类型化表容器、主键容器、二级索引容器），无需手写；
-2. **内存优先 + 异步落库**：业务读写优先操作内存，变更通过订阅接口（`MdbSubscriber`）广播，由 DbAdapters 的 `AsyncDbWriter` **异步同步至物理数据库**（SQLite / DuckDB / MySQL / MariaDB），兼顾低时延与数据可靠；
+2. **内存优先 + 异步落库**：业务读写优先操作内存，变更通过订阅接口（`MdbSubscriber`）广播，副本走 `MdbReplicaSubscriber`（多一条快照通道），由 DbAdapters 的 `AsyncDbWriter` **异步同步至物理数据库**（SQLite / DuckDB / MySQL / MariaDB），兼顾低时延与数据可靠；
 3. **检索与并发**：每张表内置主键容器与二级索引容器（`Select` / `SelectAll` / `EqualRange` / `Range`），查询返回**读租约**（`TableReadLease` / `TableRangeLease`）：锁随结果走，租约存活期间写线程被挡在外面，因此无需拷贝记录也能保证指针与迭代器有效。
 
 因此，内置的 11 张金融数据表（交易日、账户、订单、持仓等）**仅作为示例数据**，用于演示不同类型字段（定长字符串、枚举、日期、整数）的建表与检索方式；要迁移到自己的业务，只需照葫芦画瓢定义自己的 `Model/*.xml` 并重新生成代码即可。
@@ -218,9 +218,9 @@ int main(int argc, const char* argv[])
     AsyncDbWriter* dbWriter = new AsyncDbWriter(db, schemaRegistry);
 
     // 3. 双向接线
-    //    mdb->Subscribe(dbWriter)  ：内存表变更广播给 AsyncDbWriter，异步写库
-    //    dbWriter->Subscribe(mdb)  ：连接成功回调 Mdb::OnDbConnected，自动 InitDB（建表 + 初始化）
-    mdb->Subscribe(dbWriter);
+    //    mdb->SubscribeReplica(dbWriter)：行变更与全量快照一并广播（副本订阅者全库至多一个）
+    //    dbWriter->Subscribe(mdb)      ：连接成功回调 Mdb::OnDbConnected，自动 InitDb（建表 + 各表快照）
+    mdb->SubscribeReplica(dbWriter);
     dbWriter->Subscribe(mdb);
     dbWriter->Connect();                                    // 同步连接并触发建表
     dbWriter->Start();                                      // 启动后台消费线程

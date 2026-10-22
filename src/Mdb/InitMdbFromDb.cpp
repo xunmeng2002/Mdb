@@ -14,23 +14,23 @@ namespace Mdb
 		{
 			switch (tableList.TableIds[i])
 			{
-			case TradingDay::TableId:  LoadTradingDayTable(mdb, db); break;
-			case Exchange::TableId:  LoadExchangeTable(mdb, db); break;
-			case Product::TableId:  LoadProductTable(mdb, db); break;
-			case Instrument::TableId:  LoadInstrumentTable(mdb, db); break;
-			case PrimaryAccount::TableId:  LoadPrimaryAccountTable(mdb, db); break;
-			case Account::TableId:  LoadAccountTable(mdb, db); break;
-			case Capital::TableId:  LoadCapitalTable(mdb, db); break;
-			case Position::TableId:  LoadPositionTable(mdb, db); break;
-			case PositionDetail::TableId:  LoadPositionDetailTable(mdb, db); break;
-			case Order::TableId:  LoadOrderTable(mdb, db); break;
-			case Trade::TableId:  LoadTradeTable(mdb, db); break;
+			case TradingDay::TableId:  LoadTradingDay(mdb, db); break;
+			case Exchange::TableId:  LoadExchange(mdb, db); break;
+			case Product::TableId:  LoadProduct(mdb, db); break;
+			case Instrument::TableId:  LoadInstrument(mdb, db); break;
+			case PrimaryAccount::TableId:  LoadPrimaryAccount(mdb, db); break;
+			case Account::TableId:  LoadAccount(mdb, db); break;
+			case Capital::TableId:  LoadCapital(mdb, db); break;
+			case Position::TableId:  LoadPosition(mdb, db); break;
+			case PositionDetail::TableId:  LoadPositionDetail(mdb, db); break;
+			case Order::TableId:  LoadOrder(mdb, db); break;
+			case Trade::TableId:  LoadTrade(mdb, db); break;
 			default: break;
 			}
 		}
 	}
 
-	void InitMdbFromDb::LoadTradingDayTable(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadTradingDay(Mdb* mdb, Db* db)
 	{
 		TypedTable<TradingDay> table(db);
 		std::vector<TradingDay*> records;
@@ -40,7 +40,7 @@ namespace Mdb
 			mdb->TradingDay->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadExchangeTable(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadExchange(Mdb* mdb, Db* db)
 	{
 		TypedTable<Exchange> table(db);
 		std::vector<Exchange*> records;
@@ -50,7 +50,7 @@ namespace Mdb
 			mdb->Exchange->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadProductTable(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadProduct(Mdb* mdb, Db* db)
 	{
 		TypedTable<Product> table(db);
 		std::vector<Product*> records;
@@ -60,7 +60,7 @@ namespace Mdb
 			mdb->Product->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadInstrumentTable(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadInstrument(Mdb* mdb, Db* db)
 	{
 		TypedTable<Instrument> table(db);
 		std::vector<Instrument*> records;
@@ -70,7 +70,7 @@ namespace Mdb
 			mdb->Instrument->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadPrimaryAccountTable(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadPrimaryAccount(Mdb* mdb, Db* db)
 	{
 		TypedTable<PrimaryAccount> table(db);
 		std::vector<PrimaryAccount*> records;
@@ -80,7 +80,7 @@ namespace Mdb
 			mdb->PrimaryAccount->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadAccountTable(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadAccount(Mdb* mdb, Db* db)
 	{
 		TypedTable<Account> table(db);
 		std::vector<Account*> records;
@@ -90,7 +90,7 @@ namespace Mdb
 			mdb->Account->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadCapitalTable(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadCapital(Mdb* mdb, Db* db)
 	{
 		TypedTable<Capital> table(db);
 		std::vector<Capital*> records;
@@ -100,7 +100,7 @@ namespace Mdb
 			mdb->Capital->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadPositionTable(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadPosition(Mdb* mdb, Db* db)
 	{
 		TypedTable<Position> table(db);
 		std::vector<Position*> records;
@@ -110,7 +110,7 @@ namespace Mdb
 			mdb->Position->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadPositionDetailTable(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadPositionDetail(Mdb* mdb, Db* db)
 	{
 		TypedTable<PositionDetail> table(db);
 		std::vector<PositionDetail*> records;
@@ -120,7 +120,7 @@ namespace Mdb
 			mdb->PositionDetail->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadOrderTable(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadOrder(Mdb* mdb, Db* db)
 	{
 		TypedTable<Order> table(db);
 		std::vector<Order*> records;
@@ -130,7 +130,7 @@ namespace Mdb
 			mdb->Order->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadTradeTable(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadTrade(Mdb* mdb, Db* db)
 	{
 		TypedTable<Trade> table(db);
 		std::vector<Trade*> records;

@@ -15,9 +15,10 @@ namespace Mdb
 	public:
 		explicit Mdb(const TableList& tableList);
 		void Subscribe(MdbSubscriber* subscriber);
+		void Subscribe(MdbSubscriber* subscriber, const std::vector<unsigned int>& tableIds);
+		void SubscribeReplica(MdbReplicaSubscriber* replica);
 		void UnSubscribe();
 		void InitDb();
-		void SetInitStatus(bool initStatus);
 		void Dump(const char* dir);
 		void CreateTables();
 		void DropTables();
@@ -39,7 +40,9 @@ namespace Mdb
 		TradeTable* Trade = nullptr;
 
 	private:
-		MdbSubscriber* mdbSubscriber_;
+		MdbTableBase* FindTable(unsigned int tableId);
+
+		MdbReplicaSubscriber* replicaSubscriber_;
 		std::vector<MdbTableBase*> tables_;
 	};
 }

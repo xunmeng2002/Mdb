@@ -12,16 +12,16 @@ namespace Mdb
 	public:
 		static void LoadTables(Mdb* mdb, Db* db, const TableList& tableList);
 
-		static void LoadTradingDayTable(Mdb* mdb, Db* db);
-		static void LoadExchangeTable(Mdb* mdb, Db* db);
-		static void LoadProductTable(Mdb* mdb, Db* db);
-		static void LoadInstrumentTable(Mdb* mdb, Db* db);
-		static void LoadPrimaryAccountTable(Mdb* mdb, Db* db);
-		static void LoadAccountTable(Mdb* mdb, Db* db);
-		static void LoadCapitalTable(Mdb* mdb, Db* db);
-		static void LoadPositionTable(Mdb* mdb, Db* db);
-		static void LoadPositionDetailTable(Mdb* mdb, Db* db);
-		static void LoadOrderTable(Mdb* mdb, Db* db);
-		static void LoadTradeTable(Mdb* mdb, Db* db);
+		static void LoadTradingDay(Mdb* mdb, Db* db);
+		static void LoadExchange(Mdb* mdb, Db* db);
+		static void LoadProduct(Mdb* mdb, Db* db);
+		static void LoadInstrument(Mdb* mdb, Db* db);
+		static void LoadPrimaryAccount(Mdb* mdb, Db* db);
+		static void LoadAccount(Mdb* mdb, Db* db);
+		static void LoadCapital(Mdb* mdb, Db* db);
+		static void LoadPosition(Mdb* mdb, Db* db);
+		static void LoadPositionDetail(Mdb* mdb, Db* db);
+		static void LoadOrder(Mdb* mdb, Db* db);
+		static void LoadTrade(Mdb* mdb, Db* db);
 	};
 }

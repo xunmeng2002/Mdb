@@ -8,11 +8,11 @@
 namespace Mdb
 {
 	class TradingDayTable;
-	class TradingDayPrimaryKey
+	class TradingDayTablePrimaryKey
 	{
 	public:
 		using iterator = std::unordered_set<TradingDay*, TradingDayHashForTradingDayPrimaryKey, TradingDayEqualForTradingDayPrimaryKey>::iterator;
-		TradingDayPrimaryKey(TradingDayTable* tableOwner, size_t buckets = 1000);
+		TradingDayTablePrimaryKey(TradingDayTable* tableOwner, size_t buckets = 1000);
 		TableReadLease<TradingDay> Select(const Int32Type& Pk);
 		TableRangeLease<iterator> SelectAll();
 		
@@ -29,11 +29,11 @@ namespace Mdb
 		std::unordered_set<TradingDay*, TradingDayHashForTradingDayPrimaryKey, TradingDayEqualForTradingDayPrimaryKey> index_;
 	};
 	class ExchangeTable;
-	class ExchangePrimaryKey
+	class ExchangeTablePrimaryKey
 	{
 	public:
 		using iterator = std::unordered_set<Exchange*, ExchangeHashForExchangePrimaryKey, ExchangeEqualForExchangePrimaryKey>::iterator;
-		ExchangePrimaryKey(ExchangeTable* tableOwner, size_t buckets = 1000);
+		ExchangeTablePrimaryKey(ExchangeTable* tableOwner, size_t buckets = 1000);
 		TableReadLease<Exchange> Select(const ExchangeIdType& ExchangeId);
 		TableRangeLease<iterator> SelectAll();
 		
@@ -50,11 +50,11 @@ namespace Mdb
 		std::unordered_set<Exchange*, ExchangeHashForExchangePrimaryKey, ExchangeEqualForExchangePrimaryKey> index_;
 	};
 	class ProductTable;
-	class ProductPrimaryKey
+	class ProductTablePrimaryKey
 	{
 	public:
 		using iterator = std::unordered_set<Product*, ProductHashForProductPrimaryKey, ProductEqualForProductPrimaryKey>::iterator;
-		ProductPrimaryKey(ProductTable* tableOwner, size_t buckets = 1000);
+		ProductTablePrimaryKey(ProductTable* tableOwner, size_t buckets = 1000);
 		TableReadLease<Product> Select(const ExchangeIdType& ExchangeId, const ProductIdType& ProductId);
 		TableRangeLease<iterator> SelectAll();
 		
@@ -71,11 +71,11 @@ namespace Mdb
 		std::unordered_set<Product*, ProductHashForProductPrimaryKey, ProductEqualForProductPrimaryKey> index_;
 	};
 	class InstrumentTable;
-	class InstrumentPrimaryKey
+	class InstrumentTablePrimaryKey
 	{
 	public:
 		using iterator = std::unordered_set<Instrument*, InstrumentHashForInstrumentPrimaryKey, InstrumentEqualForInstrumentPrimaryKey>::iterator;
-		InstrumentPrimaryKey(InstrumentTable* tableOwner, size_t buckets = 1000);
+		InstrumentTablePrimaryKey(InstrumentTable* tableOwner, size_t buckets = 1000);
 		TableReadLease<Instrument> Select(const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId);
 		TableRangeLease<iterator> SelectAll();
 		
@@ -92,11 +92,11 @@ namespace Mdb
 		std::unordered_set<Instrument*, InstrumentHashForInstrumentPrimaryKey, InstrumentEqualForInstrumentPrimaryKey> index_;
 	};
 	class PrimaryAccountTable;
-	class PrimaryAccountPrimaryKey
+	class PrimaryAccountTablePrimaryKey
 	{
 	public:
 		using iterator = std::unordered_set<PrimaryAccount*, PrimaryAccountHashForPrimaryAccountPrimaryKey, PrimaryAccountEqualForPrimaryAccountPrimaryKey>::iterator;
-		PrimaryAccountPrimaryKey(PrimaryAccountTable* tableOwner, size_t buckets = 1000);
+		PrimaryAccountTablePrimaryKey(PrimaryAccountTable* tableOwner, size_t buckets = 1000);
 		TableReadLease<PrimaryAccount> Select(const AccountIdType& PrimaryAccountId);
 		TableRangeLease<iterator> SelectAll();
 		
@@ -113,11 +113,11 @@ namespace Mdb
 		std::unordered_set<PrimaryAccount*, PrimaryAccountHashForPrimaryAccountPrimaryKey, PrimaryAccountEqualForPrimaryAccountPrimaryKey> index_;
 	};
 	class AccountTable;
-	class AccountPrimaryKey
+	class AccountTablePrimaryKey
 	{
 	public:
 		using iterator = std::unordered_set<Account*, AccountHashForAccountPrimaryKey, AccountEqualForAccountPrimaryKey>::iterator;
-		AccountPrimaryKey(AccountTable* tableOwner, size_t buckets = 1000);
+		AccountTablePrimaryKey(AccountTable* tableOwner, size_t buckets = 1000);
 		TableReadLease<Account> Select(const AccountIdType& AccountId);
 		TableRangeLease<iterator> SelectAll();
 		
@@ -134,11 +134,11 @@ namespace Mdb
 		std::unordered_set<Account*, AccountHashForAccountPrimaryKey, AccountEqualForAccountPrimaryKey> index_;
 	};
 	class CapitalTable;
-	class CapitalPrimaryKey
+	class CapitalTablePrimaryKey
 	{
 	public:
 		using iterator = std::unordered_set<Capital*, CapitalHashForCapitalPrimaryKey, CapitalEqualForCapitalPrimaryKey>::iterator;
-		CapitalPrimaryKey(CapitalTable* tableOwner, size_t buckets = 1000);
+		CapitalTablePrimaryKey(CapitalTable* tableOwner, size_t buckets = 1000);
 		TableReadLease<Capital> Select(const DateType& TradingDay, const AccountIdType& AccountId);
 		TableRangeLease<iterator> SelectAll();
 		
@@ -155,11 +155,11 @@ namespace Mdb
 		std::unordered_set<Capital*, CapitalHashForCapitalPrimaryKey, CapitalEqualForCapitalPrimaryKey> index_;
 	};
 	class PositionTable;
-	class PositionPrimaryKey
+	class PositionTablePrimaryKey
 	{
 	public:
 		using iterator = std::unordered_set<Position*, PositionHashForPositionPrimaryKey, PositionEqualForPositionPrimaryKey>::iterator;
-		PositionPrimaryKey(PositionTable* tableOwner, size_t buckets = 1000);
+		PositionTablePrimaryKey(PositionTable* tableOwner, size_t buckets = 1000);
 		TableReadLease<Position> Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
 		TableRangeLease<iterator> SelectAll();
 		
@@ -176,11 +176,11 @@ namespace Mdb
 		std::unordered_set<Position*, PositionHashForPositionPrimaryKey, PositionEqualForPositionPrimaryKey> index_;
 	};
 	class PositionDetailTable;
-	class PositionDetailPrimaryKey
+	class PositionDetailTablePrimaryKey
 	{
 	public:
 		using iterator = std::unordered_set<PositionDetail*, PositionDetailHashForPositionDetailPrimaryKey, PositionDetailEqualForPositionDetailPrimaryKey>::iterator;
-		PositionDetailPrimaryKey(PositionDetailTable* tableOwner, size_t buckets = 1000);
+		PositionDetailTablePrimaryKey(PositionDetailTable* tableOwner, size_t buckets = 1000);
 		TableReadLease<PositionDetail> Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIdType& TradeId);
 		TableRangeLease<iterator> SelectAll();
 		
@@ -197,11 +197,11 @@ namespace Mdb
 		std::unordered_set<PositionDetail*, PositionDetailHashForPositionDetailPrimaryKey, PositionDetailEqualForPositionDetailPrimaryKey> index_;
 	};
 	class OrderTable;
-	class OrderPrimaryKey
+	class OrderTablePrimaryKey
 	{
 	public:
 		using iterator = std::unordered_set<Order*, OrderHashForOrderPrimaryKey, OrderEqualForOrderPrimaryKey>::iterator;
-		OrderPrimaryKey(OrderTable* tableOwner, size_t buckets = 1000);
+		OrderTablePrimaryKey(OrderTable* tableOwner, size_t buckets = 1000);
 		TableReadLease<Order> Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const OrderIdType& OrderId);
 		TableRangeLease<iterator> SelectAll();
 		
@@ -217,10 +217,10 @@ namespace Mdb
 		OrderTable* table_;
 		std::unordered_set<Order*, OrderHashForOrderPrimaryKey, OrderEqualForOrderPrimaryKey> index_;
 	};
-	class OrderUniqueKeyClientOrderId
+	class OrderTableUniqueKeyClientOrderId
 	{
 	public:
-		OrderUniqueKeyClientOrderId(OrderTable* tableOwner, size_t buckets = 1000);
+		OrderTableUniqueKeyClientOrderId(OrderTable* tableOwner, size_t buckets = 1000);
 		TableReadLease<Order> Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const SessionIdType& SessionId, const ClientOrderIdType& ClientOrderId);
 
 	protected:
@@ -237,11 +237,11 @@ namespace Mdb
 	};
 	
 	class TradeTable;
-	class TradePrimaryKey
+	class TradeTablePrimaryKey
 	{
 	public:
 		using iterator = std::unordered_set<Trade*, TradeHashForTradePrimaryKey, TradeEqualForTradePrimaryKey>::iterator;
-		TradePrimaryKey(TradeTable* tableOwner, size_t buckets = 1000);
+		TradeTablePrimaryKey(TradeTable* tableOwner, size_t buckets = 1000);
 		TableReadLease<Trade> Select(const DateType& TradingDay, const ExchangeIdType& ExchangeId, const TradeIdType& TradeId, const DirectionType& Direction);
 		TableRangeLease<iterator> SelectAll();
 		

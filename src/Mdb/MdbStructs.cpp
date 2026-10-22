@@ -168,7 +168,7 @@ namespace Mdb
 	static const int PrimaryAccountPKIndices[] = { 0 };
 	static const int PrimaryAccountIdxOfferId[] = { 4 };
 	static const IndexDefinition PrimaryAccountIndices[] = {
-		{PrimaryAccountIndexOfferId::IndexID, PrimaryAccountIdxOfferId, 1},
+		{PrimaryAccountTableIndexOfferId::IndexID, PrimaryAccountIdxOfferId, 1},
 	};
 	PrimaryAccount* PrimaryAccount::Allocate()
 	{
@@ -256,7 +256,7 @@ namespace Mdb
 	static const int CapitalPKIndices[] = { 0, 1 };
 	static const int CapitalIdxTradingDay[] = { 0 };
 	static const IndexDefinition CapitalIndices[] = {
-		{CapitalIndexTradingDay::IndexID, CapitalIdxTradingDay, 1},
+		{CapitalTableIndexTradingDay::IndexID, CapitalIdxTradingDay, 1},
 	};
 	Capital* Capital::Allocate()
 	{
@@ -314,8 +314,8 @@ namespace Mdb
 	static const int PositionIdxAccount[] = { 0, 1 };
 	static const int PositionIdxTradingDay[] = { 0 };
 	static const IndexDefinition PositionIndices[] = {
-		{PositionIndexAccount::IndexID, PositionIdxAccount, 2},
-		{PositionIndexTradingDay::IndexID, PositionIdxTradingDay, 1},
+		{PositionTableIndexAccount::IndexID, PositionIdxAccount, 2},
+		{PositionTableIndexTradingDay::IndexID, PositionIdxTradingDay, 1},
 	};
 	Position* Position::Allocate()
 	{
@@ -373,8 +373,8 @@ namespace Mdb
 	static const int PositionDetailIdxTradeMatch[] = { 0, 1, 3, 4, 6 };
 	static const int PositionDetailIdxTradingDay[] = { 0 };
 	static const IndexDefinition PositionDetailIndices[] = {
-		{PositionDetailIndexTradeMatch::IndexID, PositionDetailIdxTradeMatch, 5},
-		{PositionDetailIndexTradingDay::IndexID, PositionDetailIdxTradingDay, 1},
+		{PositionDetailTableIndexTradeMatch::IndexID, PositionDetailIdxTradeMatch, 5},
+		{PositionDetailTableIndexTradingDay::IndexID, PositionDetailIdxTradingDay, 1},
 	};
 	PositionDetail* PositionDetail::Allocate()
 	{

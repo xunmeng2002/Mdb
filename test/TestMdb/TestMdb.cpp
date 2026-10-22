@@ -12,8 +12,14 @@
 #include <Spark/Core/Core.h>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
+#include <cstring>
 #include <iostream>
+#include <memory>
+#include <mutex>
+#include <stdexcept>
 #include <thread>
+#include <vector>
 
 using namespace std;
 using namespace Spark::Core;
@@ -243,12 +249,362 @@ namespace testMdb
                rowCount == 2 && visitedBeforeStop == 1;
     }
 
+    // 收集行变更事件：验证扇出共享与记录生命周期
+    class RowChangeRecordingSubscriber : public MdbSubscriber
+    {
+    public:
+        void OnRowChange(const RowChangeEventPtr& event) override
+        {
+            std::lock_guard<std::mutex> guard(mutex_);
+            receivedEvents_.push_back(event);
+        }
+        std::vector<RowChangeEventPtr> TakeReceivedEvents()
+        {
+            std::lock_guard<std::mutex> guard(mutex_);
+            return std::move(receivedEvents_);
+        }
+
+    private:
+        std::mutex mutex_;
+        std::vector<RowChangeEventPtr> receivedEvents_;
+    };
+
+    // 在快照批量回调里阻塞：把"快照期间写入必须排队"变成可观察的时序
+    class BlockingSnapshotReplica : public MdbReplicaSubscriber
+    {
+    public:
+        void OnRowChange(const RowChangeEventPtr& event) override
+        {
+            std::lock_guard<std::mutex> guard(mutex_);
+            if (snapshotCompleted_)
+            {
+                ++rowChangeCountAfterSnapshotComplete_;
+            }
+            else
+            {
+                ++rowChangeCountBeforeSnapshotComplete_;
+            }
+        }
+        void OnRowBatchChange(const std::vector<RowChangeEventPtr>& events) override
+        {
+            {
+                std::lock_guard<std::mutex> guard(mutex_);
+                snapshotRowCount_ = static_cast<int>(events.size());
+                batchEntered_ = true;
+            }
+            conditionVariable_.notify_all();
+            std::unique_lock<std::mutex> lock(mutex_);
+            conditionVariable_.wait(lock, [this] { return batchReleased_; });
+        }
+        void OnSnapshotComplete(unsigned int tableId) override
+        {
+            std::lock_guard<std::mutex> guard(mutex_);
+            snapshotCompleted_ = true;
+        }
+
+        void WaitForBatchEntered()
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+            conditionVariable_.wait(lock, [this] { return batchEntered_; });
+        }
+        void ReleaseBatch()
+        {
+            {
+                std::lock_guard<std::mutex> guard(mutex_);
+                batchReleased_ = true;
+            }
+            conditionVariable_.notify_all();
+        }
+        bool IsSnapshotCompleted()
+        {
+            std::lock_guard<std::mutex> guard(mutex_);
+            return snapshotCompleted_;
+        }
+        int GetSnapshotRowCount()
+        {
+            std::lock_guard<std::mutex> guard(mutex_);
+            return snapshotRowCount_;
+        }
+        int GetRowChangeCountBeforeSnapshotComplete()
+        {
+            std::lock_guard<std::mutex> guard(mutex_);
+            return rowChangeCountBeforeSnapshotComplete_;
+        }
+        int GetRowChangeCountAfterSnapshotComplete()
+        {
+            std::lock_guard<std::mutex> guard(mutex_);
+            return rowChangeCountAfterSnapshotComplete_;
+        }
+
+    private:
+        std::mutex mutex_;
+        std::condition_variable conditionVariable_;
+        bool batchEntered_ = false;
+        bool batchReleased_ = false;
+        bool snapshotCompleted_ = false;
+        int snapshotRowCount_ = 0;
+        int rowChangeCountBeforeSnapshotComplete_ = 0;
+        int rowChangeCountAfterSnapshotComplete_ = 0;
+    };
+
+    static Exchange* AllocateExchange(const char* exchangeId)
+    {
+        Exchange* exchange = Exchange::Allocate();
+        strcpy(exchange->ExchangeId, exchangeId);
+        return exchange;
+    }
+
+    // 扇出只共享一份不可变事件；最后一个订阅者释放时记录随之回池
+    static bool TestRowChangeFanOutSharesOneEvent()
+    {
+        ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
+        RowChangeRecordingSubscriber firstSubscriber;
+        RowChangeRecordingSubscriber secondSubscriber;
+        mdb->Subscribe(&firstSubscriber);
+        mdb->Subscribe(&secondSubscriber);
+
+        Exchange* liveRecord = AllocateExchange("SHFE");
+        mdb->Exchange->Insert(liveRecord);
+
+        std::vector<RowChangeEventPtr> firstEvents = firstSubscriber.TakeReceivedEvents();
+        std::vector<RowChangeEventPtr> secondEvents = secondSubscriber.TakeReceivedEvents();
+
+        const bool bothReceivedOnce = firstEvents.size() == 1 && secondEvents.size() == 1;
+        if (!bothReceivedOnce)
+        {
+            WriteLog(LogLevel::Error, "Row change fan-out: firstCount=%d secondCount=%d",
+                     static_cast<int>(firstEvents.size()), static_cast<int>(secondEvents.size()));
+            return false;
+        }
+
+        const long sharedReferenceCount = firstEvents.front().use_count();
+        RowChangeEventPtr observedEvent = firstEvents.front();
+        const bool oneEventShared = observedEvent.get() == secondEvents.front().get();
+        const bool recordIsCopyOfLiveRow = observedEvent->Record.Get() != liveRecord;
+        const bool insertDescribed = observedEvent->Type == RowChangeType::Insert
+            && observedEvent->TableId == Exchange::TableId
+            && observedEvent->Sequence == 1;
+
+        std::weak_ptr<const RowChangeEvent> eventWatcher = observedEvent;
+        firstEvents.clear();
+        secondEvents.clear();
+        observedEvent.reset();
+        const bool recordReleasedWithLastReference = eventWatcher.expired();
+
+        mdb->UnSubscribe();
+        mdb->Exchange->TruncateTable();
+        delete mdb;
+
+        WriteLog(LogLevel::Info,
+                 "Row change fan-out: oneEventShared=%d sharedReferenceCount=%ld recordIsCopyOfLiveRow=%d "
+                 "insertDescribed=%d recordReleasedWithLastReference=%d",
+                 oneEventShared ? 1 : 0, sharedReferenceCount, recordIsCopyOfLiveRow ? 1 : 0,
+                 insertDescribed ? 1 : 0, recordReleasedWithLastReference ? 1 : 0);
+        return oneEventShared && sharedReferenceCount == 2 && recordIsCopyOfLiveRow
+            && insertDescribed && recordReleasedWithLastReference;
+    }
+
+    // 快照全程持有读租约：期间的写入被挡住，其事件必然排在批量之后
+    static bool TestSnapshotBatchPrecedesLaterWrites()
+    {
+        ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
+        mdb->Exchange->Insert(AllocateExchange("SHFE"));
+
+        BlockingSnapshotReplica replica;
+        mdb->Exchange->SubscribeReplica(&replica);
+
+        std::thread snapshotThread([mdb]() { mdb->Exchange->InitDb(); });
+        replica.WaitForBatchEntered();
+
+        std::atomic<bool> writerCompleted{ false };
+        std::thread writerThread([mdb, &writerCompleted]()
+        {
+            mdb->Exchange->Insert(AllocateExchange("INE"));
+            writerCompleted = true;
+        });
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        const bool writeBlockedWhileSnapshotHeld = !writerCompleted.load();
+        const bool snapshotCompletedWhileBatchHeld = replica.IsSnapshotCompleted();
+
+        replica.ReleaseBatch();
+        snapshotThread.join();
+        writerThread.join();
+
+        const bool snapshotCarriedOnlyPreexistingRow = replica.GetSnapshotRowCount() == 1;
+        const bool laterWriteReachedSubscribersAfterSnapshot =
+            replica.GetRowChangeCountBeforeSnapshotComplete() == 0
+            && replica.GetRowChangeCountAfterSnapshotComplete() == 1;
+
+        mdb->UnSubscribe();
+        mdb->Exchange->TruncateTable();
+        delete mdb;
+
+        WriteLog(LogLevel::Info,
+                 "Snapshot ordering: writeBlockedWhileSnapshotHeld=%d snapshotCompletedWhileBatchHeld=%d "
+                 "snapshotCarriedOnlyPreexistingRow=%d rowChangesBeforeComplete=%d rowChangesAfterComplete=%d",
+                 writeBlockedWhileSnapshotHeld ? 1 : 0, snapshotCompletedWhileBatchHeld ? 1 : 0,
+                 snapshotCarriedOnlyPreexistingRow ? 1 : 0,
+                 replica.GetRowChangeCountBeforeSnapshotComplete(), replica.GetRowChangeCountAfterSnapshotComplete());
+        return writeBlockedWhileSnapshotHeld && !snapshotCompletedWhileBatchHeld
+            && snapshotCarriedOnlyPreexistingRow && laterWriteReachedSubscribersAfterSnapshot;
+    }
+
+    // 可控失败的 Db 装饰器：让写线程从自己的 HandleDbOperate 里走到"操作抛异常 -> DisConnect ->
+    // 5 秒后重连"这条生产路径。若从测试线程外部调 DisConnect，写线程可能在句柄关闭之前把
+    // connected_ 重新置真，此后所有语句都打在已关闭的句柄上，且再也不会重连。
+    class FailureInjectingDb : public Db
+    {
+    public:
+        explicit FailureInjectingDb(Db* inner) : inner_(inner) {}
+        ~FailureInjectingDb() override { delete inner_; }
+
+        bool Connect() override { return inner_->Connect(); }
+        void DisConnect() override
+        {
+            DisconnectCount.fetch_add(1);
+            inner_->DisConnect();
+        }
+        void Exec(const char* sql) override { inner_->Exec(sql); }
+        void CreateTable(const TableSchema* schema) override { inner_->CreateTable(schema); }
+        void DropTable(const char* tableName) override { inner_->DropTable(tableName); }
+        void TruncateTable(const char* tableName) override { inner_->TruncateTable(tableName); }
+        void CreateTables(const TableSchema* const* schemas, int count) override { inner_->CreateTables(schemas, count); }
+        void DropTables(const TableSchema* const* schemas, int count) override { inner_->DropTables(schemas, count); }
+        void TruncateTables(const TableSchema* const* schemas, int count) override { inner_->TruncateTables(schemas, count); }
+        void Insert(const TableSchema* schema, const void* record) override
+        {
+            ThrowIfRequested();
+            inner_->Insert(schema, record);
+        }
+        void BatchInsert(const TableSchema* schema, const void* const* records, int count) override
+        {
+            ThrowIfRequested();
+            inner_->BatchInsert(schema, records, count);
+        }
+        void Update(const TableSchema* schema, const void* record) override { inner_->Update(schema, record); }
+        void Delete(const TableSchema* schema, const void* record, const int* keyFieldIndices, int keyFieldCount) override
+        {
+            inner_->Delete(schema, record, keyFieldIndices, keyFieldCount);
+        }
+        void SelectAll(const TableSchema* schema, void* recordsList, const RecordFactory& factory) override
+        {
+            inner_->SelectAll(schema, recordsList, factory);
+        }
+        void SelectWithSql(const char* sql, const TableSchema* schema, void* recordsList, const RecordFactory& factory) override
+        {
+            inner_->SelectWithSql(sql, schema, recordsList, factory);
+        }
+
+        void ThrowOnNextWrite()
+        {
+            pendingFailure_.fetch_add(1);
+        }
+        bool WaitForDisconnect(int timeoutMilliseconds)
+        {
+            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeoutMilliseconds);
+            while (std::chrono::steady_clock::now() < deadline)
+            {
+                if (DisconnectCount.load() >= 1)
+                {
+                    return true;
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+            return DisconnectCount.load() >= 1;
+        }
+
+        std::atomic<int> DisconnectCount{ 0 };
+
+    private:
+        void ThrowIfRequested()
+        {
+            if (pendingFailure_.load() > 0)
+            {
+                pendingFailure_.fetch_sub(1);
+                throw std::runtime_error("FailureInjectingDb: write fails by request");
+            }
+        }
+
+        Db* inner_;
+        std::atomic<int> pendingFailure_{ 0 };
+    };
+
+    // 断连期间的增量就地丢弃；重连靠全量快照补齐，不重复插入
+    static bool TestDisconnectDropsIncrementsAndReconnectResyncs()
+    {
+        const char* reconnectDbName = "./TestReconnect.sqlitedb";
+        ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
+        MdbTableRegistry* schemaRegistry = new MdbTableRegistry(FullTableList);
+        FailureInjectingDb* failingDb = new FailureInjectingDb(new SqliteWrapper(reconnectDbName));
+        AsyncDbWriter* dbWriter = new AsyncDbWriter(failingDb, schemaRegistry);
+        mdb->SubscribeReplica(dbWriter);
+        dbWriter->Subscribe(mdb);
+        dbWriter->Start();
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        mdb->Exchange->Insert(AllocateExchange("SHFE"));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        const int pendingWhileConnected = dbWriter->PendingOperateCount();
+
+        failingDb->ThrowOnNextWrite();
+        mdb->Exchange->Insert(AllocateExchange("INE"));
+        const bool writerDisconnectedItself = failingDb->WaitForDisconnect(5000);
+
+        mdb->Exchange->Insert(AllocateExchange("CFFEX"));
+        const int pendingAfterDisconnectedInsert = dbWriter->PendingOperateCount();
+
+        // 写线程休眠 5 秒后自行重连：重建表 -> 全表快照 -> 批量落库
+        std::this_thread::sleep_for(std::chrono::seconds(8));
+        dbWriter->Stop();
+        dbWriter->Join();
+
+        int storedRowCount = -1;
+        bool storedAllExchangeIds = false;
+        {
+            SqliteWrapper verifyDb(reconnectDbName);
+            if (verifyDb.Connect())
+            {
+                TypedTable<Exchange> exchangeTable(&verifyDb);
+                std::vector<Exchange*> storedExchanges;
+                exchangeTable.SelectAll(storedExchanges);
+                storedRowCount = static_cast<int>(storedExchanges.size());
+                bool storedShfe = false;
+                bool storedIne = false;
+                bool storedCffex = false;
+                for (Exchange* storedExchange : storedExchanges)
+                {
+                    storedShfe = storedShfe || strcmp(storedExchange->ExchangeId, "SHFE") == 0;
+                    storedIne = storedIne || strcmp(storedExchange->ExchangeId, "INE") == 0;
+                    storedCffex = storedCffex || strcmp(storedExchange->ExchangeId, "CFFEX") == 0;
+                    storedExchange->Deallocate();
+                }
+                storedAllExchangeIds = storedShfe && storedIne && storedCffex;
+                verifyDb.DisConnect();
+            }
+        }
+
+        mdb->UnSubscribe();
+        delete dbWriter;
+        delete schemaRegistry;
+        delete mdb;
+
+        WriteLog(LogLevel::Info,
+                 "Reconnect resync: pendingWhileConnected=%d writerDisconnectedItself=%d "
+                 "pendingAfterDisconnectedInsert=%d storedRowCount=%d storedAllExchangeIds=%d",
+                 pendingWhileConnected, writerDisconnectedItself ? 1 : 0,
+                 pendingAfterDisconnectedInsert, storedRowCount, storedAllExchangeIds ? 1 : 0);
+        return pendingWhileConnected == 0 && writerDisconnectedItself
+            && pendingAfterDisconnectedInsert == 0 && storedRowCount == 3 && storedAllExchangeIds;
+    }
+
     static void TestMdb(Db* db)
     {
         ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
         MdbTableRegistry* schemaRegistry = new MdbTableRegistry(FullTableList);
         AsyncDbWriter* dbWriter = new AsyncDbWriter(db, schemaRegistry);
-        mdb->Subscribe(dbWriter);
+        mdb->SubscribeReplica(dbWriter);
         dbWriter->Subscribe(mdb);
         dbWriter->Start();
 
@@ -388,8 +744,12 @@ int main(int argc, char* argv[])
 
     const bool batchInsertOwnershipHolds = testMdb::TestBatchInsertTakesOwnership();
     const bool readLeaseHolds = testMdb::TestReadLeaseBlocksWriter();
+    const bool rowChangeFanOutHolds = testMdb::TestRowChangeFanOutSharesOneEvent();
+    const bool snapshotOrderingHolds = testMdb::TestSnapshotBatchPrecedesLaterWrites();
+    const bool reconnectResyncHolds = testMdb::TestDisconnectDropsIncrementsAndReconnectResyncs();
 
     Logger::GetInstance().Stop();
     Logger::GetInstance().Join();
-    return (batchInsertOwnershipHolds && readLeaseHolds) ? 0 : 1;
+    return (batchInsertOwnershipHolds && readLeaseHolds && rowChangeFanOutHolds
+        && snapshotOrderingHolds && reconnectResyncHolds) ? 0 : 1;
 }

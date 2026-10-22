@@ -11,11 +11,11 @@ using namespace Spark::Core;
 
 namespace Mdb
 {
-	TradingDayPrimaryKey::TradingDayPrimaryKey(TradingDayTable* tableOwner, size_t buckets)
+	TradingDayTablePrimaryKey::TradingDayTablePrimaryKey(TradingDayTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<TradingDay> TradingDayPrimaryKey::Select(const Int32Type& Pk)
+	TableReadLease<TradingDay> TradingDayTablePrimaryKey::Select(const Int32Type& Pk)
 	{
 		CompareTradingDay.Pk = Pk;
 		
@@ -27,32 +27,32 @@ namespace Mdb
 		}
 		return TableReadLease<TradingDay>(std::move(guard), *it);
 	}
-	TableRangeLease<TradingDayPrimaryKey::iterator> TradingDayPrimaryKey::SelectAll()
+	TableRangeLease<TradingDayTablePrimaryKey::iterator> TradingDayTablePrimaryKey::SelectAll()
 	{
 		std::shared_lock guard(table_->SharedMutex);
 		return TableRangeLease<iterator>(std::move(guard), index_.begin(), index_.end());
 	}
-	bool TradingDayPrimaryKey::Insert(TradingDay* const record)
+	bool TradingDayTablePrimaryKey::Insert(TradingDay* const record)
 	{
 		return index_.insert(record).second;
 	}
-	void TradingDayPrimaryKey::Erase(TradingDay* const  record)
+	void TradingDayTablePrimaryKey::Erase(TradingDay* const  record)
 	{
 		index_.erase(record);
 	}
-	bool TradingDayPrimaryKey::CheckInsert(TradingDay* const record)
+	bool TradingDayTablePrimaryKey::CheckInsert(TradingDay* const record)
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool TradingDayPrimaryKey::CheckUpdate(const TradingDay* const oldRecord, const TradingDay* const newRecord)
+	bool TradingDayTablePrimaryKey::CheckUpdate(const TradingDay* const oldRecord, const TradingDay* const newRecord)
 	{
 		return TradingDayEqualForTradingDayPrimaryKey()(oldRecord, newRecord);
 	}
-	ExchangePrimaryKey::ExchangePrimaryKey(ExchangeTable* tableOwner, size_t buckets)
+	ExchangeTablePrimaryKey::ExchangeTablePrimaryKey(ExchangeTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Exchange> ExchangePrimaryKey::Select(const ExchangeIdType& ExchangeId)
+	TableReadLease<Exchange> ExchangeTablePrimaryKey::Select(const ExchangeIdType& ExchangeId)
 	{
 		Utility::Strcpy(CompareExchange.ExchangeId, ExchangeId);
 		
@@ -64,32 +64,32 @@ namespace Mdb
 		}
 		return TableReadLease<Exchange>(std::move(guard), *it);
 	}
-	TableRangeLease<ExchangePrimaryKey::iterator> ExchangePrimaryKey::SelectAll()
+	TableRangeLease<ExchangeTablePrimaryKey::iterator> ExchangeTablePrimaryKey::SelectAll()
 	{
 		std::shared_lock guard(table_->SharedMutex);
 		return TableRangeLease<iterator>(std::move(guard), index_.begin(), index_.end());
 	}
-	bool ExchangePrimaryKey::Insert(Exchange* const record)
+	bool ExchangeTablePrimaryKey::Insert(Exchange* const record)
 	{
 		return index_.insert(record).second;
 	}
-	void ExchangePrimaryKey::Erase(Exchange* const  record)
+	void ExchangeTablePrimaryKey::Erase(Exchange* const  record)
 	{
 		index_.erase(record);
 	}
-	bool ExchangePrimaryKey::CheckInsert(Exchange* const record)
+	bool ExchangeTablePrimaryKey::CheckInsert(Exchange* const record)
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool ExchangePrimaryKey::CheckUpdate(const Exchange* const oldRecord, const Exchange* const newRecord)
+	bool ExchangeTablePrimaryKey::CheckUpdate(const Exchange* const oldRecord, const Exchange* const newRecord)
 	{
 		return ExchangeEqualForExchangePrimaryKey()(oldRecord, newRecord);
 	}
-	ProductPrimaryKey::ProductPrimaryKey(ProductTable* tableOwner, size_t buckets)
+	ProductTablePrimaryKey::ProductTablePrimaryKey(ProductTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Product> ProductPrimaryKey::Select(const ExchangeIdType& ExchangeId, const ProductIdType& ProductId)
+	TableReadLease<Product> ProductTablePrimaryKey::Select(const ExchangeIdType& ExchangeId, const ProductIdType& ProductId)
 	{
 		Utility::Strcpy(CompareProduct.ExchangeId, ExchangeId);
 		Utility::Strcpy(CompareProduct.ProductId, ProductId);
@@ -102,32 +102,32 @@ namespace Mdb
 		}
 		return TableReadLease<Product>(std::move(guard), *it);
 	}
-	TableRangeLease<ProductPrimaryKey::iterator> ProductPrimaryKey::SelectAll()
+	TableRangeLease<ProductTablePrimaryKey::iterator> ProductTablePrimaryKey::SelectAll()
 	{
 		std::shared_lock guard(table_->SharedMutex);
 		return TableRangeLease<iterator>(std::move(guard), index_.begin(), index_.end());
 	}
-	bool ProductPrimaryKey::Insert(Product* const record)
+	bool ProductTablePrimaryKey::Insert(Product* const record)
 	{
 		return index_.insert(record).second;
 	}
-	void ProductPrimaryKey::Erase(Product* const  record)
+	void ProductTablePrimaryKey::Erase(Product* const  record)
 	{
 		index_.erase(record);
 	}
-	bool ProductPrimaryKey::CheckInsert(Product* const record)
+	bool ProductTablePrimaryKey::CheckInsert(Product* const record)
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool ProductPrimaryKey::CheckUpdate(const Product* const oldRecord, const Product* const newRecord)
+	bool ProductTablePrimaryKey::CheckUpdate(const Product* const oldRecord, const Product* const newRecord)
 	{
 		return ProductEqualForProductPrimaryKey()(oldRecord, newRecord);
 	}
-	InstrumentPrimaryKey::InstrumentPrimaryKey(InstrumentTable* tableOwner, size_t buckets)
+	InstrumentTablePrimaryKey::InstrumentTablePrimaryKey(InstrumentTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Instrument> InstrumentPrimaryKey::Select(const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId)
+	TableReadLease<Instrument> InstrumentTablePrimaryKey::Select(const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId)
 	{
 		Utility::Strcpy(CompareInstrument.ExchangeId, ExchangeId);
 		Utility::Strcpy(CompareInstrument.InstrumentId, InstrumentId);
@@ -140,32 +140,32 @@ namespace Mdb
 		}
 		return TableReadLease<Instrument>(std::move(guard), *it);
 	}
-	TableRangeLease<InstrumentPrimaryKey::iterator> InstrumentPrimaryKey::SelectAll()
+	TableRangeLease<InstrumentTablePrimaryKey::iterator> InstrumentTablePrimaryKey::SelectAll()
 	{
 		std::shared_lock guard(table_->SharedMutex);
 		return TableRangeLease<iterator>(std::move(guard), index_.begin(), index_.end());
 	}
-	bool InstrumentPrimaryKey::Insert(Instrument* const record)
+	bool InstrumentTablePrimaryKey::Insert(Instrument* const record)
 	{
 		return index_.insert(record).second;
 	}
-	void InstrumentPrimaryKey::Erase(Instrument* const  record)
+	void InstrumentTablePrimaryKey::Erase(Instrument* const  record)
 	{
 		index_.erase(record);
 	}
-	bool InstrumentPrimaryKey::CheckInsert(Instrument* const record)
+	bool InstrumentTablePrimaryKey::CheckInsert(Instrument* const record)
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool InstrumentPrimaryKey::CheckUpdate(const Instrument* const oldRecord, const Instrument* const newRecord)
+	bool InstrumentTablePrimaryKey::CheckUpdate(const Instrument* const oldRecord, const Instrument* const newRecord)
 	{
 		return InstrumentEqualForInstrumentPrimaryKey()(oldRecord, newRecord);
 	}
-	PrimaryAccountPrimaryKey::PrimaryAccountPrimaryKey(PrimaryAccountTable* tableOwner, size_t buckets)
+	PrimaryAccountTablePrimaryKey::PrimaryAccountTablePrimaryKey(PrimaryAccountTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<PrimaryAccount> PrimaryAccountPrimaryKey::Select(const AccountIdType& PrimaryAccountId)
+	TableReadLease<PrimaryAccount> PrimaryAccountTablePrimaryKey::Select(const AccountIdType& PrimaryAccountId)
 	{
 		Utility::Strcpy(ComparePrimaryAccount.PrimaryAccountId, PrimaryAccountId);
 		
@@ -177,32 +177,32 @@ namespace Mdb
 		}
 		return TableReadLease<PrimaryAccount>(std::move(guard), *it);
 	}
-	TableRangeLease<PrimaryAccountPrimaryKey::iterator> PrimaryAccountPrimaryKey::SelectAll()
+	TableRangeLease<PrimaryAccountTablePrimaryKey::iterator> PrimaryAccountTablePrimaryKey::SelectAll()
 	{
 		std::shared_lock guard(table_->SharedMutex);
 		return TableRangeLease<iterator>(std::move(guard), index_.begin(), index_.end());
 	}
-	bool PrimaryAccountPrimaryKey::Insert(PrimaryAccount* const record)
+	bool PrimaryAccountTablePrimaryKey::Insert(PrimaryAccount* const record)
 	{
 		return index_.insert(record).second;
 	}
-	void PrimaryAccountPrimaryKey::Erase(PrimaryAccount* const  record)
+	void PrimaryAccountTablePrimaryKey::Erase(PrimaryAccount* const  record)
 	{
 		index_.erase(record);
 	}
-	bool PrimaryAccountPrimaryKey::CheckInsert(PrimaryAccount* const record)
+	bool PrimaryAccountTablePrimaryKey::CheckInsert(PrimaryAccount* const record)
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool PrimaryAccountPrimaryKey::CheckUpdate(const PrimaryAccount* const oldRecord, const PrimaryAccount* const newRecord)
+	bool PrimaryAccountTablePrimaryKey::CheckUpdate(const PrimaryAccount* const oldRecord, const PrimaryAccount* const newRecord)
 	{
 		return PrimaryAccountEqualForPrimaryAccountPrimaryKey()(oldRecord, newRecord);
 	}
-	AccountPrimaryKey::AccountPrimaryKey(AccountTable* tableOwner, size_t buckets)
+	AccountTablePrimaryKey::AccountTablePrimaryKey(AccountTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Account> AccountPrimaryKey::Select(const AccountIdType& AccountId)
+	TableReadLease<Account> AccountTablePrimaryKey::Select(const AccountIdType& AccountId)
 	{
 		Utility::Strcpy(CompareAccount.AccountId, AccountId);
 		
@@ -214,32 +214,32 @@ namespace Mdb
 		}
 		return TableReadLease<Account>(std::move(guard), *it);
 	}
-	TableRangeLease<AccountPrimaryKey::iterator> AccountPrimaryKey::SelectAll()
+	TableRangeLease<AccountTablePrimaryKey::iterator> AccountTablePrimaryKey::SelectAll()
 	{
 		std::shared_lock guard(table_->SharedMutex);
 		return TableRangeLease<iterator>(std::move(guard), index_.begin(), index_.end());
 	}
-	bool AccountPrimaryKey::Insert(Account* const record)
+	bool AccountTablePrimaryKey::Insert(Account* const record)
 	{
 		return index_.insert(record).second;
 	}
-	void AccountPrimaryKey::Erase(Account* const  record)
+	void AccountTablePrimaryKey::Erase(Account* const  record)
 	{
 		index_.erase(record);
 	}
-	bool AccountPrimaryKey::CheckInsert(Account* const record)
+	bool AccountTablePrimaryKey::CheckInsert(Account* const record)
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool AccountPrimaryKey::CheckUpdate(const Account* const oldRecord, const Account* const newRecord)
+	bool AccountTablePrimaryKey::CheckUpdate(const Account* const oldRecord, const Account* const newRecord)
 	{
 		return AccountEqualForAccountPrimaryKey()(oldRecord, newRecord);
 	}
-	CapitalPrimaryKey::CapitalPrimaryKey(CapitalTable* tableOwner, size_t buckets)
+	CapitalTablePrimaryKey::CapitalTablePrimaryKey(CapitalTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Capital> CapitalPrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId)
+	TableReadLease<Capital> CapitalTablePrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId)
 	{
 		Utility::Strcpy(CompareCapital.TradingDay, TradingDay);
 		Utility::Strcpy(CompareCapital.AccountId, AccountId);
@@ -252,32 +252,32 @@ namespace Mdb
 		}
 		return TableReadLease<Capital>(std::move(guard), *it);
 	}
-	TableRangeLease<CapitalPrimaryKey::iterator> CapitalPrimaryKey::SelectAll()
+	TableRangeLease<CapitalTablePrimaryKey::iterator> CapitalTablePrimaryKey::SelectAll()
 	{
 		std::shared_lock guard(table_->SharedMutex);
 		return TableRangeLease<iterator>(std::move(guard), index_.begin(), index_.end());
 	}
-	bool CapitalPrimaryKey::Insert(Capital* const record)
+	bool CapitalTablePrimaryKey::Insert(Capital* const record)
 	{
 		return index_.insert(record).second;
 	}
-	void CapitalPrimaryKey::Erase(Capital* const  record)
+	void CapitalTablePrimaryKey::Erase(Capital* const  record)
 	{
 		index_.erase(record);
 	}
-	bool CapitalPrimaryKey::CheckInsert(Capital* const record)
+	bool CapitalTablePrimaryKey::CheckInsert(Capital* const record)
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool CapitalPrimaryKey::CheckUpdate(const Capital* const oldRecord, const Capital* const newRecord)
+	bool CapitalTablePrimaryKey::CheckUpdate(const Capital* const oldRecord, const Capital* const newRecord)
 	{
 		return CapitalEqualForCapitalPrimaryKey()(oldRecord, newRecord);
 	}
-	PositionPrimaryKey::PositionPrimaryKey(PositionTable* tableOwner, size_t buckets)
+	PositionTablePrimaryKey::PositionTablePrimaryKey(PositionTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Position> PositionPrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection)
+	TableReadLease<Position> PositionTablePrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection)
 	{
 		Utility::Strcpy(ComparePosition.TradingDay, TradingDay);
 		Utility::Strcpy(ComparePosition.AccountId, AccountId);
@@ -293,32 +293,32 @@ namespace Mdb
 		}
 		return TableReadLease<Position>(std::move(guard), *it);
 	}
-	TableRangeLease<PositionPrimaryKey::iterator> PositionPrimaryKey::SelectAll()
+	TableRangeLease<PositionTablePrimaryKey::iterator> PositionTablePrimaryKey::SelectAll()
 	{
 		std::shared_lock guard(table_->SharedMutex);
 		return TableRangeLease<iterator>(std::move(guard), index_.begin(), index_.end());
 	}
-	bool PositionPrimaryKey::Insert(Position* const record)
+	bool PositionTablePrimaryKey::Insert(Position* const record)
 	{
 		return index_.insert(record).second;
 	}
-	void PositionPrimaryKey::Erase(Position* const  record)
+	void PositionTablePrimaryKey::Erase(Position* const  record)
 	{
 		index_.erase(record);
 	}
-	bool PositionPrimaryKey::CheckInsert(Position* const record)
+	bool PositionTablePrimaryKey::CheckInsert(Position* const record)
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool PositionPrimaryKey::CheckUpdate(const Position* const oldRecord, const Position* const newRecord)
+	bool PositionTablePrimaryKey::CheckUpdate(const Position* const oldRecord, const Position* const newRecord)
 	{
 		return PositionEqualForPositionPrimaryKey()(oldRecord, newRecord);
 	}
-	PositionDetailPrimaryKey::PositionDetailPrimaryKey(PositionDetailTable* tableOwner, size_t buckets)
+	PositionDetailTablePrimaryKey::PositionDetailTablePrimaryKey(PositionDetailTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<PositionDetail> PositionDetailPrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIdType& TradeId)
+	TableReadLease<PositionDetail> PositionDetailTablePrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIdType& TradeId)
 	{
 		Utility::Strcpy(ComparePositionDetail.TradingDay, TradingDay);
 		Utility::Strcpy(ComparePositionDetail.AccountId, AccountId);
@@ -336,32 +336,32 @@ namespace Mdb
 		}
 		return TableReadLease<PositionDetail>(std::move(guard), *it);
 	}
-	TableRangeLease<PositionDetailPrimaryKey::iterator> PositionDetailPrimaryKey::SelectAll()
+	TableRangeLease<PositionDetailTablePrimaryKey::iterator> PositionDetailTablePrimaryKey::SelectAll()
 	{
 		std::shared_lock guard(table_->SharedMutex);
 		return TableRangeLease<iterator>(std::move(guard), index_.begin(), index_.end());
 	}
-	bool PositionDetailPrimaryKey::Insert(PositionDetail* const record)
+	bool PositionDetailTablePrimaryKey::Insert(PositionDetail* const record)
 	{
 		return index_.insert(record).second;
 	}
-	void PositionDetailPrimaryKey::Erase(PositionDetail* const  record)
+	void PositionDetailTablePrimaryKey::Erase(PositionDetail* const  record)
 	{
 		index_.erase(record);
 	}
-	bool PositionDetailPrimaryKey::CheckInsert(PositionDetail* const record)
+	bool PositionDetailTablePrimaryKey::CheckInsert(PositionDetail* const record)
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool PositionDetailPrimaryKey::CheckUpdate(const PositionDetail* const oldRecord, const PositionDetail* const newRecord)
+	bool PositionDetailTablePrimaryKey::CheckUpdate(const PositionDetail* const oldRecord, const PositionDetail* const newRecord)
 	{
 		return PositionDetailEqualForPositionDetailPrimaryKey()(oldRecord, newRecord);
 	}
-	OrderPrimaryKey::OrderPrimaryKey(OrderTable* tableOwner, size_t buckets)
+	OrderTablePrimaryKey::OrderTablePrimaryKey(OrderTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Order> OrderPrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const OrderIdType& OrderId)
+	TableReadLease<Order> OrderTablePrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const OrderIdType& OrderId)
 	{
 		Utility::Strcpy(CompareOrder.TradingDay, TradingDay);
 		Utility::Strcpy(CompareOrder.AccountId, AccountId);
@@ -377,32 +377,32 @@ namespace Mdb
 		}
 		return TableReadLease<Order>(std::move(guard), *it);
 	}
-	TableRangeLease<OrderPrimaryKey::iterator> OrderPrimaryKey::SelectAll()
+	TableRangeLease<OrderTablePrimaryKey::iterator> OrderTablePrimaryKey::SelectAll()
 	{
 		std::shared_lock guard(table_->SharedMutex);
 		return TableRangeLease<iterator>(std::move(guard), index_.begin(), index_.end());
 	}
-	bool OrderPrimaryKey::Insert(Order* const record)
+	bool OrderTablePrimaryKey::Insert(Order* const record)
 	{
 		return index_.insert(record).second;
 	}
-	void OrderPrimaryKey::Erase(Order* const  record)
+	void OrderTablePrimaryKey::Erase(Order* const  record)
 	{
 		index_.erase(record);
 	}
-	bool OrderPrimaryKey::CheckInsert(Order* const record)
+	bool OrderTablePrimaryKey::CheckInsert(Order* const record)
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool OrderPrimaryKey::CheckUpdate(const Order* const oldRecord, const Order* const newRecord)
+	bool OrderTablePrimaryKey::CheckUpdate(const Order* const oldRecord, const Order* const newRecord)
 	{
 		return OrderEqualForOrderPrimaryKey()(oldRecord, newRecord);
 	}
-	OrderUniqueKeyClientOrderId::OrderUniqueKeyClientOrderId(OrderTable* tableOwner, size_t buckets)
+	OrderTableUniqueKeyClientOrderId::OrderTableUniqueKeyClientOrderId(OrderTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Order> OrderUniqueKeyClientOrderId::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const SessionIdType& SessionId, const ClientOrderIdType& ClientOrderId)
+	TableReadLease<Order> OrderTableUniqueKeyClientOrderId::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const SessionIdType& SessionId, const ClientOrderIdType& ClientOrderId)
 	{
 		Utility::Strcpy(CompareOrder.TradingDay, TradingDay);
 		Utility::Strcpy(CompareOrder.AccountId, AccountId);
@@ -418,28 +418,28 @@ namespace Mdb
 		}
 		return TableReadLease<Order>(std::move(guard), *it);
 	}
-	bool OrderUniqueKeyClientOrderId::Insert(Order* const record)
+	bool OrderTableUniqueKeyClientOrderId::Insert(Order* const record)
 	{
 		return index_.insert(record).second;
 	}
-	void OrderUniqueKeyClientOrderId::Erase(Order* const  record)
+	void OrderTableUniqueKeyClientOrderId::Erase(Order* const  record)
 	{
 		index_.erase(record);
 	}
-	bool OrderUniqueKeyClientOrderId::CheckInsert(Order* const record)
+	bool OrderTableUniqueKeyClientOrderId::CheckInsert(Order* const record)
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool OrderUniqueKeyClientOrderId::CheckUpdate(const Order* const oldRecord, const Order* const newRecord)
+	bool OrderTableUniqueKeyClientOrderId::CheckUpdate(const Order* const oldRecord, const Order* const newRecord)
 	{
 		return OrderEqualForClientOrderIdUniqueKey()(oldRecord, newRecord);
 	}
 	
-	TradePrimaryKey::TradePrimaryKey(TradeTable* tableOwner, size_t buckets)
+	TradeTablePrimaryKey::TradeTablePrimaryKey(TradeTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Trade> TradePrimaryKey::Select(const DateType& TradingDay, const ExchangeIdType& ExchangeId, const TradeIdType& TradeId, const DirectionType& Direction)
+	TableReadLease<Trade> TradeTablePrimaryKey::Select(const DateType& TradingDay, const ExchangeIdType& ExchangeId, const TradeIdType& TradeId, const DirectionType& Direction)
 	{
 		Utility::Strcpy(CompareTrade.TradingDay, TradingDay);
 		Utility::Strcpy(CompareTrade.ExchangeId, ExchangeId);
@@ -454,24 +454,24 @@ namespace Mdb
 		}
 		return TableReadLease<Trade>(std::move(guard), *it);
 	}
-	TableRangeLease<TradePrimaryKey::iterator> TradePrimaryKey::SelectAll()
+	TableRangeLease<TradeTablePrimaryKey::iterator> TradeTablePrimaryKey::SelectAll()
 	{
 		std::shared_lock guard(table_->SharedMutex);
 		return TableRangeLease<iterator>(std::move(guard), index_.begin(), index_.end());
 	}
-	bool TradePrimaryKey::Insert(Trade* const record)
+	bool TradeTablePrimaryKey::Insert(Trade* const record)
 	{
 		return index_.insert(record).second;
 	}
-	void TradePrimaryKey::Erase(Trade* const  record)
+	void TradeTablePrimaryKey::Erase(Trade* const  record)
 	{
 		index_.erase(record);
 	}
-	bool TradePrimaryKey::CheckInsert(Trade* const record)
+	bool TradeTablePrimaryKey::CheckInsert(Trade* const record)
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool TradePrimaryKey::CheckUpdate(const Trade* const oldRecord, const Trade* const newRecord)
+	bool TradeTablePrimaryKey::CheckUpdate(const Trade* const oldRecord, const Trade* const newRecord)
 	{
 		return TradeEqualForTradePrimaryKey()(oldRecord, newRecord);
 	}

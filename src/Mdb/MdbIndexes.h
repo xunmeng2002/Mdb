@@ -10,13 +10,13 @@ using std::multiset;
 namespace Mdb
 {
 	class PrimaryAccountTable;
-	class PrimaryAccountIndexOfferId
+	class PrimaryAccountTableIndexOfferId
 	{
 	public:
 		using iterator = std::multiset<PrimaryAccount*, PrimaryAccountLessForOfferIdIndex>::iterator;
 		static constexpr unsigned int IndexID = 0x0000;
 	
-		PrimaryAccountIndexOfferId(PrimaryAccountTable* tableOwner);
+		PrimaryAccountTableIndexOfferId(PrimaryAccountTable* tableOwner);
 		TableRangeLease<iterator> Range(const OfferIdType& lowerOfferId, const OfferIdType& upperOfferId);
 		TableRangeLease<iterator> EqualRange(const OfferIdType& OfferId);
 	
@@ -36,13 +36,13 @@ namespace Mdb
 	};
 	
 	class CapitalTable;
-	class CapitalIndexTradingDay
+	class CapitalTableIndexTradingDay
 	{
 	public:
 		using iterator = std::multiset<Capital*, CapitalLessForTradingDayIndex>::iterator;
 		static constexpr unsigned int IndexID = 0x0000;
 	
-		CapitalIndexTradingDay(CapitalTable* tableOwner);
+		CapitalTableIndexTradingDay(CapitalTable* tableOwner);
 		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const DateType& upperTradingDay);
 		TableRangeLease<iterator> EqualRange(const DateType& TradingDay);
 	
@@ -62,13 +62,13 @@ namespace Mdb
 	};
 	
 	class PositionTable;
-	class PositionIndexAccount
+	class PositionTableIndexAccount
 	{
 	public:
 		using iterator = std::multiset<Position*, PositionLessForAccountIndex>::iterator;
 		static constexpr unsigned int IndexID = 0x0000;
 	
-		PositionIndexAccount(PositionTable* tableOwner);
+		PositionTableIndexAccount(PositionTable* tableOwner);
 		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const AccountIdType& lowerAccountId, const DateType& upperTradingDay, const AccountIdType& upperAccountId);
 		TableRangeLease<iterator> EqualRange(const DateType& TradingDay, const AccountIdType& AccountId);
 	
@@ -87,13 +87,13 @@ namespace Mdb
 		multiset<Position*, PositionLessForAccountIndex> index_;
 	};
 	
-	class PositionIndexTradingDay
+	class PositionTableIndexTradingDay
 	{
 	public:
 		using iterator = std::multiset<Position*, PositionLessForTradingDayIndex>::iterator;
 		static constexpr unsigned int IndexID = 0x0001;
 	
-		PositionIndexTradingDay(PositionTable* tableOwner);
+		PositionTableIndexTradingDay(PositionTable* tableOwner);
 		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const DateType& upperTradingDay);
 		TableRangeLease<iterator> EqualRange(const DateType& TradingDay);
 	
@@ -113,13 +113,13 @@ namespace Mdb
 	};
 	
 	class PositionDetailTable;
-	class PositionDetailIndexTradeMatch
+	class PositionDetailTableIndexTradeMatch
 	{
 	public:
 		using iterator = std::multiset<PositionDetail*, PositionDetailLessForTradeMatchIndex>::iterator;
 		static constexpr unsigned int IndexID = 0x0000;
 	
-		PositionDetailIndexTradeMatch(PositionDetailTable* tableOwner);
+		PositionDetailTableIndexTradeMatch(PositionDetailTable* tableOwner);
 		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const AccountIdType& lowerAccountId, const ExchangeIdType& lowerExchangeId, const InstrumentIdType& lowerInstrumentId, const PosiDirectionType& lowerPosiDirection, const DateType& upperTradingDay, const AccountIdType& upperAccountId, const ExchangeIdType& upperExchangeId, const InstrumentIdType& upperInstrumentId, const PosiDirectionType& upperPosiDirection);
 		TableRangeLease<iterator> EqualRange(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
 	
@@ -138,13 +138,13 @@ namespace Mdb
 		multiset<PositionDetail*, PositionDetailLessForTradeMatchIndex> index_;
 	};
 	
-	class PositionDetailIndexTradingDay
+	class PositionDetailTableIndexTradingDay
 	{
 	public:
 		using iterator = std::multiset<PositionDetail*, PositionDetailLessForTradingDayIndex>::iterator;
 		static constexpr unsigned int IndexID = 0x0001;
 	
-		PositionDetailIndexTradingDay(PositionDetailTable* tableOwner);
+		PositionDetailTableIndexTradingDay(PositionDetailTable* tableOwner);
 		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const DateType& upperTradingDay);
 		TableRangeLease<iterator> EqualRange(const DateType& TradingDay);
 	

@@ -3,13 +3,18 @@
 #include "MdbStructs.h"
 #include "MdbTableBase.h"
 #include <DbAdapters/DbInterface/MdbSubscriber.h>
+#include <DbAdapters/DbInterface/RowChangeEvent.h>
 #include "MdbPrimaryKeys.h"
 #include "MdbIndexes.h"
+#include <cstdint>
 #include <shared_mutex>
-#include <atomic>
 #include <vector>
 
 using DbAdapters::MdbSubscriber;
+using DbAdapters::MdbReplicaSubscriber;
+using DbAdapters::RecordHandle;
+using DbAdapters::RowChangeEventPtr;
+using DbAdapters::RowChangeType;
 
 namespace Mdb
 {
@@ -18,7 +23,9 @@ namespace Mdb
 	public:
 		TradingDayTable();
 		~TradingDayTable() override;
+		virtual unsigned int GetTableId() const override;
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
+		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -44,13 +51,24 @@ namespace Mdb
 		virtual void Dump(const char* dir) override;
 
 		std::shared_mutex SharedMutex;
-		TradingDayPrimaryKey* PrimaryKey;
-	protected:
-		MdbSubscriber* mdbSubscriber_;
-
+		TradingDayTablePrimaryKey* PrimaryKey;
 	private:
+		bool HasSubscribers() const;
+		RowChangeEventPtr MakeInsertEvent(const TradingDay* record);
+		void PublishRowChange(const RowChangeEventPtr& event);
+		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
+		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
+		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		void EmitRowInsert(const TradingDay* record);
+		void EmitRowBatchInsert(const std::vector<TradingDay*>& records);
 		void EraseUniqueKey(TradingDay* record);
 		void EraseIndex(TradingDay* record);
+
+		// 只在启动期注册，之后列表不可变，热路径无锁读
+		std::vector<MdbSubscriber*> subscribers_;
+		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
+		// 受 SharedMutex 保护
+		std::uint64_t sequence_ = 0;
 	};
 
 	class ExchangeTable : public MdbTableBase
@@ -58,7 +76,9 @@ namespace Mdb
 	public:
 		ExchangeTable();
 		~ExchangeTable() override;
+		virtual unsigned int GetTableId() const override;
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
+		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -84,13 +104,24 @@ namespace Mdb
 		virtual void Dump(const char* dir) override;
 
 		std::shared_mutex SharedMutex;
-		ExchangePrimaryKey* PrimaryKey;
-	protected:
-		MdbSubscriber* mdbSubscriber_;
-
+		ExchangeTablePrimaryKey* PrimaryKey;
 	private:
+		bool HasSubscribers() const;
+		RowChangeEventPtr MakeInsertEvent(const Exchange* record);
+		void PublishRowChange(const RowChangeEventPtr& event);
+		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
+		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
+		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		void EmitRowInsert(const Exchange* record);
+		void EmitRowBatchInsert(const std::vector<Exchange*>& records);
 		void EraseUniqueKey(Exchange* record);
 		void EraseIndex(Exchange* record);
+
+		// 只在启动期注册，之后列表不可变，热路径无锁读
+		std::vector<MdbSubscriber*> subscribers_;
+		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
+		// 受 SharedMutex 保护
+		std::uint64_t sequence_ = 0;
 	};
 
 	class ProductTable : public MdbTableBase
@@ -98,7 +129,9 @@ namespace Mdb
 	public:
 		ProductTable();
 		~ProductTable() override;
+		virtual unsigned int GetTableId() const override;
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
+		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -124,13 +157,24 @@ namespace Mdb
 		virtual void Dump(const char* dir) override;
 
 		std::shared_mutex SharedMutex;
-		ProductPrimaryKey* PrimaryKey;
-	protected:
-		MdbSubscriber* mdbSubscriber_;
-
+		ProductTablePrimaryKey* PrimaryKey;
 	private:
+		bool HasSubscribers() const;
+		RowChangeEventPtr MakeInsertEvent(const Product* record);
+		void PublishRowChange(const RowChangeEventPtr& event);
+		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
+		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
+		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		void EmitRowInsert(const Product* record);
+		void EmitRowBatchInsert(const std::vector<Product*>& records);
 		void EraseUniqueKey(Product* record);
 		void EraseIndex(Product* record);
+
+		// 只在启动期注册，之后列表不可变，热路径无锁读
+		std::vector<MdbSubscriber*> subscribers_;
+		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
+		// 受 SharedMutex 保护
+		std::uint64_t sequence_ = 0;
 	};
 
 	class InstrumentTable : public MdbTableBase
@@ -138,7 +182,9 @@ namespace Mdb
 	public:
 		InstrumentTable();
 		~InstrumentTable() override;
+		virtual unsigned int GetTableId() const override;
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
+		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -164,13 +210,24 @@ namespace Mdb
 		virtual void Dump(const char* dir) override;
 
 		std::shared_mutex SharedMutex;
-		InstrumentPrimaryKey* PrimaryKey;
-	protected:
-		MdbSubscriber* mdbSubscriber_;
-
+		InstrumentTablePrimaryKey* PrimaryKey;
 	private:
+		bool HasSubscribers() const;
+		RowChangeEventPtr MakeInsertEvent(const Instrument* record);
+		void PublishRowChange(const RowChangeEventPtr& event);
+		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
+		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
+		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		void EmitRowInsert(const Instrument* record);
+		void EmitRowBatchInsert(const std::vector<Instrument*>& records);
 		void EraseUniqueKey(Instrument* record);
 		void EraseIndex(Instrument* record);
+
+		// 只在启动期注册，之后列表不可变，热路径无锁读
+		std::vector<MdbSubscriber*> subscribers_;
+		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
+		// 受 SharedMutex 保护
+		std::uint64_t sequence_ = 0;
 	};
 
 	class PrimaryAccountTable : public MdbTableBase
@@ -178,7 +235,9 @@ namespace Mdb
 	public:
 		PrimaryAccountTable();
 		~PrimaryAccountTable() override;
+		virtual unsigned int GetTableId() const override;
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
+		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -205,14 +264,25 @@ namespace Mdb
 		virtual void Dump(const char* dir) override;
 
 		std::shared_mutex SharedMutex;
-		PrimaryAccountPrimaryKey* PrimaryKey;
-		PrimaryAccountIndexOfferId* OfferIdIndex;
-	protected:
-		MdbSubscriber* mdbSubscriber_;
-
+		PrimaryAccountTablePrimaryKey* PrimaryKey;
+		PrimaryAccountTableIndexOfferId* OfferIdIndex;
 	private:
+		bool HasSubscribers() const;
+		RowChangeEventPtr MakeInsertEvent(const PrimaryAccount* record);
+		void PublishRowChange(const RowChangeEventPtr& event);
+		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
+		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
+		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		void EmitRowInsert(const PrimaryAccount* record);
+		void EmitRowBatchInsert(const std::vector<PrimaryAccount*>& records);
 		void EraseUniqueKey(PrimaryAccount* record);
 		void EraseIndex(PrimaryAccount* record);
+
+		// 只在启动期注册，之后列表不可变，热路径无锁读
+		std::vector<MdbSubscriber*> subscribers_;
+		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
+		// 受 SharedMutex 保护
+		std::uint64_t sequence_ = 0;
 	};
 
 	class AccountTable : public MdbTableBase
@@ -220,7 +290,9 @@ namespace Mdb
 	public:
 		AccountTable();
 		~AccountTable() override;
+		virtual unsigned int GetTableId() const override;
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
+		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -246,13 +318,24 @@ namespace Mdb
 		virtual void Dump(const char* dir) override;
 
 		std::shared_mutex SharedMutex;
-		AccountPrimaryKey* PrimaryKey;
-	protected:
-		MdbSubscriber* mdbSubscriber_;
-
+		AccountTablePrimaryKey* PrimaryKey;
 	private:
+		bool HasSubscribers() const;
+		RowChangeEventPtr MakeInsertEvent(const Account* record);
+		void PublishRowChange(const RowChangeEventPtr& event);
+		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
+		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
+		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		void EmitRowInsert(const Account* record);
+		void EmitRowBatchInsert(const std::vector<Account*>& records);
 		void EraseUniqueKey(Account* record);
 		void EraseIndex(Account* record);
+
+		// 只在启动期注册，之后列表不可变，热路径无锁读
+		std::vector<MdbSubscriber*> subscribers_;
+		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
+		// 受 SharedMutex 保护
+		std::uint64_t sequence_ = 0;
 	};
 
 	class CapitalTable : public MdbTableBase
@@ -260,7 +343,9 @@ namespace Mdb
 	public:
 		CapitalTable();
 		~CapitalTable() override;
+		virtual unsigned int GetTableId() const override;
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
+		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -287,14 +372,25 @@ namespace Mdb
 		virtual void Dump(const char* dir) override;
 
 		std::shared_mutex SharedMutex;
-		CapitalPrimaryKey* PrimaryKey;
-		CapitalIndexTradingDay* TradingDayIndex;
-	protected:
-		MdbSubscriber* mdbSubscriber_;
-
+		CapitalTablePrimaryKey* PrimaryKey;
+		CapitalTableIndexTradingDay* TradingDayIndex;
 	private:
+		bool HasSubscribers() const;
+		RowChangeEventPtr MakeInsertEvent(const Capital* record);
+		void PublishRowChange(const RowChangeEventPtr& event);
+		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
+		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
+		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		void EmitRowInsert(const Capital* record);
+		void EmitRowBatchInsert(const std::vector<Capital*>& records);
 		void EraseUniqueKey(Capital* record);
 		void EraseIndex(Capital* record);
+
+		// 只在启动期注册，之后列表不可变，热路径无锁读
+		std::vector<MdbSubscriber*> subscribers_;
+		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
+		// 受 SharedMutex 保护
+		std::uint64_t sequence_ = 0;
 	};
 
 	class PositionTable : public MdbTableBase
@@ -302,7 +398,9 @@ namespace Mdb
 	public:
 		PositionTable();
 		~PositionTable() override;
+		virtual unsigned int GetTableId() const override;
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
+		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -330,15 +428,26 @@ namespace Mdb
 		virtual void Dump(const char* dir) override;
 
 		std::shared_mutex SharedMutex;
-		PositionPrimaryKey* PrimaryKey;
-		PositionIndexAccount* AccountIndex;
-		PositionIndexTradingDay* TradingDayIndex;
-	protected:
-		MdbSubscriber* mdbSubscriber_;
-
+		PositionTablePrimaryKey* PrimaryKey;
+		PositionTableIndexAccount* AccountIndex;
+		PositionTableIndexTradingDay* TradingDayIndex;
 	private:
+		bool HasSubscribers() const;
+		RowChangeEventPtr MakeInsertEvent(const Position* record);
+		void PublishRowChange(const RowChangeEventPtr& event);
+		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
+		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
+		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		void EmitRowInsert(const Position* record);
+		void EmitRowBatchInsert(const std::vector<Position*>& records);
 		void EraseUniqueKey(Position* record);
 		void EraseIndex(Position* record);
+
+		// 只在启动期注册，之后列表不可变，热路径无锁读
+		std::vector<MdbSubscriber*> subscribers_;
+		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
+		// 受 SharedMutex 保护
+		std::uint64_t sequence_ = 0;
 	};
 
 	class PositionDetailTable : public MdbTableBase
@@ -346,7 +455,9 @@ namespace Mdb
 	public:
 		PositionDetailTable();
 		~PositionDetailTable() override;
+		virtual unsigned int GetTableId() const override;
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
+		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -374,15 +485,26 @@ namespace Mdb
 		virtual void Dump(const char* dir) override;
 
 		std::shared_mutex SharedMutex;
-		PositionDetailPrimaryKey* PrimaryKey;
-		PositionDetailIndexTradeMatch* TradeMatchIndex;
-		PositionDetailIndexTradingDay* TradingDayIndex;
-	protected:
-		MdbSubscriber* mdbSubscriber_;
-
+		PositionDetailTablePrimaryKey* PrimaryKey;
+		PositionDetailTableIndexTradeMatch* TradeMatchIndex;
+		PositionDetailTableIndexTradingDay* TradingDayIndex;
 	private:
+		bool HasSubscribers() const;
+		RowChangeEventPtr MakeInsertEvent(const PositionDetail* record);
+		void PublishRowChange(const RowChangeEventPtr& event);
+		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
+		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
+		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		void EmitRowInsert(const PositionDetail* record);
+		void EmitRowBatchInsert(const std::vector<PositionDetail*>& records);
 		void EraseUniqueKey(PositionDetail* record);
 		void EraseIndex(PositionDetail* record);
+
+		// 只在启动期注册，之后列表不可变，热路径无锁读
+		std::vector<MdbSubscriber*> subscribers_;
+		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
+		// 受 SharedMutex 保护
+		std::uint64_t sequence_ = 0;
 	};
 
 	class OrderTable : public MdbTableBase
@@ -390,7 +512,9 @@ namespace Mdb
 	public:
 		OrderTable();
 		~OrderTable() override;
+		virtual unsigned int GetTableId() const override;
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
+		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -416,14 +540,25 @@ namespace Mdb
 		virtual void Dump(const char* dir) override;
 
 		std::shared_mutex SharedMutex;
-		OrderPrimaryKey* PrimaryKey;
-		OrderUniqueKeyClientOrderId* ClientOrderIdUniqueKey;
-	protected:
-		MdbSubscriber* mdbSubscriber_;
-
+		OrderTablePrimaryKey* PrimaryKey;
+		OrderTableUniqueKeyClientOrderId* ClientOrderIdUniqueKey;
 	private:
+		bool HasSubscribers() const;
+		RowChangeEventPtr MakeInsertEvent(const Order* record);
+		void PublishRowChange(const RowChangeEventPtr& event);
+		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
+		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
+		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		void EmitRowInsert(const Order* record);
+		void EmitRowBatchInsert(const std::vector<Order*>& records);
 		void EraseUniqueKey(Order* record);
 		void EraseIndex(Order* record);
+
+		// 只在启动期注册，之后列表不可变，热路径无锁读
+		std::vector<MdbSubscriber*> subscribers_;
+		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
+		// 受 SharedMutex 保护
+		std::uint64_t sequence_ = 0;
 	};
 
 	class TradeTable : public MdbTableBase
@@ -431,7 +566,9 @@ namespace Mdb
 	public:
 		TradeTable();
 		~TradeTable() override;
+		virtual unsigned int GetTableId() const override;
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
+		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
 		void LockShared();
 		void UnlockShared();
@@ -457,13 +594,24 @@ namespace Mdb
 		virtual void Dump(const char* dir) override;
 
 		std::shared_mutex SharedMutex;
-		TradePrimaryKey* PrimaryKey;
-	protected:
-		MdbSubscriber* mdbSubscriber_;
-
+		TradeTablePrimaryKey* PrimaryKey;
 	private:
+		bool HasSubscribers() const;
+		RowChangeEventPtr MakeInsertEvent(const Trade* record);
+		void PublishRowChange(const RowChangeEventPtr& event);
+		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
+		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
+		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		void EmitRowInsert(const Trade* record);
+		void EmitRowBatchInsert(const std::vector<Trade*>& records);
 		void EraseUniqueKey(Trade* record);
 		void EraseIndex(Trade* record);
+
+		// 只在启动期注册，之后列表不可变，热路径无锁读
+		std::vector<MdbSubscriber*> subscribers_;
+		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
+		// 受 SharedMutex 保护
+		std::uint64_t sequence_ = 0;
 	};
 
 }
