@@ -15,17 +15,17 @@ namespace Mdb
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<TradingDay> TradingDayTablePrimaryKey::Select(const Int32Type& Pk)
+	std::optional<TradingDay> TradingDayTablePrimaryKey::Select(const Int32Type& Pk)
 	{
 		CompareTradingDay.Pk = Pk;
-		
+
 		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareTradingDay);
 		if (it == index_.end())
 		{
-			return TableReadLease<TradingDay>();
+			return std::nullopt;
 		}
-		return TableReadLease<TradingDay>(std::move(guard), *it);
+		return **it;
 	}
 	TableRangeLease<TradingDayTablePrimaryKey::iterator> TradingDayTablePrimaryKey::SelectAll()
 	{
@@ -44,25 +44,26 @@ namespace Mdb
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool TradingDayTablePrimaryKey::CheckUpdate(const TradingDay* const oldRecord, const TradingDay* const newRecord)
+	TradingDay* TradingDayTablePrimaryKey::Find(const TradingDay* record)
 	{
-		return TradingDayEqualForTradingDayPrimaryKey()(oldRecord, newRecord);
+		auto it = index_.find(const_cast<TradingDay*>(record));
+		return it == index_.end() ? nullptr : *it;
 	}
 	ExchangeTablePrimaryKey::ExchangeTablePrimaryKey(ExchangeTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Exchange> ExchangeTablePrimaryKey::Select(const ExchangeIdType& ExchangeId)
+	std::optional<Exchange> ExchangeTablePrimaryKey::Select(const ExchangeIdType& ExchangeId)
 	{
 		Utility::Strcpy(CompareExchange.ExchangeId, ExchangeId);
-		
+
 		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareExchange);
 		if (it == index_.end())
 		{
-			return TableReadLease<Exchange>();
+			return std::nullopt;
 		}
-		return TableReadLease<Exchange>(std::move(guard), *it);
+		return **it;
 	}
 	TableRangeLease<ExchangeTablePrimaryKey::iterator> ExchangeTablePrimaryKey::SelectAll()
 	{
@@ -81,26 +82,27 @@ namespace Mdb
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool ExchangeTablePrimaryKey::CheckUpdate(const Exchange* const oldRecord, const Exchange* const newRecord)
+	Exchange* ExchangeTablePrimaryKey::Find(const Exchange* record)
 	{
-		return ExchangeEqualForExchangePrimaryKey()(oldRecord, newRecord);
+		auto it = index_.find(const_cast<Exchange*>(record));
+		return it == index_.end() ? nullptr : *it;
 	}
 	ProductTablePrimaryKey::ProductTablePrimaryKey(ProductTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Product> ProductTablePrimaryKey::Select(const ExchangeIdType& ExchangeId, const ProductIdType& ProductId)
+	std::optional<Product> ProductTablePrimaryKey::Select(const ExchangeIdType& ExchangeId, const ProductIdType& ProductId)
 	{
 		Utility::Strcpy(CompareProduct.ExchangeId, ExchangeId);
 		Utility::Strcpy(CompareProduct.ProductId, ProductId);
-		
+
 		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareProduct);
 		if (it == index_.end())
 		{
-			return TableReadLease<Product>();
+			return std::nullopt;
 		}
-		return TableReadLease<Product>(std::move(guard), *it);
+		return **it;
 	}
 	TableRangeLease<ProductTablePrimaryKey::iterator> ProductTablePrimaryKey::SelectAll()
 	{
@@ -119,26 +121,27 @@ namespace Mdb
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool ProductTablePrimaryKey::CheckUpdate(const Product* const oldRecord, const Product* const newRecord)
+	Product* ProductTablePrimaryKey::Find(const Product* record)
 	{
-		return ProductEqualForProductPrimaryKey()(oldRecord, newRecord);
+		auto it = index_.find(const_cast<Product*>(record));
+		return it == index_.end() ? nullptr : *it;
 	}
 	InstrumentTablePrimaryKey::InstrumentTablePrimaryKey(InstrumentTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Instrument> InstrumentTablePrimaryKey::Select(const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId)
+	std::optional<Instrument> InstrumentTablePrimaryKey::Select(const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId)
 	{
 		Utility::Strcpy(CompareInstrument.ExchangeId, ExchangeId);
 		Utility::Strcpy(CompareInstrument.InstrumentId, InstrumentId);
-		
+
 		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareInstrument);
 		if (it == index_.end())
 		{
-			return TableReadLease<Instrument>();
+			return std::nullopt;
 		}
-		return TableReadLease<Instrument>(std::move(guard), *it);
+		return **it;
 	}
 	TableRangeLease<InstrumentTablePrimaryKey::iterator> InstrumentTablePrimaryKey::SelectAll()
 	{
@@ -157,25 +160,26 @@ namespace Mdb
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool InstrumentTablePrimaryKey::CheckUpdate(const Instrument* const oldRecord, const Instrument* const newRecord)
+	Instrument* InstrumentTablePrimaryKey::Find(const Instrument* record)
 	{
-		return InstrumentEqualForInstrumentPrimaryKey()(oldRecord, newRecord);
+		auto it = index_.find(const_cast<Instrument*>(record));
+		return it == index_.end() ? nullptr : *it;
 	}
 	PrimaryAccountTablePrimaryKey::PrimaryAccountTablePrimaryKey(PrimaryAccountTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<PrimaryAccount> PrimaryAccountTablePrimaryKey::Select(const AccountIdType& PrimaryAccountId)
+	std::optional<PrimaryAccount> PrimaryAccountTablePrimaryKey::Select(const AccountIdType& PrimaryAccountId)
 	{
 		Utility::Strcpy(ComparePrimaryAccount.PrimaryAccountId, PrimaryAccountId);
-		
+
 		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&ComparePrimaryAccount);
 		if (it == index_.end())
 		{
-			return TableReadLease<PrimaryAccount>();
+			return std::nullopt;
 		}
-		return TableReadLease<PrimaryAccount>(std::move(guard), *it);
+		return **it;
 	}
 	TableRangeLease<PrimaryAccountTablePrimaryKey::iterator> PrimaryAccountTablePrimaryKey::SelectAll()
 	{
@@ -194,25 +198,26 @@ namespace Mdb
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool PrimaryAccountTablePrimaryKey::CheckUpdate(const PrimaryAccount* const oldRecord, const PrimaryAccount* const newRecord)
+	PrimaryAccount* PrimaryAccountTablePrimaryKey::Find(const PrimaryAccount* record)
 	{
-		return PrimaryAccountEqualForPrimaryAccountPrimaryKey()(oldRecord, newRecord);
+		auto it = index_.find(const_cast<PrimaryAccount*>(record));
+		return it == index_.end() ? nullptr : *it;
 	}
 	AccountTablePrimaryKey::AccountTablePrimaryKey(AccountTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Account> AccountTablePrimaryKey::Select(const AccountIdType& AccountId)
+	std::optional<Account> AccountTablePrimaryKey::Select(const AccountIdType& AccountId)
 	{
 		Utility::Strcpy(CompareAccount.AccountId, AccountId);
-		
+
 		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareAccount);
 		if (it == index_.end())
 		{
-			return TableReadLease<Account>();
+			return std::nullopt;
 		}
-		return TableReadLease<Account>(std::move(guard), *it);
+		return **it;
 	}
 	TableRangeLease<AccountTablePrimaryKey::iterator> AccountTablePrimaryKey::SelectAll()
 	{
@@ -231,26 +236,27 @@ namespace Mdb
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool AccountTablePrimaryKey::CheckUpdate(const Account* const oldRecord, const Account* const newRecord)
+	Account* AccountTablePrimaryKey::Find(const Account* record)
 	{
-		return AccountEqualForAccountPrimaryKey()(oldRecord, newRecord);
+		auto it = index_.find(const_cast<Account*>(record));
+		return it == index_.end() ? nullptr : *it;
 	}
 	CapitalTablePrimaryKey::CapitalTablePrimaryKey(CapitalTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Capital> CapitalTablePrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId)
+	std::optional<Capital> CapitalTablePrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId)
 	{
 		Utility::Strcpy(CompareCapital.TradingDay, TradingDay);
 		Utility::Strcpy(CompareCapital.AccountId, AccountId);
-		
+
 		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareCapital);
 		if (it == index_.end())
 		{
-			return TableReadLease<Capital>();
+			return std::nullopt;
 		}
-		return TableReadLease<Capital>(std::move(guard), *it);
+		return **it;
 	}
 	TableRangeLease<CapitalTablePrimaryKey::iterator> CapitalTablePrimaryKey::SelectAll()
 	{
@@ -269,29 +275,30 @@ namespace Mdb
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool CapitalTablePrimaryKey::CheckUpdate(const Capital* const oldRecord, const Capital* const newRecord)
+	Capital* CapitalTablePrimaryKey::Find(const Capital* record)
 	{
-		return CapitalEqualForCapitalPrimaryKey()(oldRecord, newRecord);
+		auto it = index_.find(const_cast<Capital*>(record));
+		return it == index_.end() ? nullptr : *it;
 	}
 	PositionTablePrimaryKey::PositionTablePrimaryKey(PositionTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Position> PositionTablePrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection)
+	std::optional<Position> PositionTablePrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection)
 	{
 		Utility::Strcpy(ComparePosition.TradingDay, TradingDay);
 		Utility::Strcpy(ComparePosition.AccountId, AccountId);
 		Utility::Strcpy(ComparePosition.ExchangeId, ExchangeId);
 		Utility::Strcpy(ComparePosition.InstrumentId, InstrumentId);
 		ComparePosition.PosiDirection = PosiDirection;
-		
+
 		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&ComparePosition);
 		if (it == index_.end())
 		{
-			return TableReadLease<Position>();
+			return std::nullopt;
 		}
-		return TableReadLease<Position>(std::move(guard), *it);
+		return **it;
 	}
 	TableRangeLease<PositionTablePrimaryKey::iterator> PositionTablePrimaryKey::SelectAll()
 	{
@@ -310,15 +317,16 @@ namespace Mdb
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool PositionTablePrimaryKey::CheckUpdate(const Position* const oldRecord, const Position* const newRecord)
+	Position* PositionTablePrimaryKey::Find(const Position* record)
 	{
-		return PositionEqualForPositionPrimaryKey()(oldRecord, newRecord);
+		auto it = index_.find(const_cast<Position*>(record));
+		return it == index_.end() ? nullptr : *it;
 	}
 	PositionDetailTablePrimaryKey::PositionDetailTablePrimaryKey(PositionDetailTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<PositionDetail> PositionDetailTablePrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIdType& TradeId)
+	std::optional<PositionDetail> PositionDetailTablePrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection, const DateType& OpenDate, const TradeIdType& TradeId)
 	{
 		Utility::Strcpy(ComparePositionDetail.TradingDay, TradingDay);
 		Utility::Strcpy(ComparePositionDetail.AccountId, AccountId);
@@ -327,14 +335,14 @@ namespace Mdb
 		ComparePositionDetail.PosiDirection = PosiDirection;
 		Utility::Strcpy(ComparePositionDetail.OpenDate, OpenDate);
 		Utility::Strcpy(ComparePositionDetail.TradeId, TradeId);
-		
+
 		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&ComparePositionDetail);
 		if (it == index_.end())
 		{
-			return TableReadLease<PositionDetail>();
+			return std::nullopt;
 		}
-		return TableReadLease<PositionDetail>(std::move(guard), *it);
+		return **it;
 	}
 	TableRangeLease<PositionDetailTablePrimaryKey::iterator> PositionDetailTablePrimaryKey::SelectAll()
 	{
@@ -353,29 +361,30 @@ namespace Mdb
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool PositionDetailTablePrimaryKey::CheckUpdate(const PositionDetail* const oldRecord, const PositionDetail* const newRecord)
+	PositionDetail* PositionDetailTablePrimaryKey::Find(const PositionDetail* record)
 	{
-		return PositionDetailEqualForPositionDetailPrimaryKey()(oldRecord, newRecord);
+		auto it = index_.find(const_cast<PositionDetail*>(record));
+		return it == index_.end() ? nullptr : *it;
 	}
 	OrderTablePrimaryKey::OrderTablePrimaryKey(OrderTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Order> OrderTablePrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const OrderIdType& OrderId)
+	std::optional<Order> OrderTablePrimaryKey::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const OrderIdType& OrderId)
 	{
 		Utility::Strcpy(CompareOrder.TradingDay, TradingDay);
 		Utility::Strcpy(CompareOrder.AccountId, AccountId);
 		Utility::Strcpy(CompareOrder.ExchangeId, ExchangeId);
 		Utility::Strcpy(CompareOrder.InstrumentId, InstrumentId);
 		CompareOrder.OrderId = OrderId;
-		
+
 		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareOrder);
 		if (it == index_.end())
 		{
-			return TableReadLease<Order>();
+			return std::nullopt;
 		}
-		return TableReadLease<Order>(std::move(guard), *it);
+		return **it;
 	}
 	TableRangeLease<OrderTablePrimaryKey::iterator> OrderTablePrimaryKey::SelectAll()
 	{
@@ -394,15 +403,16 @@ namespace Mdb
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool OrderTablePrimaryKey::CheckUpdate(const Order* const oldRecord, const Order* const newRecord)
+	Order* OrderTablePrimaryKey::Find(const Order* record)
 	{
-		return OrderEqualForOrderPrimaryKey()(oldRecord, newRecord);
+		auto it = index_.find(const_cast<Order*>(record));
+		return it == index_.end() ? nullptr : *it;
 	}
 	OrderTableUniqueKeyClientOrderId::OrderTableUniqueKeyClientOrderId(OrderTable* tableOwner, size_t buckets)
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Order> OrderTableUniqueKeyClientOrderId::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const SessionIdType& SessionId, const ClientOrderIdType& ClientOrderId)
+	std::optional<Order> OrderTableUniqueKeyClientOrderId::Select(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const SessionIdType& SessionId, const ClientOrderIdType& ClientOrderId)
 	{
 		Utility::Strcpy(CompareOrder.TradingDay, TradingDay);
 		Utility::Strcpy(CompareOrder.AccountId, AccountId);
@@ -414,9 +424,9 @@ namespace Mdb
 		auto it = index_.find(&CompareOrder);
 		if (it == index_.end())
 		{
-			return TableReadLease<Order>();
+			return std::nullopt;
 		}
-		return TableReadLease<Order>(std::move(guard), *it);
+		return **it;
 	}
 	bool OrderTableUniqueKeyClientOrderId::Insert(Order* const record)
 	{
@@ -439,20 +449,20 @@ namespace Mdb
 		:table_(tableOwner), index_(buckets)
 	{
 	}
-	TableReadLease<Trade> TradeTablePrimaryKey::Select(const DateType& TradingDay, const ExchangeIdType& ExchangeId, const TradeIdType& TradeId, const DirectionType& Direction)
+	std::optional<Trade> TradeTablePrimaryKey::Select(const DateType& TradingDay, const ExchangeIdType& ExchangeId, const TradeIdType& TradeId, const DirectionType& Direction)
 	{
 		Utility::Strcpy(CompareTrade.TradingDay, TradingDay);
 		Utility::Strcpy(CompareTrade.ExchangeId, ExchangeId);
 		Utility::Strcpy(CompareTrade.TradeId, TradeId);
 		CompareTrade.Direction = Direction;
-		
+
 		std::shared_lock guard(table_->SharedMutex);
 		auto it = index_.find(&CompareTrade);
 		if (it == index_.end())
 		{
-			return TableReadLease<Trade>();
+			return std::nullopt;
 		}
-		return TableReadLease<Trade>(std::move(guard), *it);
+		return **it;
 	}
 	TableRangeLease<TradeTablePrimaryKey::iterator> TradeTablePrimaryKey::SelectAll()
 	{
@@ -471,8 +481,9 @@ namespace Mdb
 	{
 		return index_.find(record) == index_.end();
 	}
-	bool TradeTablePrimaryKey::CheckUpdate(const Trade* const oldRecord, const Trade* const newRecord)
+	Trade* TradeTablePrimaryKey::Find(const Trade* record)
 	{
-		return TradeEqualForTradePrimaryKey()(oldRecord, newRecord);
+		auto it = index_.find(const_cast<Trade*>(record));
+		return it == index_.end() ? nullptr : *it;
 	}
 }

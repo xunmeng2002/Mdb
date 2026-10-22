@@ -106,28 +106,33 @@ namespace Mdb
 		EmitRowBatchInsert(records);
 		records.clear();
 	}
-	void TradingDayTable::Erase(TradingDay* record)
+	bool TradingDayTable::Erase(const TradingDay& record)
 	{
 		std::lock_guard guard(SharedMutex);
-		EraseUniqueKey(record);
-		EraseIndex(record);
-		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
-	}
-	bool TradingDayTable::Update(TradingDay* const oldRecord, TradingDay* const newRecord, bool updateDB)
-	{
-		std::lock_guard guard(SharedMutex);
-		if (!PrimaryKey->CheckUpdate(oldRecord, newRecord))
+		TradingDay* liveRecord = PrimaryKey->Find(&record);
+		if (liveRecord == nullptr)
 		{
-			WriteLog(LogLevel::Warning, "Update Failed for TradingDay:[%s]", oldRecord->GetString());
-			WriteLog(LogLevel::Warning, "              New TradingDay:[%s]", newRecord->GetString());
-			newRecord->Deallocate();
+			return false;
+		}
+		EraseUniqueKey(liveRecord);
+		EraseIndex(liveRecord);
+		// 离表的是表内那条记录，传进来的只是个带主键的副本
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(liveRecord));
+		return true;
+	}
+	bool TradingDayTable::Update(const TradingDay& newRecord, bool updateDB)
+	{
+		std::lock_guard guard(SharedMutex);
+		TradingDay* liveRecord = PrimaryKey->Find(&newRecord);
+		if (liveRecord == nullptr)
+		{
+			WriteLog(LogLevel::Warning, "Update Failed for TradingDay:[%s]", newRecord.GetString());
 			return false;
 		}
 
-		::memcpy(oldRecord, newRecord, sizeof(TradingDay));
+		::memcpy(liveRecord, &newRecord, sizeof(TradingDay));
 
-		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
-		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
+		EmitRowUpdate(newRecord, updateDB);
 		return true;
 	}
 	void TradingDayTable::TruncateTables()
@@ -227,6 +232,18 @@ namespace Mdb
 			return;
 		}
 		PublishRowChange(MakeInsertEvent(record));
+	}
+	void TradingDayTable::EmitRowUpdate(const TradingDay& newRecord, bool updateDB)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		TradingDay* eventRecord = TradingDay::Allocate();
+		memcpy(eventRecord, &newRecord, sizeof(TradingDay));
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		PublishRowChange(std::make_shared<const RowChangeEvent>(
+			TradingDay::TableId, RowChangeType::Update, 0, ++sequence_, updateDB, AdoptRecord(eventRecord)));
 	}
 	void TradingDayTable::EmitRowBatchInsert(const std::vector<TradingDay*>& records)
 	{
@@ -332,28 +349,33 @@ namespace Mdb
 		EmitRowBatchInsert(records);
 		records.clear();
 	}
-	void ExchangeTable::Erase(Exchange* record)
+	bool ExchangeTable::Erase(const Exchange& record)
 	{
 		std::lock_guard guard(SharedMutex);
-		EraseUniqueKey(record);
-		EraseIndex(record);
-		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
-	}
-	bool ExchangeTable::Update(Exchange* const oldRecord, Exchange* const newRecord, bool updateDB)
-	{
-		std::lock_guard guard(SharedMutex);
-		if (!PrimaryKey->CheckUpdate(oldRecord, newRecord))
+		Exchange* liveRecord = PrimaryKey->Find(&record);
+		if (liveRecord == nullptr)
 		{
-			WriteLog(LogLevel::Warning, "Update Failed for Exchange:[%s]", oldRecord->GetString());
-			WriteLog(LogLevel::Warning, "              New Exchange:[%s]", newRecord->GetString());
-			newRecord->Deallocate();
+			return false;
+		}
+		EraseUniqueKey(liveRecord);
+		EraseIndex(liveRecord);
+		// 离表的是表内那条记录，传进来的只是个带主键的副本
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(liveRecord));
+		return true;
+	}
+	bool ExchangeTable::Update(const Exchange& newRecord, bool updateDB)
+	{
+		std::lock_guard guard(SharedMutex);
+		Exchange* liveRecord = PrimaryKey->Find(&newRecord);
+		if (liveRecord == nullptr)
+		{
+			WriteLog(LogLevel::Warning, "Update Failed for Exchange:[%s]", newRecord.GetString());
 			return false;
 		}
 
-		::memcpy(oldRecord, newRecord, sizeof(Exchange));
+		::memcpy(liveRecord, &newRecord, sizeof(Exchange));
 
-		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
-		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
+		EmitRowUpdate(newRecord, updateDB);
 		return true;
 	}
 	void ExchangeTable::TruncateTables()
@@ -453,6 +475,18 @@ namespace Mdb
 			return;
 		}
 		PublishRowChange(MakeInsertEvent(record));
+	}
+	void ExchangeTable::EmitRowUpdate(const Exchange& newRecord, bool updateDB)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		Exchange* eventRecord = Exchange::Allocate();
+		memcpy(eventRecord, &newRecord, sizeof(Exchange));
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		PublishRowChange(std::make_shared<const RowChangeEvent>(
+			Exchange::TableId, RowChangeType::Update, 0, ++sequence_, updateDB, AdoptRecord(eventRecord)));
 	}
 	void ExchangeTable::EmitRowBatchInsert(const std::vector<Exchange*>& records)
 	{
@@ -558,28 +592,33 @@ namespace Mdb
 		EmitRowBatchInsert(records);
 		records.clear();
 	}
-	void ProductTable::Erase(Product* record)
+	bool ProductTable::Erase(const Product& record)
 	{
 		std::lock_guard guard(SharedMutex);
-		EraseUniqueKey(record);
-		EraseIndex(record);
-		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
-	}
-	bool ProductTable::Update(Product* const oldRecord, Product* const newRecord, bool updateDB)
-	{
-		std::lock_guard guard(SharedMutex);
-		if (!PrimaryKey->CheckUpdate(oldRecord, newRecord))
+		Product* liveRecord = PrimaryKey->Find(&record);
+		if (liveRecord == nullptr)
 		{
-			WriteLog(LogLevel::Warning, "Update Failed for Product:[%s]", oldRecord->GetString());
-			WriteLog(LogLevel::Warning, "              New Product:[%s]", newRecord->GetString());
-			newRecord->Deallocate();
+			return false;
+		}
+		EraseUniqueKey(liveRecord);
+		EraseIndex(liveRecord);
+		// 离表的是表内那条记录，传进来的只是个带主键的副本
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(liveRecord));
+		return true;
+	}
+	bool ProductTable::Update(const Product& newRecord, bool updateDB)
+	{
+		std::lock_guard guard(SharedMutex);
+		Product* liveRecord = PrimaryKey->Find(&newRecord);
+		if (liveRecord == nullptr)
+		{
+			WriteLog(LogLevel::Warning, "Update Failed for Product:[%s]", newRecord.GetString());
 			return false;
 		}
 
-		::memcpy(oldRecord, newRecord, sizeof(Product));
+		::memcpy(liveRecord, &newRecord, sizeof(Product));
 
-		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
-		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
+		EmitRowUpdate(newRecord, updateDB);
 		return true;
 	}
 	void ProductTable::TruncateTables()
@@ -679,6 +718,18 @@ namespace Mdb
 			return;
 		}
 		PublishRowChange(MakeInsertEvent(record));
+	}
+	void ProductTable::EmitRowUpdate(const Product& newRecord, bool updateDB)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		Product* eventRecord = Product::Allocate();
+		memcpy(eventRecord, &newRecord, sizeof(Product));
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		PublishRowChange(std::make_shared<const RowChangeEvent>(
+			Product::TableId, RowChangeType::Update, 0, ++sequence_, updateDB, AdoptRecord(eventRecord)));
 	}
 	void ProductTable::EmitRowBatchInsert(const std::vector<Product*>& records)
 	{
@@ -784,28 +835,33 @@ namespace Mdb
 		EmitRowBatchInsert(records);
 		records.clear();
 	}
-	void InstrumentTable::Erase(Instrument* record)
+	bool InstrumentTable::Erase(const Instrument& record)
 	{
 		std::lock_guard guard(SharedMutex);
-		EraseUniqueKey(record);
-		EraseIndex(record);
-		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
-	}
-	bool InstrumentTable::Update(Instrument* const oldRecord, Instrument* const newRecord, bool updateDB)
-	{
-		std::lock_guard guard(SharedMutex);
-		if (!PrimaryKey->CheckUpdate(oldRecord, newRecord))
+		Instrument* liveRecord = PrimaryKey->Find(&record);
+		if (liveRecord == nullptr)
 		{
-			WriteLog(LogLevel::Warning, "Update Failed for Instrument:[%s]", oldRecord->GetString());
-			WriteLog(LogLevel::Warning, "              New Instrument:[%s]", newRecord->GetString());
-			newRecord->Deallocate();
+			return false;
+		}
+		EraseUniqueKey(liveRecord);
+		EraseIndex(liveRecord);
+		// 离表的是表内那条记录，传进来的只是个带主键的副本
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(liveRecord));
+		return true;
+	}
+	bool InstrumentTable::Update(const Instrument& newRecord, bool updateDB)
+	{
+		std::lock_guard guard(SharedMutex);
+		Instrument* liveRecord = PrimaryKey->Find(&newRecord);
+		if (liveRecord == nullptr)
+		{
+			WriteLog(LogLevel::Warning, "Update Failed for Instrument:[%s]", newRecord.GetString());
 			return false;
 		}
 
-		::memcpy(oldRecord, newRecord, sizeof(Instrument));
+		::memcpy(liveRecord, &newRecord, sizeof(Instrument));
 
-		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
-		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
+		EmitRowUpdate(newRecord, updateDB);
 		return true;
 	}
 	void InstrumentTable::TruncateTables()
@@ -905,6 +961,18 @@ namespace Mdb
 			return;
 		}
 		PublishRowChange(MakeInsertEvent(record));
+	}
+	void InstrumentTable::EmitRowUpdate(const Instrument& newRecord, bool updateDB)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		Instrument* eventRecord = Instrument::Allocate();
+		memcpy(eventRecord, &newRecord, sizeof(Instrument));
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		PublishRowChange(std::make_shared<const RowChangeEvent>(
+			Instrument::TableId, RowChangeType::Update, 0, ++sequence_, updateDB, AdoptRecord(eventRecord)));
 	}
 	void InstrumentTable::EmitRowBatchInsert(const std::vector<Instrument*>& records)
 	{
@@ -1015,12 +1083,19 @@ namespace Mdb
 		EmitRowBatchInsert(records);
 		records.clear();
 	}
-	void PrimaryAccountTable::Erase(PrimaryAccount* record)
+	bool PrimaryAccountTable::Erase(const PrimaryAccount& record)
 	{
 		std::lock_guard guard(SharedMutex);
-		EraseUniqueKey(record);
-		EraseIndex(record);
-		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
+		PrimaryAccount* liveRecord = PrimaryKey->Find(&record);
+		if (liveRecord == nullptr)
+		{
+			return false;
+		}
+		EraseUniqueKey(liveRecord);
+		EraseIndex(liveRecord);
+		// 离表的是表内那条记录，传进来的只是个带主键的副本
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(liveRecord));
+		return true;
 	}
 	int PrimaryAccountTable::EraseByOfferIdIndex(const OfferIdType& OfferId)
 	{
@@ -1046,31 +1121,29 @@ namespace Mdb
 		}
 		return static_cast<int>(records.size());
 	}
-	bool PrimaryAccountTable::Update(PrimaryAccount* const oldRecord, PrimaryAccount* const newRecord, bool updateDB)
+	bool PrimaryAccountTable::Update(const PrimaryAccount& newRecord, bool updateDB)
 	{
 		std::lock_guard guard(SharedMutex);
-		if (!PrimaryKey->CheckUpdate(oldRecord, newRecord))
+		PrimaryAccount* liveRecord = PrimaryKey->Find(&newRecord);
+		if (liveRecord == nullptr)
 		{
-			WriteLog(LogLevel::Warning, "Update Failed for PrimaryAccount:[%s]", oldRecord->GetString());
-			WriteLog(LogLevel::Warning, "              New PrimaryAccount:[%s]", newRecord->GetString());
-			newRecord->Deallocate();
+			WriteLog(LogLevel::Warning, "Update Failed for PrimaryAccount:[%s]", newRecord.GetString());
 			return false;
 		}
 
-		bool OfferIdIndexUpdate = OfferIdIndex->NeedUpdate(oldRecord, newRecord);
+		bool OfferIdIndexUpdate = OfferIdIndex->NeedUpdate(liveRecord, &newRecord);
 		PrimaryAccountTableIndexOfferId::iterator itOfferId;
 		if (OfferIdIndexUpdate)
 		{
-			itOfferId = OfferIdIndex->FindNode(oldRecord);
+			itOfferId = OfferIdIndex->FindNode(liveRecord);
 		}
-		::memcpy(oldRecord, newRecord, sizeof(PrimaryAccount));
+		::memcpy(liveRecord, &newRecord, sizeof(PrimaryAccount));
 		if (OfferIdIndexUpdate)
 		{
 			OfferIdIndex->Update(itOfferId);
 		}
 
-		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
-		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
+		EmitRowUpdate(newRecord, updateDB);
 		return true;
 	}
 	void PrimaryAccountTable::TruncateTables()
@@ -1173,6 +1246,18 @@ namespace Mdb
 			return;
 		}
 		PublishRowChange(MakeInsertEvent(record));
+	}
+	void PrimaryAccountTable::EmitRowUpdate(const PrimaryAccount& newRecord, bool updateDB)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PrimaryAccount* eventRecord = PrimaryAccount::Allocate();
+		memcpy(eventRecord, &newRecord, sizeof(PrimaryAccount));
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		PublishRowChange(std::make_shared<const RowChangeEvent>(
+			PrimaryAccount::TableId, RowChangeType::Update, 0, ++sequence_, updateDB, AdoptRecord(eventRecord)));
 	}
 	void PrimaryAccountTable::EmitRowBatchInsert(const std::vector<PrimaryAccount*>& records)
 	{
@@ -1278,28 +1363,33 @@ namespace Mdb
 		EmitRowBatchInsert(records);
 		records.clear();
 	}
-	void AccountTable::Erase(Account* record)
+	bool AccountTable::Erase(const Account& record)
 	{
 		std::lock_guard guard(SharedMutex);
-		EraseUniqueKey(record);
-		EraseIndex(record);
-		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
-	}
-	bool AccountTable::Update(Account* const oldRecord, Account* const newRecord, bool updateDB)
-	{
-		std::lock_guard guard(SharedMutex);
-		if (!PrimaryKey->CheckUpdate(oldRecord, newRecord))
+		Account* liveRecord = PrimaryKey->Find(&record);
+		if (liveRecord == nullptr)
 		{
-			WriteLog(LogLevel::Warning, "Update Failed for Account:[%s]", oldRecord->GetString());
-			WriteLog(LogLevel::Warning, "              New Account:[%s]", newRecord->GetString());
-			newRecord->Deallocate();
+			return false;
+		}
+		EraseUniqueKey(liveRecord);
+		EraseIndex(liveRecord);
+		// 离表的是表内那条记录，传进来的只是个带主键的副本
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(liveRecord));
+		return true;
+	}
+	bool AccountTable::Update(const Account& newRecord, bool updateDB)
+	{
+		std::lock_guard guard(SharedMutex);
+		Account* liveRecord = PrimaryKey->Find(&newRecord);
+		if (liveRecord == nullptr)
+		{
+			WriteLog(LogLevel::Warning, "Update Failed for Account:[%s]", newRecord.GetString());
 			return false;
 		}
 
-		::memcpy(oldRecord, newRecord, sizeof(Account));
+		::memcpy(liveRecord, &newRecord, sizeof(Account));
 
-		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
-		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
+		EmitRowUpdate(newRecord, updateDB);
 		return true;
 	}
 	void AccountTable::TruncateTables()
@@ -1399,6 +1489,18 @@ namespace Mdb
 			return;
 		}
 		PublishRowChange(MakeInsertEvent(record));
+	}
+	void AccountTable::EmitRowUpdate(const Account& newRecord, bool updateDB)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		Account* eventRecord = Account::Allocate();
+		memcpy(eventRecord, &newRecord, sizeof(Account));
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		PublishRowChange(std::make_shared<const RowChangeEvent>(
+			Account::TableId, RowChangeType::Update, 0, ++sequence_, updateDB, AdoptRecord(eventRecord)));
 	}
 	void AccountTable::EmitRowBatchInsert(const std::vector<Account*>& records)
 	{
@@ -1509,12 +1611,19 @@ namespace Mdb
 		EmitRowBatchInsert(records);
 		records.clear();
 	}
-	void CapitalTable::Erase(Capital* record)
+	bool CapitalTable::Erase(const Capital& record)
 	{
 		std::lock_guard guard(SharedMutex);
-		EraseUniqueKey(record);
-		EraseIndex(record);
-		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
+		Capital* liveRecord = PrimaryKey->Find(&record);
+		if (liveRecord == nullptr)
+		{
+			return false;
+		}
+		EraseUniqueKey(liveRecord);
+		EraseIndex(liveRecord);
+		// 离表的是表内那条记录，传进来的只是个带主键的副本
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(liveRecord));
+		return true;
 	}
 	int CapitalTable::EraseByTradingDayIndex(const DateType& TradingDay)
 	{
@@ -1540,31 +1649,29 @@ namespace Mdb
 		}
 		return static_cast<int>(records.size());
 	}
-	bool CapitalTable::Update(Capital* const oldRecord, Capital* const newRecord, bool updateDB)
+	bool CapitalTable::Update(const Capital& newRecord, bool updateDB)
 	{
 		std::lock_guard guard(SharedMutex);
-		if (!PrimaryKey->CheckUpdate(oldRecord, newRecord))
+		Capital* liveRecord = PrimaryKey->Find(&newRecord);
+		if (liveRecord == nullptr)
 		{
-			WriteLog(LogLevel::Warning, "Update Failed for Capital:[%s]", oldRecord->GetString());
-			WriteLog(LogLevel::Warning, "              New Capital:[%s]", newRecord->GetString());
-			newRecord->Deallocate();
+			WriteLog(LogLevel::Warning, "Update Failed for Capital:[%s]", newRecord.GetString());
 			return false;
 		}
 
-		bool TradingDayIndexUpdate = TradingDayIndex->NeedUpdate(oldRecord, newRecord);
+		bool TradingDayIndexUpdate = TradingDayIndex->NeedUpdate(liveRecord, &newRecord);
 		CapitalTableIndexTradingDay::iterator itTradingDay;
 		if (TradingDayIndexUpdate)
 		{
-			itTradingDay = TradingDayIndex->FindNode(oldRecord);
+			itTradingDay = TradingDayIndex->FindNode(liveRecord);
 		}
-		::memcpy(oldRecord, newRecord, sizeof(Capital));
+		::memcpy(liveRecord, &newRecord, sizeof(Capital));
 		if (TradingDayIndexUpdate)
 		{
 			TradingDayIndex->Update(itTradingDay);
 		}
 
-		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
-		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
+		EmitRowUpdate(newRecord, updateDB);
 		return true;
 	}
 	void CapitalTable::TruncateTables()
@@ -1667,6 +1774,18 @@ namespace Mdb
 			return;
 		}
 		PublishRowChange(MakeInsertEvent(record));
+	}
+	void CapitalTable::EmitRowUpdate(const Capital& newRecord, bool updateDB)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		Capital* eventRecord = Capital::Allocate();
+		memcpy(eventRecord, &newRecord, sizeof(Capital));
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		PublishRowChange(std::make_shared<const RowChangeEvent>(
+			Capital::TableId, RowChangeType::Update, 0, ++sequence_, updateDB, AdoptRecord(eventRecord)));
 	}
 	void CapitalTable::EmitRowBatchInsert(const std::vector<Capital*>& records)
 	{
@@ -1782,12 +1901,19 @@ namespace Mdb
 		EmitRowBatchInsert(records);
 		records.clear();
 	}
-	void PositionTable::Erase(Position* record)
+	bool PositionTable::Erase(const Position& record)
 	{
 		std::lock_guard guard(SharedMutex);
-		EraseUniqueKey(record);
-		EraseIndex(record);
-		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
+		Position* liveRecord = PrimaryKey->Find(&record);
+		if (liveRecord == nullptr)
+		{
+			return false;
+		}
+		EraseUniqueKey(liveRecord);
+		EraseIndex(liveRecord);
+		// 离表的是表内那条记录，传进来的只是个带主键的副本
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(liveRecord));
+		return true;
 	}
 	int PositionTable::EraseByAccountIndex(const DateType& TradingDay, const AccountIdType& AccountId)
 	{
@@ -1837,30 +1963,29 @@ namespace Mdb
 		}
 		return static_cast<int>(records.size());
 	}
-	bool PositionTable::Update(Position* const oldRecord, Position* const newRecord, bool updateDB)
+	bool PositionTable::Update(const Position& newRecord, bool updateDB)
 	{
 		std::lock_guard guard(SharedMutex);
-		if (!PrimaryKey->CheckUpdate(oldRecord, newRecord))
+		Position* liveRecord = PrimaryKey->Find(&newRecord);
+		if (liveRecord == nullptr)
 		{
-			WriteLog(LogLevel::Warning, "Update Failed for Position:[%s]", oldRecord->GetString());
-			WriteLog(LogLevel::Warning, "              New Position:[%s]", newRecord->GetString());
-			newRecord->Deallocate();
+			WriteLog(LogLevel::Warning, "Update Failed for Position:[%s]", newRecord.GetString());
 			return false;
 		}
 
-		bool AccountIndexUpdate = AccountIndex->NeedUpdate(oldRecord, newRecord);
+		bool AccountIndexUpdate = AccountIndex->NeedUpdate(liveRecord, &newRecord);
 		PositionTableIndexAccount::iterator itAccount;
 		if (AccountIndexUpdate)
 		{
-			itAccount = AccountIndex->FindNode(oldRecord);
+			itAccount = AccountIndex->FindNode(liveRecord);
 		}
-		bool TradingDayIndexUpdate = TradingDayIndex->NeedUpdate(oldRecord, newRecord);
+		bool TradingDayIndexUpdate = TradingDayIndex->NeedUpdate(liveRecord, &newRecord);
 		PositionTableIndexTradingDay::iterator itTradingDay;
 		if (TradingDayIndexUpdate)
 		{
-			itTradingDay = TradingDayIndex->FindNode(oldRecord);
+			itTradingDay = TradingDayIndex->FindNode(liveRecord);
 		}
-		::memcpy(oldRecord, newRecord, sizeof(Position));
+		::memcpy(liveRecord, &newRecord, sizeof(Position));
 		if (AccountIndexUpdate)
 		{
 			AccountIndex->Update(itAccount);
@@ -1870,8 +1995,7 @@ namespace Mdb
 			TradingDayIndex->Update(itTradingDay);
 		}
 
-		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
-		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
+		EmitRowUpdate(newRecord, updateDB);
 		return true;
 	}
 	void PositionTable::TruncateTables()
@@ -1977,6 +2101,18 @@ namespace Mdb
 			return;
 		}
 		PublishRowChange(MakeInsertEvent(record));
+	}
+	void PositionTable::EmitRowUpdate(const Position& newRecord, bool updateDB)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		Position* eventRecord = Position::Allocate();
+		memcpy(eventRecord, &newRecord, sizeof(Position));
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		PublishRowChange(std::make_shared<const RowChangeEvent>(
+			Position::TableId, RowChangeType::Update, 0, ++sequence_, updateDB, AdoptRecord(eventRecord)));
 	}
 	void PositionTable::EmitRowBatchInsert(const std::vector<Position*>& records)
 	{
@@ -2092,12 +2228,19 @@ namespace Mdb
 		EmitRowBatchInsert(records);
 		records.clear();
 	}
-	void PositionDetailTable::Erase(PositionDetail* record)
+	bool PositionDetailTable::Erase(const PositionDetail& record)
 	{
 		std::lock_guard guard(SharedMutex);
-		EraseUniqueKey(record);
-		EraseIndex(record);
-		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
+		PositionDetail* liveRecord = PrimaryKey->Find(&record);
+		if (liveRecord == nullptr)
+		{
+			return false;
+		}
+		EraseUniqueKey(liveRecord);
+		EraseIndex(liveRecord);
+		// 离表的是表内那条记录，传进来的只是个带主键的副本
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(liveRecord));
+		return true;
 	}
 	int PositionDetailTable::EraseByTradeMatchIndex(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection)
 	{
@@ -2147,30 +2290,29 @@ namespace Mdb
 		}
 		return static_cast<int>(records.size());
 	}
-	bool PositionDetailTable::Update(PositionDetail* const oldRecord, PositionDetail* const newRecord, bool updateDB)
+	bool PositionDetailTable::Update(const PositionDetail& newRecord, bool updateDB)
 	{
 		std::lock_guard guard(SharedMutex);
-		if (!PrimaryKey->CheckUpdate(oldRecord, newRecord))
+		PositionDetail* liveRecord = PrimaryKey->Find(&newRecord);
+		if (liveRecord == nullptr)
 		{
-			WriteLog(LogLevel::Warning, "Update Failed for PositionDetail:[%s]", oldRecord->GetString());
-			WriteLog(LogLevel::Warning, "              New PositionDetail:[%s]", newRecord->GetString());
-			newRecord->Deallocate();
+			WriteLog(LogLevel::Warning, "Update Failed for PositionDetail:[%s]", newRecord.GetString());
 			return false;
 		}
 
-		bool TradeMatchIndexUpdate = TradeMatchIndex->NeedUpdate(oldRecord, newRecord);
+		bool TradeMatchIndexUpdate = TradeMatchIndex->NeedUpdate(liveRecord, &newRecord);
 		PositionDetailTableIndexTradeMatch::iterator itTradeMatch;
 		if (TradeMatchIndexUpdate)
 		{
-			itTradeMatch = TradeMatchIndex->FindNode(oldRecord);
+			itTradeMatch = TradeMatchIndex->FindNode(liveRecord);
 		}
-		bool TradingDayIndexUpdate = TradingDayIndex->NeedUpdate(oldRecord, newRecord);
+		bool TradingDayIndexUpdate = TradingDayIndex->NeedUpdate(liveRecord, &newRecord);
 		PositionDetailTableIndexTradingDay::iterator itTradingDay;
 		if (TradingDayIndexUpdate)
 		{
-			itTradingDay = TradingDayIndex->FindNode(oldRecord);
+			itTradingDay = TradingDayIndex->FindNode(liveRecord);
 		}
-		::memcpy(oldRecord, newRecord, sizeof(PositionDetail));
+		::memcpy(liveRecord, &newRecord, sizeof(PositionDetail));
 		if (TradeMatchIndexUpdate)
 		{
 			TradeMatchIndex->Update(itTradeMatch);
@@ -2180,8 +2322,7 @@ namespace Mdb
 			TradingDayIndex->Update(itTradingDay);
 		}
 
-		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
-		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
+		EmitRowUpdate(newRecord, updateDB);
 		return true;
 	}
 	void PositionDetailTable::TruncateTables()
@@ -2287,6 +2428,18 @@ namespace Mdb
 			return;
 		}
 		PublishRowChange(MakeInsertEvent(record));
+	}
+	void PositionDetailTable::EmitRowUpdate(const PositionDetail& newRecord, bool updateDB)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		PositionDetail* eventRecord = PositionDetail::Allocate();
+		memcpy(eventRecord, &newRecord, sizeof(PositionDetail));
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		PublishRowChange(std::make_shared<const RowChangeEvent>(
+			PositionDetail::TableId, RowChangeType::Update, 0, ++sequence_, updateDB, AdoptRecord(eventRecord)));
 	}
 	void PositionDetailTable::EmitRowBatchInsert(const std::vector<PositionDetail*>& records)
 	{
@@ -2398,28 +2551,39 @@ namespace Mdb
 		EmitRowBatchInsert(records);
 		records.clear();
 	}
-	void OrderTable::Erase(Order* record)
+	bool OrderTable::Erase(const Order& record)
 	{
 		std::lock_guard guard(SharedMutex);
-		EraseUniqueKey(record);
-		EraseIndex(record);
-		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
-	}
-	bool OrderTable::Update(Order* const oldRecord, Order* const newRecord, bool updateDB)
-	{
-		std::lock_guard guard(SharedMutex);
-		if (!PrimaryKey->CheckUpdate(oldRecord, newRecord) || !(ClientOrderIdUniqueKey->CheckUpdate(oldRecord, newRecord)))
+		Order* liveRecord = PrimaryKey->Find(&record);
+		if (liveRecord == nullptr)
 		{
-			WriteLog(LogLevel::Warning, "Update Failed for Order:[%s]", oldRecord->GetString());
-			WriteLog(LogLevel::Warning, "              New Order:[%s]", newRecord->GetString());
-			newRecord->Deallocate();
+			return false;
+		}
+		EraseUniqueKey(liveRecord);
+		EraseIndex(liveRecord);
+		// 离表的是表内那条记录，传进来的只是个带主键的副本
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(liveRecord));
+		return true;
+	}
+	bool OrderTable::Update(const Order& newRecord, bool updateDB)
+	{
+		std::lock_guard guard(SharedMutex);
+		Order* liveRecord = PrimaryKey->Find(&newRecord);
+		if (liveRecord == nullptr)
+		{
+			WriteLog(LogLevel::Warning, "Update Failed for Order:[%s]", newRecord.GetString());
+			return false;
+		}
+		// 唯一键字段不允许经 Update 改写
+		if (!(ClientOrderIdUniqueKey->CheckUpdate(liveRecord, &newRecord)))
+		{
+			WriteLog(LogLevel::Warning, "Update Failed for Order:[%s]", newRecord.GetString());
 			return false;
 		}
 
-		::memcpy(oldRecord, newRecord, sizeof(Order));
+		::memcpy(liveRecord, &newRecord, sizeof(Order));
 
-		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
-		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
+		EmitRowUpdate(newRecord, updateDB);
 		return true;
 	}
 	void OrderTable::TruncateTables()
@@ -2522,6 +2686,18 @@ namespace Mdb
 			return;
 		}
 		PublishRowChange(MakeInsertEvent(record));
+	}
+	void OrderTable::EmitRowUpdate(const Order& newRecord, bool updateDB)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		Order* eventRecord = Order::Allocate();
+		memcpy(eventRecord, &newRecord, sizeof(Order));
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		PublishRowChange(std::make_shared<const RowChangeEvent>(
+			Order::TableId, RowChangeType::Update, 0, ++sequence_, updateDB, AdoptRecord(eventRecord)));
 	}
 	void OrderTable::EmitRowBatchInsert(const std::vector<Order*>& records)
 	{
@@ -2627,28 +2803,33 @@ namespace Mdb
 		EmitRowBatchInsert(records);
 		records.clear();
 	}
-	void TradeTable::Erase(Trade* record)
+	bool TradeTable::Erase(const Trade& record)
 	{
 		std::lock_guard guard(SharedMutex);
-		EraseUniqueKey(record);
-		EraseIndex(record);
-		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(record));
-	}
-	bool TradeTable::Update(Trade* const oldRecord, Trade* const newRecord, bool updateDB)
-	{
-		std::lock_guard guard(SharedMutex);
-		if (!PrimaryKey->CheckUpdate(oldRecord, newRecord))
+		Trade* liveRecord = PrimaryKey->Find(&record);
+		if (liveRecord == nullptr)
 		{
-			WriteLog(LogLevel::Warning, "Update Failed for Trade:[%s]", oldRecord->GetString());
-			WriteLog(LogLevel::Warning, "              New Trade:[%s]", newRecord->GetString());
-			newRecord->Deallocate();
+			return false;
+		}
+		EraseUniqueKey(liveRecord);
+		EraseIndex(liveRecord);
+		// 离表的是表内那条记录，传进来的只是个带主键的副本
+		EmitRowChange(RowChangeType::Erase, 0, true, AdoptRecord(liveRecord));
+		return true;
+	}
+	bool TradeTable::Update(const Trade& newRecord, bool updateDB)
+	{
+		std::lock_guard guard(SharedMutex);
+		Trade* liveRecord = PrimaryKey->Find(&newRecord);
+		if (liveRecord == nullptr)
+		{
+			WriteLog(LogLevel::Warning, "Update Failed for Trade:[%s]", newRecord.GetString());
 			return false;
 		}
 
-		::memcpy(oldRecord, newRecord, sizeof(Trade));
+		::memcpy(liveRecord, &newRecord, sizeof(Trade));
 
-		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
-		EmitRowChange(RowChangeType::Update, 0, updateDB, AdoptRecord(newRecord));
+		EmitRowUpdate(newRecord, updateDB);
 		return true;
 	}
 	void TradeTable::TruncateTables()
@@ -2748,6 +2929,18 @@ namespace Mdb
 			return;
 		}
 		PublishRowChange(MakeInsertEvent(record));
+	}
+	void TradeTable::EmitRowUpdate(const Trade& newRecord, bool updateDB)
+	{
+		if (!HasSubscribers())
+		{
+			return;
+		}
+		Trade* eventRecord = Trade::Allocate();
+		memcpy(eventRecord, &newRecord, sizeof(Trade));
+		// updateDB 只表示"这条变更不落库"，行变更照常广播，由副本订阅者自行忽略
+		PublishRowChange(std::make_shared<const RowChangeEvent>(
+			Trade::TableId, RowChangeType::Update, 0, ++sequence_, updateDB, AdoptRecord(eventRecord)));
 	}
 	void TradeTable::EmitRowBatchInsert(const std::vector<Trade*>& records)
 	{

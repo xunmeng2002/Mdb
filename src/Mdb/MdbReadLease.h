@@ -6,30 +6,6 @@
 
 namespace Mdb
 {
-	template <typename Record>
-	class TableReadLease
-	{
-	public:
-		TableReadLease() noexcept = default;
-		TableReadLease(std::shared_lock<std::shared_mutex>&& lock, const Record* record) noexcept
-			: lock_(std::move(lock)), record_(record)
-		{
-		}
-		TableReadLease(TableReadLease&&) noexcept = default;
-		TableReadLease& operator=(TableReadLease&&) noexcept = default;
-		TableReadLease(const TableReadLease&) = delete;
-		TableReadLease& operator=(const TableReadLease&) = delete;
-
-		const Record* Get() const noexcept { return record_; }
-		const Record* operator->() const noexcept { return record_; }
-		const Record& operator*() const noexcept { return *record_; }
-		explicit operator bool() const noexcept { return record_ != nullptr; }
-
-	private:
-		std::shared_lock<std::shared_mutex> lock_;
-		const Record* record_ = nullptr;
-	};
-
 	template <typename Iterator>
 	class TableRangeLease
 	{

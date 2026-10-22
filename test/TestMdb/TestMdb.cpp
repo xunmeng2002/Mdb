@@ -17,6 +17,7 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <stdexcept>
 #include <thread>
 #include <vector>
@@ -188,40 +189,42 @@ namespace testMdb
         return storedRowCount == 3 && storedHandedInRecord && callerContainerCleared;
     }
 
-    static bool TestReadLeaseBlocksWriter()
+    static bool TestSelectReturnsDetachedCopy()
     {
         ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
 
         Exchange* firstExchange = Exchange::Allocate();
         strcpy(firstExchange->ExchangeId, "SHFE");
+        strcpy(firstExchange->ExchangeName, "上海期货交易所");
         mdb->Exchange->Insert(firstExchange);
 
-        std::atomic<bool> writerStarted{ false };
+        ExchangeIdType exchangeId = "SHFE";
+        std::optional<Exchange> snapshot = mdb->Exchange->PrimaryKey->Select(exchangeId);
+        const bool selectReturnedCopy = snapshot.has_value() && &*snapshot != firstExchange;
+
+        // 副本与表内活记录脱钩：改活记录不影响早已取走的副本
+        strcpy(firstExchange->ExchangeName, "Renamed");
+        const bool copyDetachedFromLiveRecord = strcmp(snapshot->ExchangeName, "Renamed") != 0;
+
+        // 副本在手不阻塞写者：Select 返回前已释放共享锁
         std::atomic<bool> writerCompleted{ false };
-        std::thread writer([mdb, &writerStarted, &writerCompleted]()
+        std::thread writer([mdb, &writerCompleted]()
         {
             Exchange* secondExchange = Exchange::Allocate();
             strcpy(secondExchange->ExchangeId, "INE");
-            writerStarted = true;
             mdb->Exchange->Insert(secondExchange);
             writerCompleted = true;
         });
-
-        bool leaseSawRecord = false;
-        bool writerBlockedWhileLeaseHeld = false;
-        ExchangeIdType exchangeId = "SHFE";
+        for (int waited = 0; waited < 3000 && !writerCompleted.load(); ++waited)
         {
-            auto lease = mdb->Exchange->PrimaryKey->Select(exchangeId);
-            leaseSawRecord = static_cast<bool>(lease);
-            while (!writerStarted.load())
-            {
-                std::this_thread::yield();
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            writerBlockedWhileLeaseHeld = !writerCompleted.load();
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+        const bool writerRanWhileCopyHeld = writerCompleted.load();
         writer.join();
-        const bool writerRanAfterLeaseReleased = writerCompleted.load();
+
+        // Erase 按主键定位：传副本即可删掉表内活记录
+        const bool erased = mdb->Exchange->Erase(*snapshot);
+        const bool erasedLiveRecord = erased && !mdb->Exchange->PrimaryKey->Select(exchangeId).has_value();
 
         int rowCount = 0;
         mdb->Exchange->ForEach([&rowCount](const Exchange*)
@@ -241,12 +244,12 @@ namespace testMdb
         delete mdb;
 
         WriteLog(LogLevel::Info,
-                 "Read lease: sawRecord=%d writerBlockedWhileLeaseHeld=%d writerRanAfterLeaseReleased=%d "
-                 "rowCount=%d visitedBeforeStop=%d",
-                 leaseSawRecord ? 1 : 0, writerBlockedWhileLeaseHeld ? 1 : 0,
-                 writerRanAfterLeaseReleased ? 1 : 0, rowCount, visitedBeforeStop);
-        return leaseSawRecord && writerBlockedWhileLeaseHeld && writerRanAfterLeaseReleased &&
-               rowCount == 2 && visitedBeforeStop == 1;
+                 "Select copy: selectReturnedCopy=%d copyDetachedFromLiveRecord=%d writerRanWhileCopyHeld=%d "
+                 "erasedLiveRecord=%d rowCount=%d visitedBeforeStop=%d",
+                 selectReturnedCopy ? 1 : 0, copyDetachedFromLiveRecord ? 1 : 0,
+                 writerRanWhileCopyHeld ? 1 : 0, erasedLiveRecord ? 1 : 0, rowCount, visitedBeforeStop);
+        return selectReturnedCopy && copyDetachedFromLiveRecord && writerRanWhileCopyHeld &&
+               erasedLiveRecord && rowCount == 1 && visitedBeforeStop == 1;
     }
 
     // 收集行变更事件：验证扇出共享与记录生命周期
@@ -616,15 +619,21 @@ namespace testMdb
 
         ExchangeIdType exchangeID("CFFEX");
         {
-            auto exchange = mdb->Exchange->PrimaryKey->Select(exchangeID);
-            Print(exchange.Get());
+            std::optional<Exchange> exchange = mdb->Exchange->PrimaryKey->Select(exchangeID);
+            if (exchange.has_value())
+            {
+                Print(&*exchange);
+            }
         }
 
         {
-            auto tradingDay = mdb->TradingDay->PrimaryKey->Select(1);
-            Print(tradingDay.Get());
+            std::optional<TradingDay> tradingDay = mdb->TradingDay->PrimaryKey->Select(1);
+            if (tradingDay.has_value())
+            {
+                Print(&*tradingDay);
+            }
         }
-        mdb->TradingDay->Erase(tradingDayRecord);
+        mdb->TradingDay->Erase(*tradingDayRecord);
         mdb->TradingDay->TruncateTable();
         {
             auto exchangeRange = mdb->Exchange->PrimaryKey->SelectAll();
@@ -743,13 +752,13 @@ int main(int argc, char* argv[])
     //testMdb::TestMariadb();
 
     const bool batchInsertOwnershipHolds = testMdb::TestBatchInsertTakesOwnership();
-    const bool readLeaseHolds = testMdb::TestReadLeaseBlocksWriter();
+    const bool selectCopyHolds = testMdb::TestSelectReturnsDetachedCopy();
     const bool rowChangeFanOutHolds = testMdb::TestRowChangeFanOutSharesOneEvent();
     const bool snapshotOrderingHolds = testMdb::TestSnapshotBatchPrecedesLaterWrites();
     const bool reconnectResyncHolds = testMdb::TestDisconnectDropsIncrementsAndReconnectResyncs();
 
     Logger::GetInstance().Stop();
     Logger::GetInstance().Join();
-    return (batchInsertOwnershipHolds && readLeaseHolds && rowChangeFanOutHolds
+    return (batchInsertOwnershipHolds && selectCopyHolds && rowChangeFanOutHolds
         && snapshotOrderingHolds && reconnectResyncHolds) ? 0 : 1;
 }

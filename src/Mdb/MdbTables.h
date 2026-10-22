@@ -44,8 +44,10 @@ namespace Mdb
 		}
 		bool Insert(TradingDay* record);
 		void BatchInsert(std::vector<TradingDay*>& records);
-		void Erase(TradingDay* record);
-		bool Update(TradingDay* const oldRecord, TradingDay* const newRecord, bool updateDB = true);
+		// 按主键定位表内活记录删除，record 只提供主键
+		bool Erase(const TradingDay& record);
+		// 按主键定位表内活记录并整行覆盖，newRecord 只提供新值
+		bool Update(const TradingDay& newRecord, bool updateDB = true);
 		virtual void TruncateTables() override;
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
@@ -60,6 +62,7 @@ namespace Mdb
 		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
 		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
 		void EmitRowInsert(const TradingDay* record);
+		void EmitRowUpdate(const TradingDay& newRecord, bool updateDB);
 		void EmitRowBatchInsert(const std::vector<TradingDay*>& records);
 		void EraseUniqueKey(TradingDay* record);
 		void EraseIndex(TradingDay* record);
@@ -97,8 +100,10 @@ namespace Mdb
 		}
 		bool Insert(Exchange* record);
 		void BatchInsert(std::vector<Exchange*>& records);
-		void Erase(Exchange* record);
-		bool Update(Exchange* const oldRecord, Exchange* const newRecord, bool updateDB = true);
+		// 按主键定位表内活记录删除，record 只提供主键
+		bool Erase(const Exchange& record);
+		// 按主键定位表内活记录并整行覆盖，newRecord 只提供新值
+		bool Update(const Exchange& newRecord, bool updateDB = true);
 		virtual void TruncateTables() override;
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
@@ -113,6 +118,7 @@ namespace Mdb
 		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
 		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
 		void EmitRowInsert(const Exchange* record);
+		void EmitRowUpdate(const Exchange& newRecord, bool updateDB);
 		void EmitRowBatchInsert(const std::vector<Exchange*>& records);
 		void EraseUniqueKey(Exchange* record);
 		void EraseIndex(Exchange* record);
@@ -150,8 +156,10 @@ namespace Mdb
 		}
 		bool Insert(Product* record);
 		void BatchInsert(std::vector<Product*>& records);
-		void Erase(Product* record);
-		bool Update(Product* const oldRecord, Product* const newRecord, bool updateDB = true);
+		// 按主键定位表内活记录删除，record 只提供主键
+		bool Erase(const Product& record);
+		// 按主键定位表内活记录并整行覆盖，newRecord 只提供新值
+		bool Update(const Product& newRecord, bool updateDB = true);
 		virtual void TruncateTables() override;
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
@@ -166,6 +174,7 @@ namespace Mdb
 		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
 		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
 		void EmitRowInsert(const Product* record);
+		void EmitRowUpdate(const Product& newRecord, bool updateDB);
 		void EmitRowBatchInsert(const std::vector<Product*>& records);
 		void EraseUniqueKey(Product* record);
 		void EraseIndex(Product* record);
@@ -203,8 +212,10 @@ namespace Mdb
 		}
 		bool Insert(Instrument* record);
 		void BatchInsert(std::vector<Instrument*>& records);
-		void Erase(Instrument* record);
-		bool Update(Instrument* const oldRecord, Instrument* const newRecord, bool updateDB = true);
+		// 按主键定位表内活记录删除，record 只提供主键
+		bool Erase(const Instrument& record);
+		// 按主键定位表内活记录并整行覆盖，newRecord 只提供新值
+		bool Update(const Instrument& newRecord, bool updateDB = true);
 		virtual void TruncateTables() override;
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
@@ -219,6 +230,7 @@ namespace Mdb
 		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
 		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
 		void EmitRowInsert(const Instrument* record);
+		void EmitRowUpdate(const Instrument& newRecord, bool updateDB);
 		void EmitRowBatchInsert(const std::vector<Instrument*>& records);
 		void EraseUniqueKey(Instrument* record);
 		void EraseIndex(Instrument* record);
@@ -256,9 +268,11 @@ namespace Mdb
 		}
 		bool Insert(PrimaryAccount* record);
 		void BatchInsert(std::vector<PrimaryAccount*>& records);
-		void Erase(PrimaryAccount* record);
+		// 按主键定位表内活记录删除，record 只提供主键
+		bool Erase(const PrimaryAccount& record);
 		int EraseByOfferIdIndex(const OfferIdType& OfferId);
-		bool Update(PrimaryAccount* const oldRecord, PrimaryAccount* const newRecord, bool updateDB = true);
+		// 按主键定位表内活记录并整行覆盖，newRecord 只提供新值
+		bool Update(const PrimaryAccount& newRecord, bool updateDB = true);
 		virtual void TruncateTables() override;
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
@@ -274,6 +288,7 @@ namespace Mdb
 		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
 		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
 		void EmitRowInsert(const PrimaryAccount* record);
+		void EmitRowUpdate(const PrimaryAccount& newRecord, bool updateDB);
 		void EmitRowBatchInsert(const std::vector<PrimaryAccount*>& records);
 		void EraseUniqueKey(PrimaryAccount* record);
 		void EraseIndex(PrimaryAccount* record);
@@ -311,8 +326,10 @@ namespace Mdb
 		}
 		bool Insert(Account* record);
 		void BatchInsert(std::vector<Account*>& records);
-		void Erase(Account* record);
-		bool Update(Account* const oldRecord, Account* const newRecord, bool updateDB = true);
+		// 按主键定位表内活记录删除，record 只提供主键
+		bool Erase(const Account& record);
+		// 按主键定位表内活记录并整行覆盖，newRecord 只提供新值
+		bool Update(const Account& newRecord, bool updateDB = true);
 		virtual void TruncateTables() override;
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
@@ -327,6 +344,7 @@ namespace Mdb
 		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
 		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
 		void EmitRowInsert(const Account* record);
+		void EmitRowUpdate(const Account& newRecord, bool updateDB);
 		void EmitRowBatchInsert(const std::vector<Account*>& records);
 		void EraseUniqueKey(Account* record);
 		void EraseIndex(Account* record);
@@ -364,9 +382,11 @@ namespace Mdb
 		}
 		bool Insert(Capital* record);
 		void BatchInsert(std::vector<Capital*>& records);
-		void Erase(Capital* record);
+		// 按主键定位表内活记录删除，record 只提供主键
+		bool Erase(const Capital& record);
 		int EraseByTradingDayIndex(const DateType& TradingDay);
-		bool Update(Capital* const oldRecord, Capital* const newRecord, bool updateDB = true);
+		// 按主键定位表内活记录并整行覆盖，newRecord 只提供新值
+		bool Update(const Capital& newRecord, bool updateDB = true);
 		virtual void TruncateTables() override;
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
@@ -382,6 +402,7 @@ namespace Mdb
 		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
 		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
 		void EmitRowInsert(const Capital* record);
+		void EmitRowUpdate(const Capital& newRecord, bool updateDB);
 		void EmitRowBatchInsert(const std::vector<Capital*>& records);
 		void EraseUniqueKey(Capital* record);
 		void EraseIndex(Capital* record);
@@ -419,10 +440,12 @@ namespace Mdb
 		}
 		bool Insert(Position* record);
 		void BatchInsert(std::vector<Position*>& records);
-		void Erase(Position* record);
+		// 按主键定位表内活记录删除，record 只提供主键
+		bool Erase(const Position& record);
 		int EraseByAccountIndex(const DateType& TradingDay, const AccountIdType& AccountId);
 		int EraseByTradingDayIndex(const DateType& TradingDay);
-		bool Update(Position* const oldRecord, Position* const newRecord, bool updateDB = true);
+		// 按主键定位表内活记录并整行覆盖，newRecord 只提供新值
+		bool Update(const Position& newRecord, bool updateDB = true);
 		virtual void TruncateTables() override;
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
@@ -439,6 +462,7 @@ namespace Mdb
 		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
 		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
 		void EmitRowInsert(const Position* record);
+		void EmitRowUpdate(const Position& newRecord, bool updateDB);
 		void EmitRowBatchInsert(const std::vector<Position*>& records);
 		void EraseUniqueKey(Position* record);
 		void EraseIndex(Position* record);
@@ -476,10 +500,12 @@ namespace Mdb
 		}
 		bool Insert(PositionDetail* record);
 		void BatchInsert(std::vector<PositionDetail*>& records);
-		void Erase(PositionDetail* record);
+		// 按主键定位表内活记录删除，record 只提供主键
+		bool Erase(const PositionDetail& record);
 		int EraseByTradeMatchIndex(const DateType& TradingDay, const AccountIdType& AccountId, const ExchangeIdType& ExchangeId, const InstrumentIdType& InstrumentId, const PosiDirectionType& PosiDirection);
 		int EraseByTradingDayIndex(const DateType& TradingDay);
-		bool Update(PositionDetail* const oldRecord, PositionDetail* const newRecord, bool updateDB = true);
+		// 按主键定位表内活记录并整行覆盖，newRecord 只提供新值
+		bool Update(const PositionDetail& newRecord, bool updateDB = true);
 		virtual void TruncateTables() override;
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
@@ -496,6 +522,7 @@ namespace Mdb
 		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
 		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
 		void EmitRowInsert(const PositionDetail* record);
+		void EmitRowUpdate(const PositionDetail& newRecord, bool updateDB);
 		void EmitRowBatchInsert(const std::vector<PositionDetail*>& records);
 		void EraseUniqueKey(PositionDetail* record);
 		void EraseIndex(PositionDetail* record);
@@ -533,8 +560,10 @@ namespace Mdb
 		}
 		bool Insert(Order* record);
 		void BatchInsert(std::vector<Order*>& records);
-		void Erase(Order* record);
-		bool Update(Order* const oldRecord, Order* const newRecord, bool updateDB = true);
+		// 按主键定位表内活记录删除，record 只提供主键
+		bool Erase(const Order& record);
+		// 按主键定位表内活记录并整行覆盖，newRecord 只提供新值
+		bool Update(const Order& newRecord, bool updateDB = true);
 		virtual void TruncateTables() override;
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
@@ -550,6 +579,7 @@ namespace Mdb
 		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
 		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
 		void EmitRowInsert(const Order* record);
+		void EmitRowUpdate(const Order& newRecord, bool updateDB);
 		void EmitRowBatchInsert(const std::vector<Order*>& records);
 		void EraseUniqueKey(Order* record);
 		void EraseIndex(Order* record);
@@ -587,8 +617,10 @@ namespace Mdb
 		}
 		bool Insert(Trade* record);
 		void BatchInsert(std::vector<Trade*>& records);
-		void Erase(Trade* record);
-		bool Update(Trade* const oldRecord, Trade* const newRecord, bool updateDB = true);
+		// 按主键定位表内活记录删除，record 只提供主键
+		bool Erase(const Trade& record);
+		// 按主键定位表内活记录并整行覆盖，newRecord 只提供新值
+		bool Update(const Trade& newRecord, bool updateDB = true);
 		virtual void TruncateTables() override;
 		void TruncateTable();
 		virtual void Dump(const char* dir) override;
@@ -603,6 +635,7 @@ namespace Mdb
 		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
 		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
 		void EmitRowInsert(const Trade* record);
+		void EmitRowUpdate(const Trade& newRecord, bool updateDB);
 		void EmitRowBatchInsert(const std::vector<Trade*>& records);
 		void EraseUniqueKey(Trade* record);
 		void EraseIndex(Trade* record);
