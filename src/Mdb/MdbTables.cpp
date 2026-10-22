@@ -47,14 +47,6 @@ namespace Mdb
 		subscribers_.clear();
 		replicaSubscriber_ = nullptr;
 	}
-	void TradingDayTable::LockShared()
-	{
-		SharedMutex.lock_shared();
-	}
-	void TradingDayTable::UnlockShared()
-	{
-		SharedMutex.unlock_shared();
-	}
 	void TradingDayTable::InitDb()
 	{
 		if (replicaSubscriber_ == nullptr)
@@ -289,14 +281,6 @@ namespace Mdb
 	{
 		subscribers_.clear();
 		replicaSubscriber_ = nullptr;
-	}
-	void ExchangeTable::LockShared()
-	{
-		SharedMutex.lock_shared();
-	}
-	void ExchangeTable::UnlockShared()
-	{
-		SharedMutex.unlock_shared();
 	}
 	void ExchangeTable::InitDb()
 	{
@@ -533,14 +517,6 @@ namespace Mdb
 		subscribers_.clear();
 		replicaSubscriber_ = nullptr;
 	}
-	void ProductTable::LockShared()
-	{
-		SharedMutex.lock_shared();
-	}
-	void ProductTable::UnlockShared()
-	{
-		SharedMutex.unlock_shared();
-	}
 	void ProductTable::InitDb()
 	{
 		if (replicaSubscriber_ == nullptr)
@@ -775,14 +751,6 @@ namespace Mdb
 	{
 		subscribers_.clear();
 		replicaSubscriber_ = nullptr;
-	}
-	void InstrumentTable::LockShared()
-	{
-		SharedMutex.lock_shared();
-	}
-	void InstrumentTable::UnlockShared()
-	{
-		SharedMutex.unlock_shared();
 	}
 	void InstrumentTable::InitDb()
 	{
@@ -1021,14 +989,6 @@ namespace Mdb
 	{
 		subscribers_.clear();
 		replicaSubscriber_ = nullptr;
-	}
-	void PrimaryAccountTable::LockShared()
-	{
-		SharedMutex.lock_shared();
-	}
-	void PrimaryAccountTable::UnlockShared()
-	{
-		SharedMutex.unlock_shared();
 	}
 	void PrimaryAccountTable::InitDb()
 	{
@@ -1304,14 +1264,6 @@ namespace Mdb
 		subscribers_.clear();
 		replicaSubscriber_ = nullptr;
 	}
-	void AccountTable::LockShared()
-	{
-		SharedMutex.lock_shared();
-	}
-	void AccountTable::UnlockShared()
-	{
-		SharedMutex.unlock_shared();
-	}
 	void AccountTable::InitDb()
 	{
 		if (replicaSubscriber_ == nullptr)
@@ -1549,14 +1501,6 @@ namespace Mdb
 	{
 		subscribers_.clear();
 		replicaSubscriber_ = nullptr;
-	}
-	void CapitalTable::LockShared()
-	{
-		SharedMutex.lock_shared();
-	}
-	void CapitalTable::UnlockShared()
-	{
-		SharedMutex.unlock_shared();
 	}
 	void CapitalTable::InitDb()
 	{
@@ -1837,14 +1781,6 @@ namespace Mdb
 	{
 		subscribers_.clear();
 		replicaSubscriber_ = nullptr;
-	}
-	void PositionTable::LockShared()
-	{
-		SharedMutex.lock_shared();
-	}
-	void PositionTable::UnlockShared()
-	{
-		SharedMutex.unlock_shared();
 	}
 	void PositionTable::InitDb()
 	{
@@ -2165,14 +2101,6 @@ namespace Mdb
 		subscribers_.clear();
 		replicaSubscriber_ = nullptr;
 	}
-	void PositionDetailTable::LockShared()
-	{
-		SharedMutex.lock_shared();
-	}
-	void PositionDetailTable::UnlockShared()
-	{
-		SharedMutex.unlock_shared();
-	}
 	void PositionDetailTable::InitDb()
 	{
 		if (replicaSubscriber_ == nullptr)
@@ -2489,14 +2417,6 @@ namespace Mdb
 		subscribers_.clear();
 		replicaSubscriber_ = nullptr;
 	}
-	void OrderTable::LockShared()
-	{
-		SharedMutex.lock_shared();
-	}
-	void OrderTable::UnlockShared()
-	{
-		SharedMutex.unlock_shared();
-	}
 	void OrderTable::InitDb()
 	{
 		if (replicaSubscriber_ == nullptr)
@@ -2743,14 +2663,6 @@ namespace Mdb
 	{
 		subscribers_.clear();
 		replicaSubscriber_ = nullptr;
-	}
-	void TradeTable::LockShared()
-	{
-		SharedMutex.lock_shared();
-	}
-	void TradeTable::UnlockShared()
-	{
-		SharedMutex.unlock_shared();
 	}
 	void TradeTable::InitDb()
 	{

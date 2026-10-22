@@ -13,7 +13,7 @@ Mdb 是一个**内存数据库的实现示例**，重点是演示"如何实现�
 
 1. **表结构驱动**：数据表模型由 `Model/*.xml` 定义，通过 Python 脚本（`pump.py` + `pumplist.xml`）自动生成全部表结构代码（记录结构体、类型化表容器、主键容器、二级索引容器），无需手写；
 2. **内存优先 + 异步落库**：业务读写优先操作内存，变更通过订阅接口（`MdbSubscriber`）广播，副本走 `MdbReplicaSubscriber`（多一条快照通道），由 DbAdapters 的 `AsyncDbWriter` **异步同步至物理数据库**（SQLite / DuckDB / MySQL / MariaDB），兼顾低时延与数据可靠；
-3. **检索与并发**：每张表内置主键容器与二级索引容器（`Select` / `SelectAll` / `EqualRange` / `Range`），查询返回**读租约**（`TableReadLease` / `TableRangeLease`）：锁随结果走，租约存活期间写线程被挡在外面，因此无需拷贝记录也能保证指针与迭代器有效。
+3. **检索与并发**：每张表内置主键容器与二级索引容器（`Select` / `SelectAll` / `EqualRange` / `Range`）。单条 `Select` 返回**记录副本**（`std::optional`），拷贝在共享锁内完成、返回时锁已释放，调用方拿到的副本与表内记录再无关联；范围查询返回**范围租约**（`TableRangeLease`），租约存活期间写线程被挡在外面，遍历期间迭代器与记录内容保持稳定。
 
 因此，内置的 11 张金融数据表（交易日、账户、订单、持仓等）**仅作为示例数据**，用于演示不同类型字段（定长字符串、枚举、日期、整数）的建表与检索方式；要迁移到自己的业务，只需照葫芦画瓢定义自己的 `Model/*.xml` 并重新生成代码即可。
 
@@ -28,7 +28,7 @@ Mdb 是一个**内存数据库的实现示例**，重点是演示"如何实现�
 - ✅ **统一访问接口**：一套内存接口对接所有数据库，切换存储引擎无需修改业务逻辑
 - ✅ **金融专属数据表**：内置 11 张交易业务数据表，覆盖交易日、合约、账户、资金、订单、持仓、成交等核心场景
 - ✅ **主键 & 二级索引查询**：每张表内置主键容器与二级索引容器，支持 `Select` / `SelectAll` / `EqualRange` / `Range` 等高效检索
-- ✅ **线程安全**：每张表内置 `std::shared_mutex`；读接口返回 RAII 读租约，写接口持独占锁，租约与写操作不会交叠
+- ✅ **线程安全**：每张表内置 `std::shared_mutex`；单条读在共享锁内拷贝、返回即释放，范围读返回 RAII 范围租约，写接口持独占锁
 - ✅ **异步写入**：数据库落地操作异步执行，避免阻塞核心交易链路；断线自动重连
 - ✅ **导入导出**：支持从数据库（`InitMdbFromDb`）或 CSV（`InitMdbFromCsv`）批量载入内存，支持 `Dump` 全量导出
 - ✅ **自动化工具链**：数据表模型驱动代码生成（`MdbStructs` / `MdbTables` / `MdbPrimaryKeys` / `MdbIndexes` 均由模板自动生成）
@@ -60,7 +60,7 @@ Mdb/
 │   ├── MdbStructs.h/.cpp          # 11 张表的记录结构体 + TableSchema（代码生成）
 │   ├── MdbTables.h/.cpp           # 类型化表容器（TradingDayTable / ExchangeTable / ...）
 │   ├── MdbTableBase.h             # 表基类（MdbTableBase：订阅 / InitDB / Truncate / Dump）
-│   ├── MdbReadLease.h             # 读租约（TableReadLease / TableRangeLease：锁随结果走）
+│   ├── MdbReadLease.h             # 范围租约（TableRangeLease：锁随结果走）
 │   ├── MdbTableRegistry.h/.cpp    # SchemaRegistry 实现，供 AsyncDbWriter 反查表结构
 │   ├── MdbPrimaryKeys.h/.cpp      # 主键索引容器（Select / SelectAll / 唯一性校验）
 │   ├── MdbIndexes.h/.cpp          # 二级索引容器（Range / EqualRange）
@@ -196,7 +196,7 @@ cmake --build out/build/WSL-GCC-Release
 #include <Spark/Core/Core.h>
 #include <cstring>
 
-using namespace Mdb::Full
+using namespace Mdb::Full;
 using namespace DbAdapters;
 using namespace spark::core;
 
@@ -210,11 +210,11 @@ int main(int argc, const char* argv[])
     Logger::GetInstance().Start();
 
     // 1. 内存数据库：按表清单创建 11 张类型化表
-    Mdb* mdb = new Mdb(fullTableList);
+    Mdb* mdb = new Mdb(FullTableList);
 
     // 2. 持久化链路：DB 适配器 + Schema 注册表 + 异步写库器
     DB* db = new SqliteWrapper("./Test.sqlitedb");          // 以 SQLite 落库
-    MdbTableRegistry* schemaRegistry = new MdbTableRegistry(fullTableList);
+    MdbTableRegistry* schemaRegistry = new MdbTableRegistry(FullTableList);
     AsyncDbWriter* dbWriter = new AsyncDbWriter(db, schemaRegistry);
 
     // 3. 双向接线
@@ -228,17 +228,17 @@ int main(int argc, const char* argv[])
     // 4. 内存写入，异步落库
     Exchange* exchange = Exchange::Allocate();
     std::memset(exchange, 0, sizeof(Exchange));
-    std::strcpy(exchange->ExchangeID, "SHFE");
+    std::strcpy(exchange->ExchangeId, "SHFE");
     std::strcpy(exchange->ExchangeName, u8"上海期货交易所");
-    mdb->exchange->Insert(exchange);                      // 返回 false 表示主键冲突
+    mdb->Exchange->Insert(exchange);                      // 返回 false 表示主键冲突
 
     Account* account = Account::Allocate();
     std::memset(account, 0, sizeof(Account));
-    std::strcpy(account->AccountID, "A001");
+    std::strcpy(account->AccountId, "A001");
     std::strcpy(account->AccountName, u8"张三");
     account->AccountType = AccountTypeType::Primary;
     account->AccountStatus = AccountStatusType::Normal;
-    mdb->account->Insert(account);
+    mdb->Account->Insert(account);
 
     // 5. 收尾：停止写库线程，解除订阅
     dbWriter->Stop();
@@ -257,10 +257,10 @@ int main(int argc, const char* argv[])
 ### 示例 2：主键 & 二级索引查询
 
 ```cpp
-// 主键查询：返回读租约，租约存活期间记录不会被并发写改掉
+// 主键查询：返回记录副本，与表内活记录脱钩，且返回时共享锁已释放
 ExchangeIdType exchangeId = "CFFEX";
-auto exchange = mdb->Exchange->PrimaryKey->Select(exchangeId);
-if (exchange)
+std::optional<Exchange> exchange = mdb->Exchange->PrimaryKey->Select(exchangeId);
+if (exchange.has_value())
 {
     WriteLog(LogLevel::Info, "%s", exchange->GetDebugString());
 }
@@ -286,32 +286,24 @@ DateType endTradingDay = "20261031";
 auto monthRange = mdb->Capital->TradingDayIndex->Range(startTradingDay, endTradingDay);
 
 // 按二级索引批量删除（如清空某交易日的资金记录）
-mdb->Capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
+mdb->Capital->EraseByTradingDayIndex(startTradingDay);
 ```
 
 ### 示例 3：更新 / 删除 / 清表
 
 ```cpp
-// 更新：租约内只读；先拷出字段并结束租约，再调用 Update
+// 更新：Select 拿到的就是副本，改完交回即可；Update 按主键定位表内活记录并整行覆盖
 AccountIdType accountId = "A001";
-Account snapshot;
-Account* oldAccount = nullptr;
+std::optional<Account> account = mdb->Account->PrimaryKey->Select(accountId);
+if (!account.has_value())
 {
-    auto lease = mdb->Account->PrimaryKey->Select(accountId);
-    if (!lease)
-    {
-        return;
-    }
-    oldAccount = const_cast<Account*>(lease.Get());
-    snapshot = *lease;
+    return;
 }
-Account* newAccount = Account::Allocate();
-*newAccount = snapshot;                                 // 拷贝后修改
-std::strcpy(newAccount->AccountName, u8"李四");
-mdb->Account->Update(oldAccount, newAccount);
+std::strcpy(account->AccountName, u8"李四");
+mdb->Account->Update(*account);                          // 返回 false 表示该主键已不在表内
 
-// 删除单条记录（同步删除内存并广播落库删除；同样必须在租约结束后调用）
-mdb->Account->Erase(oldAccount);
+// 删除单条记录：同样按主键定位，副本只提供主键，删掉的是表内活记录
+mdb->Account->Erase(*account);
 
 // 清空单表
 mdb->Account->TruncateTable();
@@ -327,10 +319,10 @@ mdb->TruncateTables();
 #include "InitMdbFromCsv.h"
 
 // 从持久化数据库批量载入内存（建表后全表加载）
-InitMdbFromDb::LoadTables(mdb, db, fullTableList);
+InitMdbFromDb::LoadTables(mdb, db, FullTableList);
 
 // 从 CSV 目录批量载入内存
-InitMdbFromCsv::LoadTables(mdb, "./dump", fullTableList);
+InitMdbFromCsv::LoadTables(mdb, "./dump", FullTableList);
 
 // 内存全量导出到指定目录（Dump 各表数据）
 mdb->Dump("./dump");
@@ -363,7 +355,8 @@ mdb->Dump("./dump");
 | `TestMysql` | MySQL 后端全流程（需本机 MySQL X Plugin，默认注释关闭） |
 | `TestMariadb` | MariaDB 后端全流程（需本机 MariaDB，默认注释关闭） |
 | 主键 / 索引 | `primaryKey->Select` / `SelectAll`、`offerIDIndex->EqualRange`、`Range` 等检索验证 |
-| `TestReadLeaseBlocksWriter` | 读租约：持租约时写线程被阻塞，租约释放后写入完成；`ForEach` 计数与提前退出 |
+| `TestSelectReturnsDetachedCopy` | 值语义读：`Select` 返回的副本与表内活记录不同址、改活记录不影响副本、副本在手不阻塞写者、传副本给 `Erase` 能删掉活记录；`ForEach` 计数与提前退出 |
+| `TestWriteRejectsInvalidRecords` | 写入失败契约：主键不在表内时 `Update` / `Erase` 均返回 `false` 且不发事件；改唯一键字段的 `Update` 被拒且活记录保持原值；非键字段照常可改（正对照） |
 | 内存操作 | Insert / Update / Erase / TruncateTable 与广播落库验证 |
 | `TestBatchInsertTakesOwnership` | 批插入归属：表直接持有调用方交来的记录（指针恒等） |
 
@@ -385,5 +378,5 @@ Release 下同输入正常跑完。
 - **依赖关系**：Mdb 构建在 [Spark](https://gitee.com/xunmeng2002/Spark.git)（基础能力）与 [DbAdapters](https://gitee.com/xunmeng2002/DbAdapters.git)（统一数据库访问层）之上，二者均为预编译依赖
 - **包含路径**：Mdb 头文件位于 `src/Mdb/`，以 `#include "Mdb.h"` 风格引用
 - **命名空间**：全部接口位于 `mdb` 命名空间；数据库接口复用 `DbAdapters` 命名空间
-- **并发访问**：内存表为多线程安全设计，读接口返回的租约持有共享锁；**租约存活期间不得对同一张表执行写操作**（Insert / Update / Erase / TruncateTable），否则会自锁
+- **并发访问**：内存表为多线程安全设计；单条 `Select` 返回副本，调用方拿到后即可自由使用，不持锁、不阻塞写者；`SelectAll` / `Range` / `EqualRange` 返回的范围租约持有共享锁，**租约存活期间不得对同一张表执行写操作**（Insert / Update / Erase / TruncateTable），否则会自锁，循环体内应只拷出所需字段，退租约后再写
 - **代码生成**：修改 `Model/*.xml` 后运行 `python pumpall.py` 可重新生成表结构代码，无需手写

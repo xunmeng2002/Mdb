@@ -407,6 +407,89 @@ namespace testMdb
             && insertDescribed && recordReleasedWithLastReference;
     }
 
+    // 写入失败的契约：主键不在表内一律 false 且不发事件；唯一键字段不得经 Update 改写
+    static bool TestWriteRejectsInvalidRecords()
+    {
+        ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
+        RowChangeRecordingSubscriber recorder;
+        mdb->Order->Subscribe(&recorder);
+
+        DateType tradingDay = "20261022";
+        AccountIdType accountId = "A001";
+        ExchangeIdType exchangeId = "SHFE";
+        InstrumentIdType instrumentId = "CU2507";
+
+        auto fillOrderKey = [&](Order& order, OrderIdType orderId)
+        {
+            strcpy(order.TradingDay, tradingDay);
+            strcpy(order.AccountId, accountId);
+            strcpy(order.ExchangeId, exchangeId);
+            strcpy(order.InstrumentId, instrumentId);
+            order.OrderId = orderId;
+        };
+        auto selectLiveOrder = [&]() -> std::optional<Order>
+        {
+            return mdb->Order->PrimaryKey->Select(tradingDay, accountId, exchangeId, instrumentId, 1001);
+        };
+
+        Order* liveOrder = Order::Allocate();
+        fillOrderKey(*liveOrder, 1001);
+        liveOrder->SessionId = 1;
+        liveOrder->ClientOrderId = 5001;
+        liveOrder->Volume = 1;
+        mdb->Order->Insert(liveOrder);
+        recorder.TakeReceivedEvents();                       // 丢掉插入事件，后面只看写入路径
+
+        Order missingOrder{};
+        fillOrderKey(missingOrder, 9999);
+        const bool updateMissingRejected = !mdb->Order->Update(missingOrder);
+        const bool eraseMissingRejected = !mdb->Order->Erase(missingOrder);
+        const bool missingRecordEmittedNothing = recorder.TakeReceivedEvents().empty();
+
+        std::optional<Order> changedUniqueKey = selectLiveOrder();
+        bool uniqueKeyChangeRejected = false;
+        if (changedUniqueKey.has_value())
+        {
+            changedUniqueKey->ClientOrderId = 6001;
+            uniqueKeyChangeRejected = !mdb->Order->Update(*changedUniqueKey);
+        }
+        const bool uniqueKeyChangeEmittedNothing = recorder.TakeReceivedEvents().empty();
+
+        std::optional<Order> afterRejection = selectLiveOrder();
+        const bool liveRecordUnchanged = afterRejection.has_value() && afterRejection->ClientOrderId == 5001;
+
+        // 正对照：非键字段照常可改，证明前面的 false 来自校验而非接口失效
+        std::optional<Order> volumeChange = selectLiveOrder();
+        bool volumeUpdated = false;
+        if (volumeChange.has_value())
+        {
+            volumeChange->Volume = 7;
+            volumeUpdated = mdb->Order->Update(*volumeChange);
+        }
+        std::optional<Order> afterUpdate = selectLiveOrder();
+        const bool updatedValueStored = afterUpdate.has_value() && afterUpdate->Volume == 7;
+
+        std::vector<RowChangeEventPtr> updateEvents = recorder.TakeReceivedEvents();
+        const bool successEmittedOneUpdate = updateEvents.size() == 1
+            && updateEvents.front()->Type == RowChangeType::Update
+            && updateEvents.front()->TableId == Order::TableId;
+
+        mdb->UnSubscribe();
+        mdb->Order->TruncateTable();
+        delete mdb;
+
+        WriteLog(LogLevel::Info,
+                 "Write rejection: updateMissingRejected=%d eraseMissingRejected=%d missingRecordEmittedNothing=%d "
+                 "uniqueKeyChangeRejected=%d uniqueKeyChangeEmittedNothing=%d liveRecordUnchanged=%d "
+                 "volumeUpdated=%d updatedValueStored=%d successEmittedOneUpdate=%d",
+                 updateMissingRejected ? 1 : 0, eraseMissingRejected ? 1 : 0, missingRecordEmittedNothing ? 1 : 0,
+                 uniqueKeyChangeRejected ? 1 : 0, uniqueKeyChangeEmittedNothing ? 1 : 0, liveRecordUnchanged ? 1 : 0,
+                 volumeUpdated ? 1 : 0, updatedValueStored ? 1 : 0, successEmittedOneUpdate ? 1 : 0);
+        return updateMissingRejected && eraseMissingRejected && missingRecordEmittedNothing
+            && uniqueKeyChangeRejected && uniqueKeyChangeEmittedNothing && liveRecordUnchanged
+            && volumeUpdated && updatedValueStored && successEmittedOneUpdate;
+    }
+
     // 快照全程持有读租约：期间的写入被挡住，其事件必然排在批量之后
     static bool TestSnapshotBatchPrecedesLaterWrites()
     {
@@ -753,12 +836,13 @@ int main(int argc, char* argv[])
 
     const bool batchInsertOwnershipHolds = testMdb::TestBatchInsertTakesOwnership();
     const bool selectCopyHolds = testMdb::TestSelectReturnsDetachedCopy();
+    const bool writeRejectionHolds = testMdb::TestWriteRejectsInvalidRecords();
     const bool rowChangeFanOutHolds = testMdb::TestRowChangeFanOutSharesOneEvent();
     const bool snapshotOrderingHolds = testMdb::TestSnapshotBatchPrecedesLaterWrites();
     const bool reconnectResyncHolds = testMdb::TestDisconnectDropsIncrementsAndReconnectResyncs();
 
     Logger::GetInstance().Stop();
     Logger::GetInstance().Join();
-    return (batchInsertOwnershipHolds && selectCopyHolds && rowChangeFanOutHolds
+    return (batchInsertOwnershipHolds && selectCopyHolds && writeRejectionHolds && rowChangeFanOutHolds
         && snapshotOrderingHolds && reconnectResyncHolds) ? 0 : 1;
 }

@@ -27,8 +27,6 @@ namespace Mdb
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
-		void LockShared();
-		void UnlockShared();
 		virtual void InitDb() override;
 		template <typename Visitor>
 		void ForEach(Visitor&& visitor)
@@ -83,8 +81,6 @@ namespace Mdb
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
-		void LockShared();
-		void UnlockShared();
 		virtual void InitDb() override;
 		template <typename Visitor>
 		void ForEach(Visitor&& visitor)
@@ -139,8 +135,6 @@ namespace Mdb
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
-		void LockShared();
-		void UnlockShared();
 		virtual void InitDb() override;
 		template <typename Visitor>
 		void ForEach(Visitor&& visitor)
@@ -195,8 +189,6 @@ namespace Mdb
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
-		void LockShared();
-		void UnlockShared();
 		virtual void InitDb() override;
 		template <typename Visitor>
 		void ForEach(Visitor&& visitor)
@@ -251,8 +243,6 @@ namespace Mdb
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
-		void LockShared();
-		void UnlockShared();
 		virtual void InitDb() override;
 		template <typename Visitor>
 		void ForEach(Visitor&& visitor)
@@ -309,8 +299,6 @@ namespace Mdb
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
-		void LockShared();
-		void UnlockShared();
 		virtual void InitDb() override;
 		template <typename Visitor>
 		void ForEach(Visitor&& visitor)
@@ -365,8 +353,6 @@ namespace Mdb
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
-		void LockShared();
-		void UnlockShared();
 		virtual void InitDb() override;
 		template <typename Visitor>
 		void ForEach(Visitor&& visitor)
@@ -423,8 +409,6 @@ namespace Mdb
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
-		void LockShared();
-		void UnlockShared();
 		virtual void InitDb() override;
 		template <typename Visitor>
 		void ForEach(Visitor&& visitor)
@@ -483,8 +467,6 @@ namespace Mdb
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
-		void LockShared();
-		void UnlockShared();
 		virtual void InitDb() override;
 		template <typename Visitor>
 		void ForEach(Visitor&& visitor)
@@ -543,8 +525,6 @@ namespace Mdb
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
-		void LockShared();
-		void UnlockShared();
 		virtual void InitDb() override;
 		template <typename Visitor>
 		void ForEach(Visitor&& visitor)
@@ -600,8 +580,6 @@ namespace Mdb
 		virtual void Subscribe(MdbSubscriber* subscriber) override;
 		virtual void SubscribeReplica(MdbReplicaSubscriber* replica) override;
 		virtual void UnSubscribe() override;
-		void LockShared();
-		void UnlockShared();
 		virtual void InitDb() override;
 		template <typename Visitor>
 		void ForEach(Visitor&& visitor)

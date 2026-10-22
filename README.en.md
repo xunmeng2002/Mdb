@@ -13,7 +13,7 @@ Mdb is an **implementation example of an in-memory database**; the focus is on d
 
 1. **Schema-driven**: table models are defined in `Model/*.xml`, and Python scripts (`pump.py` + `pumplist.xml`) auto-generate all table-structure code (record structs, typed table containers, primary-key containers, secondary-index containers) — no manual code;
 2. **In-memory-first + asynchronous persistence**: reads/writes operate on memory first; changes are broadcast through a subscription interface (`MdbSubscriber`) and **asynchronously synced to physical databases** (SQLite / DuckDB / MySQL / MariaDB) via DbAdapters' `AsyncDbWriter`, balancing low latency with data reliability;
-3. **Retrieval & concurrency**: each table ships with primary-key and secondary-index containers (`Select` / `SelectAll` / `EqualRange` / `Range`). Queries return **read leases** (`TableReadLease` / `TableRangeLease`): the lock travels with the result, so writers stay blocked for as long as the lease is alive and pointers/iterators remain valid without copying records.
+3. **Retrieval & concurrency**: each table ships with primary-key and secondary-index containers (`Select` / `SelectAll` / `EqualRange` / `Range`). A single-record `Select` returns a **record copy** (`std::optional`): the copy is taken under the shared lock and the lock is already released on return, so the copy has no further connection to the live record. Range queries return a **range lease** (`TableRangeLease`): the lock travels with the result, so writers stay blocked while it is alive and iterators/record contents stay stable during traversal.
 
 Therefore, the 11 built-in financial tables (trading days, accounts, orders, positions, etc.) are **example data only**, used to demonstrate how to describe, create, index, and query different field types (fixed-length strings, enums, dates, integers). To move to your own business, define your own `Model/*.xml` and regenerate the code.
 
@@ -28,7 +28,7 @@ The features below illustrate the key problems to solve when implementing an in-
 - ✅ **Unified Access Interface**: a single in-memory API works across all databases — switching storage engines requires no business logic changes
 - ✅ **Financial Domain Data Tables**: 11 built-in trading business tables covering trading days, contracts, accounts, capital, orders, positions, and trade executions
 - ✅ **Primary Key & Secondary Index Queries**: each table ships with a primary-key container and secondary-index containers, supporting efficient retrieval via `Select` / `SelectAll` / `EqualRange` / `Range`
-- ✅ **Thread Safety**: each table embeds `std::shared_mutex`; read APIs return RAII read leases while writes take the exclusive lock, so reads and writes never overlap
+- ✅ **Thread Safety**: each table embeds `std::shared_mutex`; single-record reads copy under the shared lock and release it on return, range reads return an RAII range lease, and writes take the exclusive lock
 - ✅ **Asynchronous Writes**: database persistence runs asynchronously, avoiding blocking of core trading paths; auto-reconnects on disconnection
 - ✅ **Import & Export**: bulk-load in-memory data from a database (`InitMdbFromDb`) or from CSV (`InitMdbFromCsv`), and dump all tables via `Dump`
 - ✅ **Automated Toolchain**: table-model-driven code generation (`MdbStructs` / `MdbTables` / `MdbPrimaryKeys` / `MdbIndexes` are all template-generated)
@@ -60,7 +60,7 @@ Mdb/
 │   ├── MdbStructs.h/.cpp          # Record structs + TableSchema for the 11 tables (generated)
 │   ├── MdbTables.h/.cpp           # Typed table containers (TradingDayTable / ExchangeTable / ...)
 │   ├── MdbTableBase.h             # Table base class (MdbTableBase: Subscribe / InitDB / Truncate / Dump)
-│   ├── MdbReadLease.h             # Read leases (TableReadLease / TableRangeLease: lock travels with the result)
+│   ├── MdbReadLease.h             # Range lease (TableRangeLease: lock travels with the result)
 │   ├── MdbTableRegistry.h/.cpp    # SchemaRegistry implementation for AsyncDbWriter to resolve table schemas
 │   ├── MdbPrimaryKeys.h/.cpp      # Primary-key index containers (Select / SelectAll / uniqueness check)
 │   ├── MdbIndexes.h/.cpp          # Secondary-index containers (Range / EqualRange)
@@ -196,7 +196,7 @@ The test program runs the "in-memory DB + async write" full flow against SQLite 
 #include <Spark/Core/Core.h>
 #include <cstring>
 
-using namespace Mdb::Full
+using namespace Mdb::Full;
 using namespace DbAdapters;
 using namespace spark::core;
 
@@ -210,17 +210,17 @@ int main(int argc, const char* argv[])
     Logger::GetInstance().Start();
 
     // 1. In-memory DB: create 11 typed tables from the table list
-    Mdb* mdb = new Mdb(fullTableList);
+    Mdb* mdb = new Mdb(FullTableList);
 
     // 2. Persistence chain: DB adapter + schema registry + async writer
     DB* db = new SqliteWrapper("./Test.sqlitedb");          // persist to SQLite
-    MdbTableRegistry* schemaRegistry = new MdbTableRegistry(fullTableList);
+    MdbTableRegistry* schemaRegistry = new MdbTableRegistry(FullTableList);
     AsyncDbWriter* dbWriter = new AsyncDbWriter(db, schemaRegistry);
 
     // 3. Bidirectional wiring
-    //    mdb->Subscribe(dbWriter)  : in-memory changes broadcast to AsyncDbWriter for async writes
-    //    dbWriter->Subscribe(mdb)  : on connect, Mdb::OnDbConnected is called, auto InitDB (create + init)
-    mdb->Subscribe(dbWriter);
+    //    mdb->SubscribeReplica(dbWriter): row changes and full snapshots both broadcast (one replica subscriber per DB)
+    //    dbWriter->Subscribe(mdb)       : on connect, Mdb::OnDbConnected is called, auto InitDB (create + init all tables)
+    mdb->SubscribeReplica(dbWriter);
     dbWriter->Subscribe(mdb);
     dbWriter->Connect();                                    // synchronous connect, triggers table creation
     dbWriter->Start();                                      // start background consumer thread
@@ -228,17 +228,17 @@ int main(int argc, const char* argv[])
     // 4. Write to memory; persisted asynchronously
     Exchange* exchange = Exchange::Allocate();
     std::memset(exchange, 0, sizeof(Exchange));
-    std::strcpy(exchange->ExchangeID, "SHFE");
+    std::strcpy(exchange->ExchangeId, "SHFE");
     std::strcpy(exchange->ExchangeName, "Shanghai Futures Exchange");
-    mdb->exchange->Insert(exchange);                      // returns false on primary-key conflict
+    mdb->Exchange->Insert(exchange);                      // returns false on primary-key conflict
 
     Account* account = Account::Allocate();
     std::memset(account, 0, sizeof(Account));
-    std::strcpy(account->AccountID, "A001");
+    std::strcpy(account->AccountId, "A001");
     std::strcpy(account->AccountName, "Alice");
     account->AccountType = AccountTypeType::Primary;
     account->AccountStatus = AccountStatusType::Normal;
-    mdb->account->Insert(account);
+    mdb->Account->Insert(account);
 
     // 5. Cleanup: stop the writer thread, unsubscribe
     dbWriter->Stop();
@@ -257,10 +257,10 @@ int main(int argc, const char* argv[])
 ### Example 2: Primary Key & Secondary Index Queries
 
 ```cpp
-// Primary-key lookup: returns a read lease; the record cannot be written while the lease is alive
+// Primary-key lookup: returns a record copy, detached from the live record; the shared lock is already released
 ExchangeIdType exchangeId = "CFFEX";
-auto exchange = mdb->Exchange->PrimaryKey->Select(exchangeId);
-if (exchange)
+std::optional<Exchange> exchange = mdb->Exchange->PrimaryKey->Select(exchangeId);
+if (exchange.has_value())
 {
     WriteLog(LogLevel::Info, "%s", exchange->GetDebugString());
 }
@@ -286,32 +286,24 @@ DateType endTradingDay = "20261031";
 auto monthRange = mdb->Capital->TradingDayIndex->Range(startTradingDay, endTradingDay);
 
 // Batch delete by secondary index (e.g. clear capital records for a trading day)
-mdb->Capital->EraseByTradingDayIndex(tradingDay->PreTradingDay);
+mdb->Capital->EraseByTradingDayIndex(startTradingDay);
 ```
 
 ### Example 3: Update / Delete / Clear Tables
 
 ```cpp
-// Update: read-only under the lease; copy the fields out and release the lease before calling Update
+// Update: Select already hands back a copy; modify it and hand it back. Update locates the live record by primary key and overwrites it whole
 AccountIdType accountId = "A001";
-Account snapshot;
-Account* oldAccount = nullptr;
+std::optional<Account> account = mdb->Account->PrimaryKey->Select(accountId);
+if (!account.has_value())
 {
-    auto lease = mdb->Account->PrimaryKey->Select(accountId);
-    if (!lease)
-    {
-        return;
-    }
-    oldAccount = const_cast<Account*>(lease.Get());
-    snapshot = *lease;
+    return;
 }
-Account* newAccount = Account::Allocate();
-*newAccount = snapshot;                                 // copy then modify
-std::strcpy(newAccount->AccountName, "Bob");
-mdb->Account->Update(oldAccount, newAccount);
+std::strcpy(account->AccountName, "Bob");
+mdb->Account->Update(*account);                          // false means the primary key is no longer in the table
 
-// Delete a single record (also must be called after the lease is released)
-mdb->Account->Erase(oldAccount);
+// Delete a single record: also located by primary key; the copy only supplies the key, the live record is what gets erased
+mdb->Account->Erase(*account);
 
 // Clear a single table
 mdb->Account->TruncateTable();
@@ -327,10 +319,10 @@ mdb->TruncateTables();
 #include "InitMdbFromCsv.h"
 
 // Bulk-load from a persistent database into memory (after tables are created)
-InitMdbFromDb::LoadTables(mdb, db, fullTableList);
+InitMdbFromDb::LoadTables(mdb, db, FullTableList);
 
 // Bulk-load from a CSV directory into memory
-InitMdbFromCsv::LoadTables(mdb, "./dump", fullTableList);
+InitMdbFromCsv::LoadTables(mdb, "./dump", FullTableList);
 
 // Dump all in-memory tables to a directory
 mdb->Dump("./dump");
@@ -365,7 +357,8 @@ The `test/TestMdb/TestMdb.cpp` integration test covers:
 | Primary key / index | `primaryKey->Select` / `SelectAll`, `offerIDIndex->EqualRange`, `Range`, etc. |
 | In-memory ops | Insert / Update / Erase / TruncateTable with broadcast persistence verification |
 | `TestBatchInsertTakesOwnership` | Batch-insert ownership: the table holds the records the caller handed in (pointer identity) |
-| `TestReadLeaseBlocksWriter` | Read lease: a writer blocks while the lease is held and completes after release; `ForEach` count and early exit |
+| `TestSelectReturnsDetachedCopy` | Value-semantics read: the copy from `Select` differs in address from the live record, mutating the live record leaves the copy untouched, a writer is not blocked while the copy is held, and `Erase` given the copy removes the live record; `ForEach` count and early exit |
+| `TestWriteRejectsInvalidRecords` | Write-failure contract: `Update` / `Erase` return `false` and emit nothing when the primary key is absent; an `Update` that rewrites a unique-key field is rejected and the live record keeps its old value; non-key fields still update (positive control) |
 
 Exit code 0 means everything passed. **The batch-insert contract assertion has no automated test**:
 by definition an assertion terminates the process, so it cannot both fire and continue in the same
@@ -388,5 +381,5 @@ Release.
 - **Dependencies**: Mdb is built on [Spark](https://gitee.com/xunmeng2002/Spark.git) (foundational capabilities) and [DbAdapters](https://gitee.com/xunmeng2002/DbAdapters.git) (unified database access layer); both are prebuilt dependencies
 - **Include Paths**: Mdb headers live in `src/Mdb/`, referenced as `#include "Mdb.h"`
 - **Namespaces**: all interfaces are in the `mdb` namespace; database interfaces reuse the `DbAdapters` namespace
-- **Concurrency**: in-memory tables are thread-safe by design; read APIs return leases holding the shared lock. **Never write to the same table while a lease is alive** (Insert / Update / Erase / TruncateTable) — it will self-deadlock
+- **Concurrency**: in-memory tables are thread-safe by design; a single-record `Select` returns a copy you can use freely — it holds no lock and does not block writers. `SelectAll` / `Range` / `EqualRange` return a range lease holding the shared lock: **never write to the same table while it is alive** (Insert / Update / Erase / TruncateTable) — that self-deadlocks. Copy what you need out of the loop body and write after releasing the lease
 - **Code Generation**: after editing `Model/*.xml`, run `python pumpall.py` to regenerate table-structure code without manual edits
