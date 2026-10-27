@@ -113,4 +113,11 @@ target_link_libraries(DemoRcuB PRIVATE Threads::Threads)
 # RCU 形态接入 Mdb 接口的对照测试：同一套场景分别跑 PointerSwap（B）与 StableRow（B2）
 add_application(TestRcuTables ${CMAKE_CURRENT_SOURCE_DIR}/test/TestRcuTables ${CMAKE_CURRENT_SOURCE_DIR}/test/TestRcuTables)
 target_link_libraries(TestRcuTables PRIVATE MdbModelStatic MdbRcuPointerSwapStatic MdbRcuStableRowStatic Threads::Threads)
+target_include_directories(TestRcuTables PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/test)
 copy_dll_file(TestRcuTables)
+
+# 三种实现的读扩展性对照：读线程 2 / 4 / 8，写线程恒为一个，同进程链接三个库，不接物理库
+add_application(TestConcurrency ${CMAKE_CURRENT_SOURCE_DIR}/test/TestConcurrency ${CMAKE_CURRENT_SOURCE_DIR}/test/TestConcurrency)
+target_link_libraries(TestConcurrency PRIVATE MdbLockBasedStatic MdbRcuPointerSwapStatic MdbRcuStableRowStatic Threads::Threads)
+target_include_directories(TestConcurrency PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/test)
+copy_dll_file(TestConcurrency)

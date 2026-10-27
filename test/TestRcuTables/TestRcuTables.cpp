@@ -3,6 +3,8 @@
 #include "Rcu/PointerSwap/PointerSwapTables.h"
 #include "Rcu/StableRow/Mdb.h"
 #include "Rcu/StableRow/StableRowTables.h"
+#include "TestSupport/TestSupport.h"
+
 #include <DbAdapters/DbInterface/MdbSubscriber.h>
 #include <atomic>
 #include <chrono>
@@ -21,6 +23,9 @@ namespace
 	using Mdb::Rcu::StableRow::OrderTable;
 	using Mdb::Rcu::StableRow::PrimaryAccountTable;
 	using Mdb::Rcu::StableRow::PrimaryAccountTableIndexOfferId;
+	using TestSupport::CheckReporter;
+	using TestSupport::FillTradingDay;
+	using TestSupport::HasPairedDates;
 
 	constexpr std::int32_t PairedPrimaryKey = 1;
 	constexpr std::int32_t SharedOfferId = 10;
@@ -29,18 +34,6 @@ namespace
 	constexpr int ReaderThreadCount = 3;
 	constexpr int ConcurrentUpdateCount = 20000;
 	constexpr int BulkRowCount = 2000;
-
-	void FillTradingDay(TradingDay& record, std::int32_t primaryKey, int value)
-	{
-		record.Pk = primaryKey;
-		std::snprintf(record.CurrTradingDay, sizeof(record.CurrTradingDay), "%d", value);
-		std::snprintf(record.PreTradingDay, sizeof(record.PreTradingDay), "%d", value);
-	}
-
-	bool HasPairedDates(const TradingDay& record)
-	{
-		return std::strcmp(record.CurrTradingDay, record.PreTradingDay) == 0;
-	}
 
 	bool HasDate(const std::optional<TradingDay>& record, const char* expectedDate)
 	{
@@ -73,34 +66,8 @@ namespace
 		std::vector<DbAdapters::RowChangeEventPtr> retainedEvents_;
 	};
 
-	class Report
-	{
-	public:
-		explicit Report(const char* variantName) : variantName_(variantName)
-		{
-		}
-
-		void Check(bool passed, const char* checkName)
-		{
-			std::printf("%s %s=%d\n", variantName_, checkName, passed ? 1 : 0);
-			if (!passed)
-			{
-				++failureCount_;
-			}
-		}
-
-		int FailureCount() const
-		{
-			return failureCount_;
-		}
-
-	private:
-		const char* variantName_;
-		int failureCount_ = 0;
-	};
-
 	template <typename Table>
-	void CheckSingleRowInterface(Table& table, Report& report)
+	void CheckSingleRowInterface(Table& table, CheckReporter& report)
 	{
 		TradingDay* firstRow = TradingDay::Allocate();
 		FillTradingDay(*firstRow, 1, 100);
@@ -137,7 +104,7 @@ namespace
 	}
 
 	template <typename Table>
-	void CheckBulkAndRange(Table& table, Report& report)
+	void CheckBulkAndRange(Table& table, CheckReporter& report)
 	{
 		bool allInserted = true;
 		for (int index = 0; index < BulkRowCount; ++index)
@@ -195,7 +162,7 @@ namespace
 	}
 
 	template <typename Table>
-	void CheckSubscribers(Table& table, Report& report)
+	void CheckSubscribers(Table& table, CheckReporter& report)
 	{
 		CountingSubscriber subscriber;
 		table.Subscribe(&subscriber);
@@ -225,7 +192,7 @@ namespace
 	}
 
 	template <typename Table>
-	void CheckConcurrentSelect(Table& table, Report& report)
+	void CheckConcurrentSelect(Table& table, CheckReporter& report)
 	{
 		TradingDay* pairedRow = TradingDay::Allocate();
 		FillTradingDay(*pairedRow, PairedPrimaryKey, 0);
@@ -300,7 +267,7 @@ namespace
 	// 只有 StableRow 生成二级索引：B 形态按形态分工一律忽略 indexes
 	int CheckPrimaryAccountIndex()
 	{
-		Report report("StableRowIndex");
+		CheckReporter report("StableRowIndex");
 		PrimaryAccountTable table;
 		CountingSubscriber subscriber;
 		table.Subscribe(&subscriber);
@@ -382,7 +349,7 @@ namespace
 	// 唯一键只在 StableRow 生成：B 形态不维护任何辅助结构
 	int CheckOrderUniqueKey()
 	{
-		Report report("StableRowUniqueKey");
+		CheckReporter report("StableRowUniqueKey");
 		OrderTable table;
 
 		DateType tradingDay{};
@@ -437,7 +404,7 @@ namespace
 	template <typename Table>
 	int RunScenario(const char* variantName)
 	{
-		Report report(variantName);
+		CheckReporter report(variantName);
 		Table table;
 
 		CheckSingleRowInterface(table, report);
@@ -460,7 +427,7 @@ namespace
 	template <typename MdbType>
 	int CheckAggregate(const char* variantName)
 	{
-		Report report(variantName);
+		CheckReporter report(variantName);
 		const unsigned int requestedTableIds[] = { TradingDay::TableId };
 		const Mdb::TableList tableList{ "aggregate", requestedTableIds, 1 };
 		MdbType mdb(tableList);
