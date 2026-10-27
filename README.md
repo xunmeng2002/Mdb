@@ -378,5 +378,5 @@ Release 下同输入正常跑完。
 - **依赖关系**：Mdb 构建在 [Spark](https://gitee.com/xunmeng2002/Spark.git)（基础能力）与 [DbAdapters](https://gitee.com/xunmeng2002/DbAdapters.git)（统一数据库访问层）之上，二者均为预编译依赖
 - **包含路径**：Mdb 头文件位于 `src/Mdb/`，以 `#include "Mdb.h"` 风格引用
 - **命名空间**：全部接口位于 `mdb` 命名空间；数据库接口复用 `DbAdapters` 命名空间
-- **并发访问**：内存表为多线程安全设计；单条 `Select` 返回副本，调用方拿到后即可自由使用，不持锁、不阻塞写者；`SelectAll` / `Range` / `EqualRange` 返回的范围租约持有共享锁，**租约存活期间不得对同一张表执行写操作**（Insert / Update / Erase / TruncateTable），否则会自锁，循环体内应只拷出所需字段，退租约后再写
+- **并发访问**：内存表为多线程安全设计；单条 `Select` 返回副本，调用方拿到后即可自由使用，不持锁、不阻塞写者；`SelectAll` / `Range` / `EqualRange` 返回的范围租约持有共享锁，**租约存活期间不得对同一张表执行写操作**（Insert / Update / Erase / TruncateTable），否则会自锁，循环体内应只拷出所需字段，退租约后再写；订阅者回调在写事务的发布屏障内执行，可以读表，但**不得回写同一张表**（同样会自锁）
 - **代码生成**：修改 `Model/*.xml` 后运行 `python pumpall.py` 可重新生成表结构代码，无需手写

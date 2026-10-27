@@ -299,6 +299,11 @@ namespace testMdb
             std::unique_lock<std::mutex> lock(mutex_);
             conditionVariable_.wait(lock, [this] { return batchReleased_; });
         }
+        void OnSnapshotBegin(unsigned int tableId) override
+        {
+            std::lock_guard<std::mutex> guard(mutex_);
+            ++snapshotBeginCount_;
+        }
         void OnSnapshotComplete(unsigned int tableId) override
         {
             std::lock_guard<std::mutex> guard(mutex_);
@@ -328,6 +333,11 @@ namespace testMdb
             std::lock_guard<std::mutex> guard(mutex_);
             return snapshotRowCount_;
         }
+        int GetSnapshotBeginCount()
+        {
+            std::lock_guard<std::mutex> guard(mutex_);
+            return snapshotBeginCount_;
+        }
         int GetRowChangeCountBeforeSnapshotComplete()
         {
             std::lock_guard<std::mutex> guard(mutex_);
@@ -346,8 +356,44 @@ namespace testMdb
         bool batchReleased_ = false;
         bool snapshotCompleted_ = false;
         int snapshotRowCount_ = 0;
+        int snapshotBeginCount_ = 0;
         int rowChangeCountBeforeSnapshotComplete_ = 0;
         int rowChangeCountAfterSnapshotComplete_ = 0;
+    };
+
+    class BlockingRowChangeReplica : public BlockingSnapshotReplica
+    {
+    public:
+        void OnRowChange(const RowChangeEventPtr& event) override
+        {
+            BlockingSnapshotReplica::OnRowChange(event);
+            {
+                std::lock_guard<std::mutex> guard(rowChangeMutex_);
+                rowChangeEntered_ = true;
+            }
+            rowChangeConditionVariable_.notify_all();
+            std::unique_lock<std::mutex> lock(rowChangeMutex_);
+            rowChangeConditionVariable_.wait(lock, [this] { return rowChangeReleased_; });
+        }
+        void WaitForRowChangeEntered()
+        {
+            std::unique_lock<std::mutex> lock(rowChangeMutex_);
+            rowChangeConditionVariable_.wait(lock, [this] { return rowChangeEntered_; });
+        }
+        void ReleaseRowChange()
+        {
+            {
+                std::lock_guard<std::mutex> guard(rowChangeMutex_);
+                rowChangeReleased_ = true;
+            }
+            rowChangeConditionVariable_.notify_all();
+        }
+
+    private:
+        std::mutex rowChangeMutex_;
+        std::condition_variable rowChangeConditionVariable_;
+        bool rowChangeEntered_ = false;
+        bool rowChangeReleased_ = false;
     };
 
     static Exchange* AllocateExchange(const char* exchangeId)
@@ -534,6 +580,45 @@ namespace testMdb
                  replica.GetRowChangeCountBeforeSnapshotComplete(), replica.GetRowChangeCountAfterSnapshotComplete());
         return writeBlockedWhileSnapshotHeld && !snapshotCompletedWhileBatchHeld
             && snapshotCarriedOnlyPreexistingRow && laterWriteReachedSubscribersAfterSnapshot;
+    }
+
+    // 发布屏障：写事务已改表但尚未发布事件时，快照必须等待，不能先把该行纳入批量再把事件补到快照之后
+    static bool TestSnapshotWaitsForPendingPublication()
+    {
+        ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
+        mdb->Exchange->Insert(AllocateExchange("SHFE"));
+
+        BlockingRowChangeReplica replica;
+        mdb->Exchange->SubscribeReplica(&replica);
+
+        std::thread writerThread([mdb]() { mdb->Exchange->Insert(AllocateExchange("INE")); });
+        replica.WaitForRowChangeEntered();
+
+        std::thread snapshotThread([mdb]() { mdb->Exchange->InitDb(); });
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        const bool snapshotWaitedForPublication = replica.GetSnapshotBeginCount() == 0;
+
+        replica.ReleaseRowChange();
+        replica.WaitForBatchEntered();
+        const bool snapshotIncludesPublishedRow = replica.GetSnapshotRowCount() == 2;
+        replica.ReleaseBatch();
+
+        writerThread.join();
+        snapshotThread.join();
+
+        const bool eventDeliveredBeforeSnapshot = replica.GetRowChangeCountBeforeSnapshotComplete() == 1
+            && replica.GetRowChangeCountAfterSnapshotComplete() == 0;
+
+        mdb->UnSubscribe();
+        mdb->Exchange->TruncateTable();
+        delete mdb;
+
+        WriteLog(LogLevel::Info,
+                 "Snapshot waits for pending publication: snapshotWaitedForPublication=%d "
+                 "snapshotIncludesPublishedRow=%d eventDeliveredBeforeSnapshot=%d",
+                 snapshotWaitedForPublication ? 1 : 0, snapshotIncludesPublishedRow ? 1 : 0,
+                 eventDeliveredBeforeSnapshot ? 1 : 0);
+        return snapshotWaitedForPublication && snapshotIncludesPublishedRow && eventDeliveredBeforeSnapshot;
     }
 
     // 可控失败的 Db 装饰器：让写线程从自己的 HandleDbOperate 里走到"操作抛异常 -> DisConnect ->
@@ -839,10 +924,11 @@ int main(int argc, char* argv[])
     const bool writeRejectionHolds = testMdb::TestWriteRejectsInvalidRecords();
     const bool rowChangeFanOutHolds = testMdb::TestRowChangeFanOutSharesOneEvent();
     const bool snapshotOrderingHolds = testMdb::TestSnapshotBatchPrecedesLaterWrites();
+    const bool snapshotPublicationBarrierHolds = testMdb::TestSnapshotWaitsForPendingPublication();
     const bool reconnectResyncHolds = testMdb::TestDisconnectDropsIncrementsAndReconnectResyncs();
 
     Logger::GetInstance().Stop();
     Logger::GetInstance().Join();
     return (batchInsertOwnershipHolds && selectCopyHolds && writeRejectionHolds && rowChangeFanOutHolds
-        && snapshotOrderingHolds && reconnectResyncHolds) ? 0 : 1;
+        && snapshotOrderingHolds && snapshotPublicationBarrierHolds && reconnectResyncHolds) ? 0 : 1;
 }

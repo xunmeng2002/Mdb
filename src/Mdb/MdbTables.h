@@ -7,6 +7,7 @@
 #include "MdbPrimaryKeys.h"
 #include "MdbIndexes.h"
 #include <cstdint>
+#include <mutex>
 #include <shared_mutex>
 #include <vector>
 
@@ -55,20 +56,23 @@ namespace Mdb
 	private:
 		bool HasSubscribers() const;
 		RowChangeEventPtr MakeInsertEvent(const TradingDay* record);
+		// 单写者前提：Build* 在锁内按写入顺序取号，Publish* 在锁外调用订阅者；订阅者不得回写本表
+		// BuildRowChangeEvent 接管 record：无订阅者时记录随句柄回池。Build* 调用方必须持有 SharedMutex。
+		RowChangeEventPtr BuildRowChangeEvent(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		RowChangeEventPtr BuildInsertEvent(const TradingDay* record);
+		RowChangeEventPtr BuildUpdateEvent(const TradingDay& newRecord, bool updateDB);
+		std::vector<RowChangeEventPtr> BuildBatchInsertEvents(const std::vector<TradingDay*>& records);
 		void PublishRowChange(const RowChangeEventPtr& event);
 		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
-		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
-		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
-		void EmitRowInsert(const TradingDay* record);
-		void EmitRowUpdate(const TradingDay& newRecord, bool updateDB);
-		void EmitRowBatchInsert(const std::vector<TradingDay*>& records);
 		void EraseUniqueKey(TradingDay* record);
 		void EraseIndex(TradingDay* record);
 
+		// 发布屏障：写事务与快照按交付顺序串行，读者不取此锁
+		std::mutex publishMutex_;
 		// 只在启动期注册，之后列表不可变，热路径无锁读
 		std::vector<MdbSubscriber*> subscribers_;
 		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
-		// 受 SharedMutex 保护
+		// 只在持 publishMutex_ 时递增
 		std::uint64_t sequence_ = 0;
 	};
 
@@ -109,20 +113,23 @@ namespace Mdb
 	private:
 		bool HasSubscribers() const;
 		RowChangeEventPtr MakeInsertEvent(const Exchange* record);
+		// 单写者前提：Build* 在锁内按写入顺序取号，Publish* 在锁外调用订阅者；订阅者不得回写本表
+		// BuildRowChangeEvent 接管 record：无订阅者时记录随句柄回池。Build* 调用方必须持有 SharedMutex。
+		RowChangeEventPtr BuildRowChangeEvent(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		RowChangeEventPtr BuildInsertEvent(const Exchange* record);
+		RowChangeEventPtr BuildUpdateEvent(const Exchange& newRecord, bool updateDB);
+		std::vector<RowChangeEventPtr> BuildBatchInsertEvents(const std::vector<Exchange*>& records);
 		void PublishRowChange(const RowChangeEventPtr& event);
 		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
-		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
-		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
-		void EmitRowInsert(const Exchange* record);
-		void EmitRowUpdate(const Exchange& newRecord, bool updateDB);
-		void EmitRowBatchInsert(const std::vector<Exchange*>& records);
 		void EraseUniqueKey(Exchange* record);
 		void EraseIndex(Exchange* record);
 
+		// 发布屏障：写事务与快照按交付顺序串行，读者不取此锁
+		std::mutex publishMutex_;
 		// 只在启动期注册，之后列表不可变，热路径无锁读
 		std::vector<MdbSubscriber*> subscribers_;
 		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
-		// 受 SharedMutex 保护
+		// 只在持 publishMutex_ 时递增
 		std::uint64_t sequence_ = 0;
 	};
 
@@ -163,20 +170,23 @@ namespace Mdb
 	private:
 		bool HasSubscribers() const;
 		RowChangeEventPtr MakeInsertEvent(const Product* record);
+		// 单写者前提：Build* 在锁内按写入顺序取号，Publish* 在锁外调用订阅者；订阅者不得回写本表
+		// BuildRowChangeEvent 接管 record：无订阅者时记录随句柄回池。Build* 调用方必须持有 SharedMutex。
+		RowChangeEventPtr BuildRowChangeEvent(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		RowChangeEventPtr BuildInsertEvent(const Product* record);
+		RowChangeEventPtr BuildUpdateEvent(const Product& newRecord, bool updateDB);
+		std::vector<RowChangeEventPtr> BuildBatchInsertEvents(const std::vector<Product*>& records);
 		void PublishRowChange(const RowChangeEventPtr& event);
 		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
-		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
-		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
-		void EmitRowInsert(const Product* record);
-		void EmitRowUpdate(const Product& newRecord, bool updateDB);
-		void EmitRowBatchInsert(const std::vector<Product*>& records);
 		void EraseUniqueKey(Product* record);
 		void EraseIndex(Product* record);
 
+		// 发布屏障：写事务与快照按交付顺序串行，读者不取此锁
+		std::mutex publishMutex_;
 		// 只在启动期注册，之后列表不可变，热路径无锁读
 		std::vector<MdbSubscriber*> subscribers_;
 		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
-		// 受 SharedMutex 保护
+		// 只在持 publishMutex_ 时递增
 		std::uint64_t sequence_ = 0;
 	};
 
@@ -217,20 +227,23 @@ namespace Mdb
 	private:
 		bool HasSubscribers() const;
 		RowChangeEventPtr MakeInsertEvent(const Instrument* record);
+		// 单写者前提：Build* 在锁内按写入顺序取号，Publish* 在锁外调用订阅者；订阅者不得回写本表
+		// BuildRowChangeEvent 接管 record：无订阅者时记录随句柄回池。Build* 调用方必须持有 SharedMutex。
+		RowChangeEventPtr BuildRowChangeEvent(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		RowChangeEventPtr BuildInsertEvent(const Instrument* record);
+		RowChangeEventPtr BuildUpdateEvent(const Instrument& newRecord, bool updateDB);
+		std::vector<RowChangeEventPtr> BuildBatchInsertEvents(const std::vector<Instrument*>& records);
 		void PublishRowChange(const RowChangeEventPtr& event);
 		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
-		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
-		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
-		void EmitRowInsert(const Instrument* record);
-		void EmitRowUpdate(const Instrument& newRecord, bool updateDB);
-		void EmitRowBatchInsert(const std::vector<Instrument*>& records);
 		void EraseUniqueKey(Instrument* record);
 		void EraseIndex(Instrument* record);
 
+		// 发布屏障：写事务与快照按交付顺序串行，读者不取此锁
+		std::mutex publishMutex_;
 		// 只在启动期注册，之后列表不可变，热路径无锁读
 		std::vector<MdbSubscriber*> subscribers_;
 		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
-		// 受 SharedMutex 保护
+		// 只在持 publishMutex_ 时递增
 		std::uint64_t sequence_ = 0;
 	};
 
@@ -273,20 +286,23 @@ namespace Mdb
 	private:
 		bool HasSubscribers() const;
 		RowChangeEventPtr MakeInsertEvent(const PrimaryAccount* record);
+		// 单写者前提：Build* 在锁内按写入顺序取号，Publish* 在锁外调用订阅者；订阅者不得回写本表
+		// BuildRowChangeEvent 接管 record：无订阅者时记录随句柄回池。Build* 调用方必须持有 SharedMutex。
+		RowChangeEventPtr BuildRowChangeEvent(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		RowChangeEventPtr BuildInsertEvent(const PrimaryAccount* record);
+		RowChangeEventPtr BuildUpdateEvent(const PrimaryAccount& newRecord, bool updateDB);
+		std::vector<RowChangeEventPtr> BuildBatchInsertEvents(const std::vector<PrimaryAccount*>& records);
 		void PublishRowChange(const RowChangeEventPtr& event);
 		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
-		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
-		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
-		void EmitRowInsert(const PrimaryAccount* record);
-		void EmitRowUpdate(const PrimaryAccount& newRecord, bool updateDB);
-		void EmitRowBatchInsert(const std::vector<PrimaryAccount*>& records);
 		void EraseUniqueKey(PrimaryAccount* record);
 		void EraseIndex(PrimaryAccount* record);
 
+		// 发布屏障：写事务与快照按交付顺序串行，读者不取此锁
+		std::mutex publishMutex_;
 		// 只在启动期注册，之后列表不可变，热路径无锁读
 		std::vector<MdbSubscriber*> subscribers_;
 		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
-		// 受 SharedMutex 保护
+		// 只在持 publishMutex_ 时递增
 		std::uint64_t sequence_ = 0;
 	};
 
@@ -327,20 +343,23 @@ namespace Mdb
 	private:
 		bool HasSubscribers() const;
 		RowChangeEventPtr MakeInsertEvent(const Account* record);
+		// 单写者前提：Build* 在锁内按写入顺序取号，Publish* 在锁外调用订阅者；订阅者不得回写本表
+		// BuildRowChangeEvent 接管 record：无订阅者时记录随句柄回池。Build* 调用方必须持有 SharedMutex。
+		RowChangeEventPtr BuildRowChangeEvent(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		RowChangeEventPtr BuildInsertEvent(const Account* record);
+		RowChangeEventPtr BuildUpdateEvent(const Account& newRecord, bool updateDB);
+		std::vector<RowChangeEventPtr> BuildBatchInsertEvents(const std::vector<Account*>& records);
 		void PublishRowChange(const RowChangeEventPtr& event);
 		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
-		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
-		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
-		void EmitRowInsert(const Account* record);
-		void EmitRowUpdate(const Account& newRecord, bool updateDB);
-		void EmitRowBatchInsert(const std::vector<Account*>& records);
 		void EraseUniqueKey(Account* record);
 		void EraseIndex(Account* record);
 
+		// 发布屏障：写事务与快照按交付顺序串行，读者不取此锁
+		std::mutex publishMutex_;
 		// 只在启动期注册，之后列表不可变，热路径无锁读
 		std::vector<MdbSubscriber*> subscribers_;
 		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
-		// 受 SharedMutex 保护
+		// 只在持 publishMutex_ 时递增
 		std::uint64_t sequence_ = 0;
 	};
 
@@ -383,20 +402,23 @@ namespace Mdb
 	private:
 		bool HasSubscribers() const;
 		RowChangeEventPtr MakeInsertEvent(const Capital* record);
+		// 单写者前提：Build* 在锁内按写入顺序取号，Publish* 在锁外调用订阅者；订阅者不得回写本表
+		// BuildRowChangeEvent 接管 record：无订阅者时记录随句柄回池。Build* 调用方必须持有 SharedMutex。
+		RowChangeEventPtr BuildRowChangeEvent(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		RowChangeEventPtr BuildInsertEvent(const Capital* record);
+		RowChangeEventPtr BuildUpdateEvent(const Capital& newRecord, bool updateDB);
+		std::vector<RowChangeEventPtr> BuildBatchInsertEvents(const std::vector<Capital*>& records);
 		void PublishRowChange(const RowChangeEventPtr& event);
 		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
-		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
-		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
-		void EmitRowInsert(const Capital* record);
-		void EmitRowUpdate(const Capital& newRecord, bool updateDB);
-		void EmitRowBatchInsert(const std::vector<Capital*>& records);
 		void EraseUniqueKey(Capital* record);
 		void EraseIndex(Capital* record);
 
+		// 发布屏障：写事务与快照按交付顺序串行，读者不取此锁
+		std::mutex publishMutex_;
 		// 只在启动期注册，之后列表不可变，热路径无锁读
 		std::vector<MdbSubscriber*> subscribers_;
 		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
-		// 受 SharedMutex 保护
+		// 只在持 publishMutex_ 时递增
 		std::uint64_t sequence_ = 0;
 	};
 
@@ -441,20 +463,23 @@ namespace Mdb
 	private:
 		bool HasSubscribers() const;
 		RowChangeEventPtr MakeInsertEvent(const Position* record);
+		// 单写者前提：Build* 在锁内按写入顺序取号，Publish* 在锁外调用订阅者；订阅者不得回写本表
+		// BuildRowChangeEvent 接管 record：无订阅者时记录随句柄回池。Build* 调用方必须持有 SharedMutex。
+		RowChangeEventPtr BuildRowChangeEvent(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		RowChangeEventPtr BuildInsertEvent(const Position* record);
+		RowChangeEventPtr BuildUpdateEvent(const Position& newRecord, bool updateDB);
+		std::vector<RowChangeEventPtr> BuildBatchInsertEvents(const std::vector<Position*>& records);
 		void PublishRowChange(const RowChangeEventPtr& event);
 		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
-		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
-		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
-		void EmitRowInsert(const Position* record);
-		void EmitRowUpdate(const Position& newRecord, bool updateDB);
-		void EmitRowBatchInsert(const std::vector<Position*>& records);
 		void EraseUniqueKey(Position* record);
 		void EraseIndex(Position* record);
 
+		// 发布屏障：写事务与快照按交付顺序串行，读者不取此锁
+		std::mutex publishMutex_;
 		// 只在启动期注册，之后列表不可变，热路径无锁读
 		std::vector<MdbSubscriber*> subscribers_;
 		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
-		// 受 SharedMutex 保护
+		// 只在持 publishMutex_ 时递增
 		std::uint64_t sequence_ = 0;
 	};
 
@@ -499,20 +524,23 @@ namespace Mdb
 	private:
 		bool HasSubscribers() const;
 		RowChangeEventPtr MakeInsertEvent(const PositionDetail* record);
+		// 单写者前提：Build* 在锁内按写入顺序取号，Publish* 在锁外调用订阅者；订阅者不得回写本表
+		// BuildRowChangeEvent 接管 record：无订阅者时记录随句柄回池。Build* 调用方必须持有 SharedMutex。
+		RowChangeEventPtr BuildRowChangeEvent(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		RowChangeEventPtr BuildInsertEvent(const PositionDetail* record);
+		RowChangeEventPtr BuildUpdateEvent(const PositionDetail& newRecord, bool updateDB);
+		std::vector<RowChangeEventPtr> BuildBatchInsertEvents(const std::vector<PositionDetail*>& records);
 		void PublishRowChange(const RowChangeEventPtr& event);
 		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
-		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
-		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
-		void EmitRowInsert(const PositionDetail* record);
-		void EmitRowUpdate(const PositionDetail& newRecord, bool updateDB);
-		void EmitRowBatchInsert(const std::vector<PositionDetail*>& records);
 		void EraseUniqueKey(PositionDetail* record);
 		void EraseIndex(PositionDetail* record);
 
+		// 发布屏障：写事务与快照按交付顺序串行，读者不取此锁
+		std::mutex publishMutex_;
 		// 只在启动期注册，之后列表不可变，热路径无锁读
 		std::vector<MdbSubscriber*> subscribers_;
 		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
-		// 受 SharedMutex 保护
+		// 只在持 publishMutex_ 时递增
 		std::uint64_t sequence_ = 0;
 	};
 
@@ -554,20 +582,23 @@ namespace Mdb
 	private:
 		bool HasSubscribers() const;
 		RowChangeEventPtr MakeInsertEvent(const Order* record);
+		// 单写者前提：Build* 在锁内按写入顺序取号，Publish* 在锁外调用订阅者；订阅者不得回写本表
+		// BuildRowChangeEvent 接管 record：无订阅者时记录随句柄回池。Build* 调用方必须持有 SharedMutex。
+		RowChangeEventPtr BuildRowChangeEvent(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		RowChangeEventPtr BuildInsertEvent(const Order* record);
+		RowChangeEventPtr BuildUpdateEvent(const Order& newRecord, bool updateDB);
+		std::vector<RowChangeEventPtr> BuildBatchInsertEvents(const std::vector<Order*>& records);
 		void PublishRowChange(const RowChangeEventPtr& event);
 		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
-		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
-		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
-		void EmitRowInsert(const Order* record);
-		void EmitRowUpdate(const Order& newRecord, bool updateDB);
-		void EmitRowBatchInsert(const std::vector<Order*>& records);
 		void EraseUniqueKey(Order* record);
 		void EraseIndex(Order* record);
 
+		// 发布屏障：写事务与快照按交付顺序串行，读者不取此锁
+		std::mutex publishMutex_;
 		// 只在启动期注册，之后列表不可变，热路径无锁读
 		std::vector<MdbSubscriber*> subscribers_;
 		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
-		// 受 SharedMutex 保护
+		// 只在持 publishMutex_ 时递增
 		std::uint64_t sequence_ = 0;
 	};
 
@@ -608,20 +639,23 @@ namespace Mdb
 	private:
 		bool HasSubscribers() const;
 		RowChangeEventPtr MakeInsertEvent(const Trade* record);
+		// 单写者前提：Build* 在锁内按写入顺序取号，Publish* 在锁外调用订阅者；订阅者不得回写本表
+		// BuildRowChangeEvent 接管 record：无订阅者时记录随句柄回池。Build* 调用方必须持有 SharedMutex。
+		RowChangeEventPtr BuildRowChangeEvent(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
+		RowChangeEventPtr BuildInsertEvent(const Trade* record);
+		RowChangeEventPtr BuildUpdateEvent(const Trade& newRecord, bool updateDB);
+		std::vector<RowChangeEventPtr> BuildBatchInsertEvents(const std::vector<Trade*>& records);
 		void PublishRowChange(const RowChangeEventPtr& event);
 		void PublishRowBatchChange(const std::vector<RowChangeEventPtr>& events);
-		// 接管 record：有订阅者则发布事件，否则记录随句柄回池。调用方必须持有 SharedMutex。
-		void EmitRowChange(RowChangeType type, unsigned int indexId, bool persistDatabase, RecordHandle record);
-		void EmitRowInsert(const Trade* record);
-		void EmitRowUpdate(const Trade& newRecord, bool updateDB);
-		void EmitRowBatchInsert(const std::vector<Trade*>& records);
 		void EraseUniqueKey(Trade* record);
 		void EraseIndex(Trade* record);
 
+		// 发布屏障：写事务与快照按交付顺序串行，读者不取此锁
+		std::mutex publishMutex_;
 		// 只在启动期注册，之后列表不可变，热路径无锁读
 		std::vector<MdbSubscriber*> subscribers_;
 		MdbReplicaSubscriber* replicaSubscriber_ = nullptr;
-		// 受 SharedMutex 保护
+		// 只在持 publishMutex_ 时递增
 		std::uint64_t sequence_ = 0;
 	};
 
