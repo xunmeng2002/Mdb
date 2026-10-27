@@ -1,4 +1,4 @@
-﻿// 本文件由 ../Templates/Cpp/Mdb/MdbStructs.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+﻿// 本文件由 ../Templates/Cpp/Mdb/Model/MdbStructs.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #pragma once
 #include <DbAdapters/DbInterface/Schema.h>
 #include <Spark/Types.h>
@@ -117,6 +117,7 @@ namespace Mdb
 	{
 	public:
 		static constexpr unsigned int TableId = 0x0005;
+		static constexpr unsigned int IndexOfferIdId = 0x0000;
 		//主账户代码
 		AccountIdType PrimaryAccountId;
 		//主账户名称
@@ -173,6 +174,7 @@ namespace Mdb
 	{
 	public:
 		static constexpr unsigned int TableId = 0x0007;
+		static constexpr unsigned int IndexTradingDayId = 0x0000;
 		//交易日
 		DateType TradingDay;
 		//账户代码
@@ -224,6 +226,8 @@ namespace Mdb
 	{
 	public:
 		static constexpr unsigned int TableId = 0x0008;
+		static constexpr unsigned int IndexAccountId = 0x0000;
+		static constexpr unsigned int IndexTradingDayId = 0x0001;
 		//交易日
 		DateType TradingDay;
 		//账户代码
@@ -285,6 +289,8 @@ namespace Mdb
 	{
 	public:
 		static constexpr unsigned int TableId = 0x0009;
+		static constexpr unsigned int IndexTradeMatchId = 0x0000;
+		static constexpr unsigned int IndexTradingDayId = 0x0001;
 		//交易日
 		DateType TradingDay;
 		//账户代码

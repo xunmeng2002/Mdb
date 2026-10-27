@@ -1,8 +1,8 @@
-﻿// 本文件由 ../Templates/Cpp/Mdb/MdbIndexes.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+﻿// 本文件由 ../Templates/Cpp/Mdb/LockBased/MdbIndexes.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #pragma once
-#include "MdbStructs.h"
-#include "MdbIndexComp.h"
-#include "MdbReadLease.h"
+#include "Model/MdbStructs.h"
+#include "Model/MdbIndexComp.h"
+#include "Model/MdbReadLease.h"
 #include <set>
 
 using std::multiset;
@@ -14,7 +14,7 @@ namespace Mdb
 	{
 	public:
 		using iterator = std::multiset<PrimaryAccount*, PrimaryAccountLessForOfferIdIndex>::iterator;
-		static constexpr unsigned int IndexID = 0x0000;
+		static constexpr unsigned int IndexID = PrimaryAccount::IndexOfferIdId;
 	
 		PrimaryAccountTableIndexOfferId(PrimaryAccountTable* tableOwner);
 		TableRangeLease<iterator> Range(const OfferIdType& lowerOfferId, const OfferIdType& upperOfferId);
@@ -40,7 +40,7 @@ namespace Mdb
 	{
 	public:
 		using iterator = std::multiset<Capital*, CapitalLessForTradingDayIndex>::iterator;
-		static constexpr unsigned int IndexID = 0x0000;
+		static constexpr unsigned int IndexID = Capital::IndexTradingDayId;
 	
 		CapitalTableIndexTradingDay(CapitalTable* tableOwner);
 		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const DateType& upperTradingDay);
@@ -66,7 +66,7 @@ namespace Mdb
 	{
 	public:
 		using iterator = std::multiset<Position*, PositionLessForAccountIndex>::iterator;
-		static constexpr unsigned int IndexID = 0x0000;
+		static constexpr unsigned int IndexID = Position::IndexAccountId;
 	
 		PositionTableIndexAccount(PositionTable* tableOwner);
 		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const AccountIdType& lowerAccountId, const DateType& upperTradingDay, const AccountIdType& upperAccountId);
@@ -91,7 +91,7 @@ namespace Mdb
 	{
 	public:
 		using iterator = std::multiset<Position*, PositionLessForTradingDayIndex>::iterator;
-		static constexpr unsigned int IndexID = 0x0001;
+		static constexpr unsigned int IndexID = Position::IndexTradingDayId;
 	
 		PositionTableIndexTradingDay(PositionTable* tableOwner);
 		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const DateType& upperTradingDay);
@@ -117,7 +117,7 @@ namespace Mdb
 	{
 	public:
 		using iterator = std::multiset<PositionDetail*, PositionDetailLessForTradeMatchIndex>::iterator;
-		static constexpr unsigned int IndexID = 0x0000;
+		static constexpr unsigned int IndexID = PositionDetail::IndexTradeMatchId;
 	
 		PositionDetailTableIndexTradeMatch(PositionDetailTable* tableOwner);
 		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const AccountIdType& lowerAccountId, const ExchangeIdType& lowerExchangeId, const InstrumentIdType& lowerInstrumentId, const PosiDirectionType& lowerPosiDirection, const DateType& upperTradingDay, const AccountIdType& upperAccountId, const ExchangeIdType& upperExchangeId, const InstrumentIdType& upperInstrumentId, const PosiDirectionType& upperPosiDirection);
@@ -142,7 +142,7 @@ namespace Mdb
 	{
 	public:
 		using iterator = std::multiset<PositionDetail*, PositionDetailLessForTradingDayIndex>::iterator;
-		static constexpr unsigned int IndexID = 0x0001;
+		static constexpr unsigned int IndexID = PositionDetail::IndexTradingDayId;
 	
 		PositionDetailTableIndexTradingDay(PositionDetailTable* tableOwner);
 		TableRangeLease<iterator> Range(const DateType& lowerTradingDay, const DateType& upperTradingDay);

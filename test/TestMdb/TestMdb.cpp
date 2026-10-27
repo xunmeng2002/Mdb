@@ -1,6 +1,6 @@
-#include "Mdb.h"
-#include "InitMdbFromDb.h"
-#include "MdbTableRegistry.h"
+#include "LockBased/Mdb.h"
+#include "LockBased/InitMdbFromDb.h"
+#include "Model/MdbTableRegistry.h"
 #include "FullTableList.h"
 #include <DbAdapters/DbInterface/TypedTable.h>
 #include <DbAdapters/DbInterface/SchemaRegistry.h>

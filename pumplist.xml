@@ -1,28 +1,53 @@
 <pumplist>
-    <pump dest="./src/Mdb/Mdb.h" tpl="../Templates/Cpp/Mdb/Mdb.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/Mdb.cpp" tpl="../Templates/Cpp/Mdb/Mdb.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbStructs.h" tpl="../Templates/Cpp/Mdb/MdbStructs.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
-    <pump dest="./src/Mdb/MdbStructs.cpp" tpl="../Templates/Cpp/Mdb/MdbStructs.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
-    <pump dest="./src/Mdb/TableList.h" tpl="../Templates/Cpp/Mdb/TableList.h.tpl" model="./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbTableRegistry.h" tpl="../Templates/Cpp/Mdb/MdbTableRegistry.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbTableRegistry.cpp" tpl="../Templates/Cpp/Mdb/MdbTableRegistry.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbTableBase.h" tpl="../Templates/Cpp/Mdb/MdbTableBase.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbReadLease.h" tpl="../Templates/Cpp/Mdb/MdbReadLease.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbTables.h" tpl="../Templates/Cpp/Mdb/MdbTables.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbTables.cpp" tpl="../Templates/Cpp/Mdb/MdbTables.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbPrimaryKeyComp.h" tpl="../Templates/Cpp/Mdb/MdbPrimaryKeyComp.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbPrimaryKeyComp.cpp" tpl="../Templates/Cpp/Mdb/MdbPrimaryKeyComp.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
-    <pump dest="./src/Mdb/MdbPrimaryKeys.h" tpl="../Templates/Cpp/Mdb/MdbPrimaryKeys.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbPrimaryKeys.cpp" tpl="../Templates/Cpp/Mdb/MdbPrimaryKeys.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
-    <pump dest="./src/Mdb/MdbIndexComp.h" tpl="../Templates/Cpp/Mdb/MdbIndexComp.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbIndexComp.cpp" tpl="../Templates/Cpp/Mdb/MdbIndexComp.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
-    <pump dest="./src/Mdb/MdbIndexes.h" tpl="../Templates/Cpp/Mdb/MdbIndexes.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/MdbIndexes.cpp" tpl="../Templates/Cpp/Mdb/MdbIndexes.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/LockBased/Mdb.h" tpl="../Templates/Cpp/Mdb/LockBased/Mdb.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/LockBased/Mdb.cpp" tpl="../Templates/Cpp/Mdb/LockBased/Mdb.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Model/MdbStructs.h" tpl="../Templates/Cpp/Mdb/Model/MdbStructs.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Model/MdbStructs.cpp" tpl="../Templates/Cpp/Mdb/Model/MdbStructs.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Model/TableList.h" tpl="../Templates/Cpp/Mdb/Model/TableList.h.tpl" model="./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Model/MdbTableRegistry.h" tpl="../Templates/Cpp/Mdb/Model/MdbTableRegistry.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Model/MdbTableRegistry.cpp" tpl="../Templates/Cpp/Mdb/Model/MdbTableRegistry.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Model/MdbTableBase.h" tpl="../Templates/Cpp/Mdb/Model/MdbTableBase.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Model/MdbReadLease.h" tpl="../Templates/Cpp/Mdb/Model/MdbReadLease.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/LockBased/MdbTables.h" tpl="../Templates/Cpp/Mdb/LockBased/MdbTables.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/LockBased/MdbTables.cpp" tpl="../Templates/Cpp/Mdb/LockBased/MdbTables.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Model/MdbPrimaryKeyComp.h" tpl="../Templates/Cpp/Mdb/Model/MdbPrimaryKeyComp.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Model/MdbPrimaryKeyComp.cpp" tpl="../Templates/Cpp/Mdb/Model/MdbPrimaryKeyComp.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/LockBased/MdbPrimaryKeys.h" tpl="../Templates/Cpp/Mdb/LockBased/MdbPrimaryKeys.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/LockBased/MdbPrimaryKeys.cpp" tpl="../Templates/Cpp/Mdb/LockBased/MdbPrimaryKeys.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Model/MdbIndexComp.h" tpl="../Templates/Cpp/Mdb/Model/MdbIndexComp.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Model/MdbIndexComp.cpp" tpl="../Templates/Cpp/Mdb/Model/MdbIndexComp.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/LockBased/MdbIndexes.h" tpl="../Templates/Cpp/Mdb/LockBased/MdbIndexes.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/LockBased/MdbIndexes.cpp" tpl="../Templates/Cpp/Mdb/LockBased/MdbIndexes.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
     
-    <pump dest="./src/Mdb/InitMdbFromCsv.h" tpl="../Templates/Cpp/Mdb/InitMdbFromCsv.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/InitMdbFromCsv.cpp" tpl="../Templates/Cpp/Mdb/InitMdbFromCsv.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
-    <pump dest="./src/Mdb/InitMdbFromDb.h" tpl="../Templates/Cpp/Mdb/InitMdbFromDb.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/InitMdbFromDb.cpp" tpl="../Templates/Cpp/Mdb/InitMdbFromDb.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/LockBased/InitMdbFromCsv.h" tpl="../Templates/Cpp/Mdb/LockBased/InitMdbFromCsv.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/LockBased/InitMdbFromCsv.cpp" tpl="../Templates/Cpp/Mdb/LockBased/InitMdbFromCsv.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/LockBased/InitMdbFromDb.h" tpl="../Templates/Cpp/Mdb/LockBased/InitMdbFromDb.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/LockBased/InitMdbFromDb.cpp" tpl="../Templates/Cpp/Mdb/LockBased/InitMdbFromDb.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+
+    <pump dest="./src/Mdb/Rcu/RcuEpoch.h" tpl="../Templates/Cpp/Mdb/Rcu/RcuEpoch.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/RcuEpoch.cpp" tpl="../Templates/Cpp/Mdb/Rcu/RcuEpoch.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/PointerSwap/PointerSwapPrimaryKeys.h" tpl="../Templates/Cpp/Mdb/Rcu/PointerSwap/PointerSwapPrimaryKeys.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/PointerSwap/PointerSwapPrimaryKeys.cpp" tpl="../Templates/Cpp/Mdb/Rcu/PointerSwap/PointerSwapPrimaryKeys.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Rcu/PointerSwap/PointerSwapTables.h" tpl="../Templates/Cpp/Mdb/Rcu/PointerSwap/PointerSwapTables.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/PointerSwap/PointerSwapTables.cpp" tpl="../Templates/Cpp/Mdb/Rcu/PointerSwap/PointerSwapTables.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Rcu/StableRow/StableRowPrimaryKeys.h" tpl="../Templates/Cpp/Mdb/Rcu/StableRow/StableRowPrimaryKeys.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/StableRow/StableRowPrimaryKeys.cpp" tpl="../Templates/Cpp/Mdb/Rcu/StableRow/StableRowPrimaryKeys.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Rcu/StableRow/StableRowIndexes.h" tpl="../Templates/Cpp/Mdb/Rcu/StableRow/StableRowIndexes.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/StableRow/StableRowIndexes.cpp" tpl="../Templates/Cpp/Mdb/Rcu/StableRow/StableRowIndexes.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Rcu/StableRow/StableRowTables.h" tpl="../Templates/Cpp/Mdb/Rcu/StableRow/StableRowTables.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/StableRow/StableRowTables.cpp" tpl="../Templates/Cpp/Mdb/Rcu/StableRow/StableRowTables.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Rcu/PointerSwap/Mdb.h" tpl="../Templates/Cpp/Mdb/Rcu/PointerSwap/Mdb.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/PointerSwap/Mdb.cpp" tpl="../Templates/Cpp/Mdb/Rcu/PointerSwap/Mdb.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/PointerSwap/InitMdbFromCsv.h" tpl="../Templates/Cpp/Mdb/Rcu/PointerSwap/InitMdbFromCsv.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/PointerSwap/InitMdbFromCsv.cpp" tpl="../Templates/Cpp/Mdb/Rcu/PointerSwap/InitMdbFromCsv.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Rcu/PointerSwap/InitMdbFromDb.h" tpl="../Templates/Cpp/Mdb/Rcu/PointerSwap/InitMdbFromDb.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/PointerSwap/InitMdbFromDb.cpp" tpl="../Templates/Cpp/Mdb/Rcu/PointerSwap/InitMdbFromDb.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Rcu/StableRow/Mdb.h" tpl="../Templates/Cpp/Mdb/Rcu/StableRow/Mdb.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/StableRow/Mdb.cpp" tpl="../Templates/Cpp/Mdb/Rcu/StableRow/Mdb.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/StableRow/InitMdbFromCsv.h" tpl="../Templates/Cpp/Mdb/Rcu/StableRow/InitMdbFromCsv.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/StableRow/InitMdbFromCsv.cpp" tpl="../Templates/Cpp/Mdb/Rcu/StableRow/InitMdbFromCsv.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Rcu/StableRow/InitMdbFromDb.h" tpl="../Templates/Cpp/Mdb/Rcu/StableRow/InitMdbFromDb.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Rcu/StableRow/InitMdbFromDb.cpp" tpl="../Templates/Cpp/Mdb/Rcu/StableRow/InitMdbFromDb.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
 
     <pump dest="./test/TestMdb/FullTableList.h" tpl="../Templates/Cpp/Mdb/ModuleTableList.h.tpl" model="./Model/TableNames/FullTableNames.xml"/>
 </pumplist>

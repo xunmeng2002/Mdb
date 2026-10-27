@@ -1,6 +1,5 @@
-﻿// 本文件由 ../Templates/Cpp/Mdb/MdbStructs.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+﻿// 本文件由 ../Templates/Cpp/Mdb/Model/MdbStructs.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #include "MdbStructs.h"
-#include "MdbIndexes.h"
 #include <Spark/TemplateLib/TemplateLib.h>
 #include <string>
 #include <cstring>
@@ -168,7 +167,7 @@ namespace Mdb
 	static const int PrimaryAccountPKIndices[] = { 0 };
 	static const int PrimaryAccountIdxOfferId[] = { 4 };
 	static const IndexDefinition PrimaryAccountIndices[] = {
-		{PrimaryAccountTableIndexOfferId::IndexID, PrimaryAccountIdxOfferId, 1},
+		{PrimaryAccount::IndexOfferIdId, PrimaryAccountIdxOfferId, 1},
 	};
 	PrimaryAccount* PrimaryAccount::Allocate()
 	{
@@ -256,7 +255,7 @@ namespace Mdb
 	static const int CapitalPKIndices[] = { 0, 1 };
 	static const int CapitalIdxTradingDay[] = { 0 };
 	static const IndexDefinition CapitalIndices[] = {
-		{CapitalTableIndexTradingDay::IndexID, CapitalIdxTradingDay, 1},
+		{Capital::IndexTradingDayId, CapitalIdxTradingDay, 1},
 	};
 	Capital* Capital::Allocate()
 	{
@@ -314,8 +313,8 @@ namespace Mdb
 	static const int PositionIdxAccount[] = { 0, 1 };
 	static const int PositionIdxTradingDay[] = { 0 };
 	static const IndexDefinition PositionIndices[] = {
-		{PositionTableIndexAccount::IndexID, PositionIdxAccount, 2},
-		{PositionTableIndexTradingDay::IndexID, PositionIdxTradingDay, 1},
+		{Position::IndexAccountId, PositionIdxAccount, 2},
+		{Position::IndexTradingDayId, PositionIdxTradingDay, 1},
 	};
 	Position* Position::Allocate()
 	{
@@ -373,8 +372,8 @@ namespace Mdb
 	static const int PositionDetailIdxTradeMatch[] = { 0, 1, 3, 4, 6 };
 	static const int PositionDetailIdxTradingDay[] = { 0 };
 	static const IndexDefinition PositionDetailIndices[] = {
-		{PositionDetailTableIndexTradeMatch::IndexID, PositionDetailIdxTradeMatch, 5},
-		{PositionDetailTableIndexTradingDay::IndexID, PositionDetailIdxTradingDay, 1},
+		{PositionDetail::IndexTradeMatchId, PositionDetailIdxTradeMatch, 5},
+		{PositionDetail::IndexTradingDayId, PositionDetailIdxTradingDay, 1},
 	};
 	PositionDetail* PositionDetail::Allocate()
 	{

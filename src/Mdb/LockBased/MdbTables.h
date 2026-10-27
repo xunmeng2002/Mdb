@@ -1,7 +1,7 @@
-﻿// 本文件由 ../Templates/Cpp/Mdb/MdbTables.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+﻿// 本文件由 ../Templates/Cpp/Mdb/LockBased/MdbTables.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #pragma once
-#include "MdbStructs.h"
-#include "MdbTableBase.h"
+#include "Model/MdbStructs.h"
+#include "Model/MdbTableBase.h"
 #include <DbAdapters/DbInterface/MdbSubscriber.h>
 #include <DbAdapters/DbInterface/RowChangeEvent.h>
 #include "MdbPrimaryKeys.h"

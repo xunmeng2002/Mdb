@@ -1,10 +1,10 @@
-﻿// 本文件由 ../Templates/Cpp/Mdb/MdbPrimaryKeys.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+﻿// 本文件由 ../Templates/Cpp/Mdb/LockBased/MdbPrimaryKeys.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #pragma once
 #include <optional>
 #include <unordered_set>
-#include "MdbStructs.h"
-#include "MdbPrimaryKeyComp.h"
-#include "MdbReadLease.h"
+#include "Model/MdbStructs.h"
+#include "Model/MdbPrimaryKeyComp.h"
+#include "Model/MdbReadLease.h"
 
 namespace Mdb
 {

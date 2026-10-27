@@ -1,8 +1,8 @@
-﻿// 本文件由 ../Templates/Cpp/Mdb/Mdb.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+﻿// 本文件由 ../Templates/Cpp/Mdb/Rcu/StableRow/Mdb.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #include "Mdb.h"
 
 
-namespace Mdb
+namespace Mdb::Rcu::StableRow
 {
 	Mdb::Mdb(const TableList& tableList): replicaSubscriber_(nullptr)
 	{
@@ -23,6 +23,13 @@ namespace Mdb
 			case Trade::TableId:  Trade = new TradeTable(); tables_.push_back(Trade); break;
 			default: break;
 			}
+		}
+	}
+	Mdb::~Mdb()
+	{
+		for (auto table : tables_)
+		{
+			delete table;
 		}
 	}
 	void Mdb::Subscribe(MdbSubscriber* subscriber)

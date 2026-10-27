@@ -1,6 +1,6 @@
 # 单写多读内存表（RCU 形态）设计与原型验证
 
-> 记录 B 方案（无锁读 + 原子换指针 + 代数回收）与 B2 变体（稳定行地址 + 行内版本号）的设计、讨论结论与原型验证。整理日期 2026-10-22。
+> 记录 B 方案（无锁读 + 原子换指针 + 代数回收）与 B2 变体（稳定行地址 + 行内版本号）的设计、讨论结论与原型验证。整理日期 2026-10-22，2026-10-27 补第 9 节（接入 Mdb 表接口）。
 > 原型代码：[DemoRcu](../test/DemoRcu/DemoRcu.cpp)；上层设计背景见 `D:\Gitlab\Trading\docs\C++-套利策略资管系统设计.md` §1。
 
 ---
@@ -22,6 +22,7 @@
   - [6. 风险与未覆盖](#6-风险与未覆盖)
   - [7. 结论](#7-结论)
   - [8. B2 变体](#8-b2-变体)
+  - [9. 接入 Mdb 表接口](#9-接入-mdb-表接口)
   - [参考](#参考)
 
 ---
@@ -246,10 +247,10 @@ failures=0
 | :--- | :--- |
 | 读者槽位上限 | `MaxReaders = 64`；槽位按线程分配，无回收 |
 | 嵌套登记 | 原型未处理同线程嵌套 `Guard`，真实实现需嵌套计数或按临界区分槽 |
-| 只有主键索引 | 唯一键与二级索引未接入；跨索引只能做到逐行原子、跨索引弱一致 |
+| 索引不全 | B2 有二级索引与唯一键（`Order.ClientOrderId`），仍由 `SharedMutex` 保护；B 两样都没有，`Order` 在 B 下会静默接受重复的唯一键 |
 | 分配压力 | 每次 `Update` 新分配一行，对象池吞吐与内存峰值会成为新热点 |
 | 回收延迟 | 长范围扫描会推迟整批退休记录的回收 |
-| 生产化 | 原型未接入 `Mdb::TradingDay`、事件订阅、对象池与 `DbAdapters` 写库路径 |
+| 生产化 | 表接口、事件订阅与 `Mdb` 聚合已接入（§9）；写库路径（`AsyncDbWriter`）与耗时/内存基线的对拍尚未做 |
 | 多写者 | 见 §4，当前不支持 |
 
 ---
@@ -282,13 +283,83 @@ B2 的代价是 seqlock 的读侧重试：写者正在写同一行时，读者�
 
 二级索引仍是一把读写锁：Linux 默认读者优先，连续的长索引读仍可能饿死写者。B2 只把主键查询这条最热的路径从锁里拿了出来，不改变索引路径的这一问题。
 
-唯一键没有单独加入 demo：它与主键同为不可变键，更新逻辑就是一个额外的哈希索引，不引入新的并发路径。二级索引才是 B2 里需要额外处理的唯一结构。
+唯一键没有单独加入 demo，但 B2 的表类里已按 Mdb 的形式生成（见 §9）：它与主键同为不可变键，落地就是一个额外的 `unordered_set`，`Select` 取 `SharedMutex` 共享锁，`Update` 遇键变化即拒绝，
+不引入新的并发路径。B 形态按设计不维护任何辅助结构，唯一键与二级索引一样不生成。
+
+---
+
+## 9. 接入 Mdb 表接口
+
+两个原型已按 Mdb 生成表的方式重做了一遍，与读写锁版一起按「一个库 = 一个文件夹」重排；全部由模板生成，勿手改。
+
+| 目录 | 命名空间 | 内容 |
+| --- | --- | --- |
+| `Model/` | `Mdb` | 数据契约：记录结构、`MdbTableBase`、`TableRangeLease`、哈希/比较器、`TableList` |
+| `LockBased/` | `Mdb` | 读写锁实现：`MdbTables` / `MdbPrimaryKeys` / `MdbIndexes` + `Mdb` 聚合、`MdbTableRegistry`、`InitMdbFrom*` |
+| `Rcu/` | `Mdb::Rcu` | 读者登记 + 代数回收，两形态共用 |
+| `Rcu/PointerSwap/` | `Mdb::Rcu::PointerSwap` | B 形态：`PointerSwapTables` + `PointerSwapPrimaryKeys` + 同名 `Mdb` 聚合与 `InitMdbFrom*`（换指针 + 退休旧行） |
+| `Rcu/StableRow/` | `Mdb::Rcu::StableRow` | B2 形态：`StableRowTables` + `StableRowPrimaryKeys` + `StableRowIndexes` + 同名 `Mdb` 聚合与 `InitMdbFrom*`（行地址稳定 + seqlock） |
+
+`Model/` 与 `LockBased/` 沿用 `Mdb` 根命名空间（公共类型名不冲突）；两个 RCU 目录才有子命名空间，因为它们的表类与读写锁版同名。
+索引序号挂在记录结构上（`PrimaryAccount::IndexOfferIdId`，与 `TableId` 并列），schema 与索引类都引用它，跨目录依赖只有 LockBased / 两个 RCU 库 → Model 一个方向。
+
+索引与唯一键按形态分工（2026-10-27 裁定）：**B 一律忽略 `indexes` 与 `uniquekeys` 节点**，不生成索引类、唯一键类与 `EraseBy<键>Index`，
+使用方只能按键访问；缺的是编译期可见的接口，不会退化成运行期慢路径。
+`StableRow` 与读写锁版按 Mdb 的形式生成 `<表>TableIndex<键>* <键>Index`、`<表>TableIndex<键>::Range` / `EqualRange` 与 `EraseBy<键>Index`
+（如 `PrimaryAccount` 的 `OfferIdIndex`），以及 `<表>TableUniqueKey<键>* <键>UniqueKey`（当前只有 `Order` 用到，`Select` 六个键字段全参）；
+两者的更新都走 `SharedMutex`，与 §8 的结论一致。
+两个 RCU 变体都生成 `Tables.xml` 里的全部 11 张表（2026-10-27 去掉 `supportedTables` 白名单），B2 为每张表按其 `indexes` 与 `uniquekeys` 节点生成对应类。
+schema 的 `IndexDefinition` 始终完整：它描述物理库该建哪些索引，与哪个内存实现承载读路径无关。
+
+目标是三个可选的库（读写锁 / B / B2），**允许同进程共存**，以便性能对拍与灰度替换。`CMakeLists.txt` 已按此拆开：
+
+| 目标 | 源目录 | 内容 |
+| --- | --- | --- |
+| `MdbModelStatic` | `src/Mdb/Model` | 数据契约 |
+| `MdbLockBasedStatic` | `src/Mdb/LockBased` | 读写锁实现 |
+| `MdbRcuCoreStatic` | `src/Mdb/Rcu` | `RcuEpoch`，两个 RCU 库共用一份，避免同进程链接时符号重复 |
+| `MdbRcuPointerSwapStatic` | `src/Mdb/Rcu/PointerSwap` | B 形态表、`Mdb` 聚合、`InitMdbFrom*`（链接 `Spark::Serialization`） |
+| `MdbRcuStableRowStatic` | `src/Mdb/Rcu/StableRow` | B2 形态表、`Mdb` 聚合、`InitMdbFrom*`（链接 `Spark::Serialization`） |
+| `MdbStatic` | — | INTERFACE 聚合（`MdbModelStatic` + `MdbLockBasedStatic`），既有消费方不改 |
+
+每个目标用 `file(GLOB CONFIGURE_DEPENDS "<目录>/*.cpp")` 非递归取源文件，往目录里加 `.cpp` 不用改 CMake。
+文件切分与 `LockBased/` 一致：表类与主键各一个 TU，`<表>Slot` / `SlotArray` 归主键头，`Tables.h` 单向包含 `PrimaryKeys.h`；B 没有索引类；B2 的索引类另立 `StableRowIndexes`，与 `StableRowTables` 同目录、同命名空间。表类与索引类（含订阅/发布层）各库一份，不抽公共基类——两个 RCU 变体的表级代码各 268 行、仅差 2 行（`Replace` 与 `Overwrite`），复制的成本低于耦合。
+共存要求命名空间独立：读写锁版仍占 `Mdb::`，若要与另两库对称改名为 `Mdb::LockBased`，需另批处理（会动本仓调用点与 QuantTrading）。
+
+模板与目录同构：`../Templates/Cpp/Mdb/{Model,LockBased,Rcu}/`，`pumplist.xml` 逐文件登记；两个 RCU 目录各有 `Mdb` / `InitMdbFromCsv` / `InitMdbFromDb`，
+与 `LockBased/` 的同名模板只差命名空间和 `Tables.h` 的包含路径，与读写锁版形成三选一的等价实现。
+
+表接口与 `Mdb::TradingDayTable` 一致：构造/析构、`GetTableId`、`Subscribe`/`SubscribeReplica`/`UnSubscribe`、`InitDb`、`ForEach`、
+`Insert`/`BatchInsert`/`Erase`/`Update`/`TruncateTable(s)`/`Dump`，公开 `SharedMutex` 与 `PrimaryKey`，`Select`/`SelectAll` 仍挂在主键上。
+写路径同样带每表 `publishMutex_` 发布屏障，锁序 `publishMutex_` → `SharedMutex`，事件在锁外分发。
+
+三处按 Mdb 语义做的取舍：
+
+- **范围读仍走锁（方案 2）**：只有单键 `Select` 无锁，`SelectAll` 取 `SharedMutex` 共享锁并随租约走，读者遍历期间写者被挡。`ForEach` / `Dump` / `InitDb` 同理，都靠共享锁挡住写者与回收。
+- **`Erase` 的事件是副本**：B 形态下离表的活记录要等登记读者走完才回收，直接把指针交给订阅者会悬空，故先 `memcpy` 一份再建事件。B2 的活记录虽然地址稳定，也照此办理以保持两形态行为一致。
+- **回收时机**：每次写操作结束调用一次 `AdvanceAndReclaim`，退休队列在「无读者持有更早代数」时立刻回收；析构时走 `ReclaimAllWithoutReaders`，不再等读者。
+
+代价与边界：单写者前提不变（多写者会打乱 `rowCount_`/`usedSlotCount_` 与槽位表重排）；`ReaderEpoch::MaxReaders = 64`，
+每线程一个 `thread_local` 槽位且线程退出不回收，超限直接 `abort`；B 与 B2 的订阅/发布管道与 `MdbTables` 生成码重复，
+后续若要抽公共基类，属跨形态重构，需单独评估。
+
+验证由 `test/TestRcuTables/TestRcuTables.cpp` 承担：同一套场景以模板参数分别跑 `Mdb::Rcu::PointerSwap::TradingDayTable` 与
+`Mdb::Rcu::StableRow::TradingDayTable`，覆盖单行增删改查、2000 行批量插入与扩容、墓碑后可达性、`SelectAll` 阻塞写者、
+订阅事件（含 `Erase` 副本）、3 读者 × 20000 次 `Update` 的撕裂读检测、`TruncateTable`。
+另有一组只跑 B2 的二级索引场景（`PrimaryAccount`）：重复索引键计数、`Range` 双边界、`Update` 改索引键后的重排、
+改非索引字段不重排、`EraseByOfferIdIndex` 的返回数与 `EraseByIndex` 事件（含 `IndexId`）、`TruncateTable` 清空索引。
+唯一键另有一组只跑 B2 的场景（`Order.ClientOrderId`）：插入后按键查得到、主键不同而唯一键相同被拒、`Update` 改唯一键被拒且原登记保留、
+改非键字段后仍能按键查到新值、`Erase` 后键失效、同一唯一键可重新插入。
+最后各跑一条 `Mdb` 聚合冒烟：只申请 `TradingDay` 的 `TableList` 建出的聚合，该表指针非空、未申请的表保持空指针。
+实测 94 条断言全为 1、`failures=0`。
 
 ---
 
 ## 参考
 
-- 原型源码：[DemoRcu](../test/DemoRcu/DemoRcu.cpp)
+- 原型源码：[DemoRcu](../test/DemoRcu/DemoRcu.cpp)、[DemoRcuB](../test/DemoRcuB/DemoRcuB.cpp)
+- 表接口版本：[PointerSwapTables](../src/Mdb/Rcu/PointerSwap/PointerSwapTables.h)、[StableRowTables](../src/Mdb/Rcu/StableRow/StableRowTables.h)、
+  [对照测试](../test/TestRcuTables/TestRcuTables.cpp)
 - 上层设计：`D:\Gitlab\Trading\docs\C++-套利策略资管系统设计.md` §1（内存数据库：从读写锁到一写多读）
 - 现有读接口与租约语义：[README](../README.md)
 - 环境准备：[环境准备指南](environment-setup.md)
