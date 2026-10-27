@@ -2,6 +2,11 @@
 
 > `PROGRESS.md` 滚出的已关闭条目原文，按 ID 倒序；检索入口见 [PROGRESS-index.md](PROGRESS-index.md)。
 
+## D.25 — 三种表实现拆成独立库，源码按库分目录
+
+- **三种表实现拆成独立库，源码按库分目录（2026-10-27，改 `CMakeLists.txt`、模板与 `pumplist.xml`）**：按用户裁定「三种实现做成三个可选的库、允许同进程共存（性能测试要一起跑）」落地。源码重排为「一个库 = 一个文件夹」：`src/Mdb/Model/`（数据契约：记录结构、`MdbTableBase`、`MdbReadLease`、哈希/比较器、`TableList`）、`src/Mdb/LockBased/`（读写锁表 + `Mdb` 聚合、`MdbTableRegistry`、`InitMdbFrom*`）、`src/Mdb/Rcu/`（`RcuEpoch`）、`Rcu/PointerSwap/`、`Rcu/StableRow/`；模板与目录同构，`pumplist.xml` 的 dest/tpl 路径同步。CMake 用非递归 `file(GLOB CONFIGURE_DEPENDS)` 按目录取源文件（`add_mdb_static_library(<target> <目录>)`），新增 `.cpp` 不用改 CMake；目标为 `MdbModelStatic` / `MdbLockBasedStatic` / `MdbRcuCoreStatic`（`RcuEpoch` 只编一份，避免同进程符号重复）/ `MdbRcuPointerSwapStatic` / `MdbRcuStableRowStatic`，`MdbStatic` 保留为 INTERFACE 聚合（model + lock-based），`TestMdb` 只改 include 路径。**索引 ID 归属**：索引序号原定义在 `LockBased` 的索引类（`IndexID`），schema 生成需要它，形成 Model→LockBased 的反向依赖；现改为在记录结构上生成 `Index<名>Id`（与 `TableId` 并列），schema 与索引类都引用它，依赖只剩 LockBased→Model。**索引支持按形态分工（同日裁定）**：B 忽略 `indexes` 节点、不生成索引类与 `EraseBy<键>Index`，使用方只能按键访问；B2 与读写锁版照 Mdb 形式生成；`IndexDefinition` schema 始终完整，供物理库建索引。**验证（已编译已跑）**：五个 `.lib` 各自产出；`TestRcuTables.exe` 同进程链接两个 RCU 库，64 条断言全为 1、`failures=0`、退出码 0；`TestMdb.exe` 退出码 0，输出与基线一致。**风险**：① 目录 = 库的约定靠人工维持，放错目录的文件会被编进错误的库；② `lib/Debug/MdbStaticd.lib` 是旧 GLOB 构建的残留，已不再产出；③ 命名空间未动，读写锁版仍占 `Mdb::`，改名 `Mdb::LockBased` 需另批（会动本仓调用点与 QuantTrading）。已提交 `563333e`（模板侧 `d9f9186`）。
+
+
 ## D.24 — 新增 RCU 形态 demo（`test/DemoRcu`）
 
 - **新增 RCU 形态 demo（`test/DemoRcu`，2026-10-22，仅新增，未改现有 Mdb；同日已改为 B2 形态，见上一条）**：按用户要求，为 `TradingDay` 形状的单主键表演示 B 方案（无锁读 + 原子换指针 + 代数延迟回收），全部代码自包含于 `test/DemoRcu/DemoRcu.cpp`（仅标准库，`TradingDayRow` 为 demo 本地结构，非 `Mdb::TradingDay`），根 `CMakeLists.txt` 按 `TestMdb` 的方式注册 `DemoRcu` 目标（`add_application` + `Threads::Threads`），可与工程一起构建。实现含 `ReaderEpoch`（每读者槽位 + seq_cst 双检登记 + 退休队列）、开放寻址原子槽位表（墓碑删除、负载因子扩容、旧 Root 也走退休队列）、`Select` 返回脱钩副本、`Pin` 提供持锁读取、`Update` 新行换指针、`Erase` 置墓碑、`ForEach` 根快照遍历。**验证（已编译已跑）**：改由工程构建树 `cmake --build out/build/x64-Debug --target DemoRcu` 编译（自动重配置），退出码 0；全部断言为 1，并发用例 `reads=1179381 torn=0 updates=20000 elapsedMs=43`（4 读者 + 1 写者，写者未被读者阻塞）。**未改动**：`src/`、模板、生成物、`TestMdb`。已提交 `4405388`。
