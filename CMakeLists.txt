@@ -69,6 +69,9 @@ target_link_libraries(TestMdb PRIVATE
 copy_dll_file(TestMdb)
 
 # RCU 形态 demo：自包含，只依赖标准库
+# DemoRcu 为 B2（行地址稳定 + seqlock，含二级索引）；DemoRcuB 为 B（换指针 + 代数回收，仅主键）
 find_package(Threads REQUIRED)
 add_application(DemoRcu ${CMAKE_CURRENT_SOURCE_DIR}/test/DemoRcu ${CMAKE_CURRENT_SOURCE_DIR}/test/DemoRcu)
 target_link_libraries(DemoRcu PRIVATE Threads::Threads)
+add_application(DemoRcuB ${CMAKE_CURRENT_SOURCE_DIR}/test/DemoRcuB ${CMAKE_CURRENT_SOURCE_DIR}/test/DemoRcuB)
+target_link_libraries(DemoRcuB PRIVATE Threads::Threads)

@@ -216,31 +216,6 @@ namespace demo
     class StableRowTradingDayTable
     {
     public:
-        class PinnedRow
-        {
-        public:
-            PinnedRow(ReaderEpoch::Guard guard, const VersionedRow* row) : guard_(std::move(guard)), row_(row) {}
-
-            PinnedRow(PinnedRow&&) noexcept = default;
-            PinnedRow(const PinnedRow&) = delete;
-            PinnedRow& operator=(const PinnedRow&) = delete;
-            PinnedRow& operator=(PinnedRow&&) = delete;
-
-            const VersionedRow* Get() const
-            {
-                return row_;
-            }
-
-            TradingDayRow Read() const
-            {
-                return row_->Read();
-            }
-
-        private:
-            ReaderEpoch::Guard guard_;
-            const VersionedRow* row_;
-        };
-
         StableRowTradingDayTable() : root_(CreateRoot(InitialCapacity)) {}
 
         ~StableRowTradingDayTable()
@@ -280,17 +255,6 @@ namespace demo
                 copies.push_back((*it)->Read());
             }
             return copies;
-        }
-
-        std::optional<PinnedRow> Pin(std::int32_t pk)
-        {
-            ReaderEpoch::Guard guard(epoch_, CurrentReaderIndex());
-            const VersionedRow* row = Find(pk);
-            if (row == nullptr)
-            {
-                return std::nullopt;
-            }
-            return PinnedRow(std::move(guard), row);
         }
 
         bool Insert(const TradingDayRow& record)
@@ -682,24 +646,6 @@ namespace
         report.Check(table.PendingRetireCount() == 0, "eraseRetireCollected");
     }
 
-    void TestPinnedRowSurvivesErase(TestReport& report)
-    {
-        demo::StableRowTradingDayTable table;
-        demo::TradingDayRow row{};
-        FillRow(row, 1, "SHFE", 100);
-        report.Check(table.Insert(row), "pinnedInsertBase");
-
-        auto pinned = table.Pin(1);
-        report.Check(pinned.has_value(), "pinnedRowAvailable");
-        report.Check(table.Erase(1), "pinnedEraseAccepted");
-        report.Check(table.PendingRetireCount() > 0, "eraseRetireHeldWhilePinned");
-        report.Check(pinned.has_value() && std::atoi(pinned->Read().CurrTradingDay) == 100, "pinnedRowStillReadable");
-
-        pinned.reset();
-        table.CollectRetired();
-        report.Check(table.PendingRetireCount() == 0, "pinnedRetireCollectedAfterRelease");
-    }
-
     void TestForEach(TestReport& report)
     {
         demo::StableRowTradingDayTable table;
@@ -860,7 +806,6 @@ int main()
     TestUpdateKeepsRowAddress(report);
     TestUpdateMovesIndexEntry(report);
     TestErase(report);
-    TestPinnedRowSurvivesErase(report);
     TestForEach(report);
     TestRebuildForInsert(report);
     TestConcurrentReadersSeeConsistentRows(report);
