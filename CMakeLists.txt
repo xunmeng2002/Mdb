@@ -67,3 +67,8 @@ target_link_libraries(TestMdb PRIVATE
     Spark::Core
     Spark::Serialization)
 copy_dll_file(TestMdb)
+
+# RCU 形态 demo：自包含，只依赖标准库
+find_package(Threads REQUIRED)
+add_application(DemoRcu ${CMAKE_CURRENT_SOURCE_DIR}/test/DemoRcu ${CMAKE_CURRENT_SOURCE_DIR}/test/DemoRcu)
+target_link_libraries(DemoRcu PRIVATE Threads::Threads)
