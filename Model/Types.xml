@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<types namespace="Mdb">
+<types project="Mdb">
 	<bools>
 		<bool name="Bool" desc="布尔类型"/>
 	</bools>
