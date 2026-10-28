@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Model/MdbStructs.h"
+#include "Common/MdbStructs.h"
 
 #include <cstdint>
 #include <cstdio>

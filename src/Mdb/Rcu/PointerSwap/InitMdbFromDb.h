@@ -1,7 +1,7 @@
 // 本文件由 ../Templates/Cpp/Mdb/Rcu/PointerSwap/InitMdbFromDb.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #pragma once
 #include "Mdb.h"
-#include "Model/TableList.h"
+#include "Common/TableList.h"
 #include <DbAdapters/DbInterface/Db.h>
 
 using DbAdapters::Db;

@@ -1,7 +1,7 @@
 // 本文件由 ../Templates/Cpp/Mdb/Rcu/PointerSwap/PointerSwapTables.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #pragma once
-#include "Model/MdbStructs.h"
-#include "Model/MdbTableBase.h"
+#include "Common/MdbStructs.h"
+#include "Common/MdbTableBase.h"
 #include "Rcu/PointerSwap/PointerSwapPrimaryKeys.h"
 #include <DbAdapters/DbInterface/MdbSubscriber.h>
 #include <DbAdapters/DbInterface/RowChangeEvent.h>

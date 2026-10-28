@@ -1,8 +1,8 @@
 // 本文件由 ../Templates/Cpp/Mdb/Rcu/StableRow/StableRowPrimaryKeys.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #pragma once
-#include "Model/MdbStructs.h"
-#include "Model/MdbReadLease.h"
-#include "Model/MdbPrimaryKeyComp.h"
+#include "Common/MdbStructs.h"
+#include "Common/MdbReadLease.h"
+#include "Common/MdbPrimaryKeyComp.h"
 #include "Rcu/RcuEpoch.h"
 #include <atomic>
 #include <cstddef>

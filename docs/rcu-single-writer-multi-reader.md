@@ -316,12 +316,12 @@ schema 的 `IndexDefinition` 始终完整：它描述物理库该建哪些索引
 
 | 目标 | 源目录 | 内容 |
 | --- | --- | --- |
-| `MdbModelStatic` | `src/Mdb/Model` | 数据契约 |
+| `MdbCommonStatic` | `src/Mdb/Common` | 数据契约 |
 | `MdbLockBasedStatic` | `src/Mdb/LockBased` | 读写锁实现 |
 | `MdbRcuCoreStatic` | `src/Mdb/Rcu` | `RcuEpoch`，两个 RCU 库共用一份，避免同进程链接时符号重复 |
 | `MdbRcuPointerSwapStatic` | `src/Mdb/Rcu/PointerSwap` | B 形态表、`Mdb` 聚合、`InitMdbFrom*`（链接 `Spark::Serialization`） |
 | `MdbRcuStableRowStatic` | `src/Mdb/Rcu/StableRow` | B2 形态表、`Mdb` 聚合、`InitMdbFrom*`（链接 `Spark::Serialization`） |
-| `MdbStatic` | — | INTERFACE 聚合（`MdbModelStatic` + `MdbLockBasedStatic`），既有消费方不改 |
+| `MdbStatic` | — | INTERFACE 聚合（`MdbCommonStatic` + `MdbLockBasedStatic`），既有消费方不改 |
 
 每个目标用 `file(GLOB CONFIGURE_DEPENDS "<目录>/*.cpp")` 非递归取源文件，往目录里加 `.cpp` 不用改 CMake。
 文件切分与 `LockBased/` 一致：表类与主键各一个 TU，`<表>Slot` / `SlotArray` 归主键头，`Tables.h` 单向包含 `PrimaryKeys.h`；

@@ -3,7 +3,7 @@
 // 每轮跑固定时长：写侧完成多少条 Update 是观测量之一（读写锁版在读压下会骤降），不做时长断言。
 // 读写两端按命令行给出的操作间隔（微秒）各做一次操作；缺省 1 ms，给 0 即满载自旋的饱和最坏情况。
 #include "LockBased/MdbTables.h"
-#include "Model/MdbStructs.h"
+#include "Common/MdbStructs.h"
 #include "Rcu/PointerSwap/PointerSwapTables.h"
 #include "Rcu/StableRow/StableRowTables.h"
 #include "TestSupport/TestSupport.h"

@@ -1,4 +1,4 @@
-#include "Model/MdbStructs.h"
+#include "Common/MdbStructs.h"
 #include "Rcu/PointerSwap/Mdb.h"
 #include "Rcu/PointerSwap/PointerSwapTables.h"
 #include "Rcu/StableRow/Mdb.h"

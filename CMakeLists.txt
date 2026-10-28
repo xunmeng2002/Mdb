@@ -68,16 +68,16 @@ endfunction()
 
 set(MdbSourceDir ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb)
 
-add_mdb_static_library(MdbModelStatic ${MdbSourceDir}/Model)
-target_link_libraries(MdbModelStatic PUBLIC DbAdapters::DbInterface Spark::Core)
-target_link_libraries(MdbModelStatic PRIVATE Spark::TemplateLib)
+add_mdb_static_library(MdbCommonStatic ${MdbSourceDir}/Common)
+target_link_libraries(MdbCommonStatic PUBLIC DbAdapters::DbInterface Spark::Core)
+target_link_libraries(MdbCommonStatic PRIVATE Spark::TemplateLib)
 
 add_mdb_static_library(MdbLockBasedStatic ${MdbSourceDir}/LockBased)
-target_link_libraries(MdbLockBasedStatic PUBLIC MdbModelStatic)
+target_link_libraries(MdbLockBasedStatic PUBLIC MdbCommonStatic)
 target_link_libraries(MdbLockBasedStatic PRIVATE Spark::Serialization)
 
 add_mdb_static_library(MdbRcuCoreStatic ${MdbSourceDir}/Rcu)
-target_link_libraries(MdbRcuCoreStatic PUBLIC MdbModelStatic Threads::Threads)
+target_link_libraries(MdbRcuCoreStatic PUBLIC MdbCommonStatic Threads::Threads)
 
 add_mdb_static_library(MdbRcuPointerSwapStatic ${MdbSourceDir}/Rcu/PointerSwap)
 target_link_libraries(MdbRcuPointerSwapStatic PUBLIC MdbRcuCoreStatic)
@@ -89,7 +89,7 @@ target_link_libraries(MdbRcuStableRowStatic PRIVATE Spark::Serialization)
 
 # 旧名字保留为聚合目标，现有消费方（TestMdb）不用改
 add_library(MdbStatic INTERFACE)
-target_link_libraries(MdbStatic INTERFACE MdbModelStatic MdbLockBasedStatic)
+target_link_libraries(MdbStatic INTERFACE MdbCommonStatic MdbLockBasedStatic)
 
 # 测试可执行文件
 add_application(TestMdb  ${CMAKE_CURRENT_SOURCE_DIR}/test/TestMdb ${CMAKE_CURRENT_SOURCE_DIR}/test/TestMdb)
@@ -114,7 +114,7 @@ target_link_libraries(DemoRcuB PRIVATE Threads::Threads)
 
 # RCU 形态接入 Mdb 接口的对照测试：同一套场景分别跑 PointerSwap（B）与 StableRow（B2）
 add_application(TestRcuTables ${CMAKE_CURRENT_SOURCE_DIR}/test/TestRcuTables ${CMAKE_CURRENT_SOURCE_DIR}/test/TestRcuTables)
-target_link_libraries(TestRcuTables PRIVATE MdbModelStatic MdbRcuPointerSwapStatic MdbRcuStableRowStatic Threads::Threads)
+target_link_libraries(TestRcuTables PRIVATE MdbCommonStatic MdbRcuPointerSwapStatic MdbRcuStableRowStatic Threads::Threads)
 target_include_directories(TestRcuTables PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/test)
 copy_dll_file(TestRcuTables)
 

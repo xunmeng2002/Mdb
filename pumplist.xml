@@ -2,21 +2,21 @@
     <pump dest="./include/Mdb/Types.h" tpl="../Templates/Cpp/Common/Types.h.tpl" model="./Model/Types.xml"/>
     <pump dest="./src/Mdb/LockBased/Mdb.h" tpl="../Templates/Cpp/Mdb/LockBased/Mdb.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/LockBased/Mdb.cpp" tpl="../Templates/Cpp/Mdb/LockBased/Mdb.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/Model/MdbStructs.h" tpl="../Templates/Cpp/Mdb/Model/MdbStructs.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
-    <pump dest="./src/Mdb/Model/MdbStructs.cpp" tpl="../Templates/Cpp/Mdb/Model/MdbStructs.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
-    <pump dest="./src/Mdb/Model/TableList.h" tpl="../Templates/Cpp/Mdb/Model/TableList.h.tpl" model="./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/Model/MdbTableRegistry.h" tpl="../Templates/Cpp/Mdb/Model/MdbTableRegistry.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/Model/MdbTableRegistry.cpp" tpl="../Templates/Cpp/Mdb/Model/MdbTableRegistry.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/Model/MdbTableBase.h" tpl="../Templates/Cpp/Mdb/Model/MdbTableBase.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/Model/MdbReadLease.h" tpl="../Templates/Cpp/Mdb/Model/MdbReadLease.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Common/MdbStructs.h" tpl="../Templates/Cpp/Mdb/Common/MdbStructs.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Common/MdbStructs.cpp" tpl="../Templates/Cpp/Mdb/Common/MdbStructs.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Common/TableList.h" tpl="../Templates/Cpp/Mdb/Common/TableList.h.tpl" model="./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Common/MdbTableRegistry.h" tpl="../Templates/Cpp/Mdb/Common/MdbTableRegistry.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Common/MdbTableRegistry.cpp" tpl="../Templates/Cpp/Mdb/Common/MdbTableRegistry.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Common/MdbTableBase.h" tpl="../Templates/Cpp/Mdb/Common/MdbTableBase.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Common/MdbReadLease.h" tpl="../Templates/Cpp/Mdb/Common/MdbReadLease.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/LockBased/MdbTables.h" tpl="../Templates/Cpp/Mdb/LockBased/MdbTables.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/LockBased/MdbTables.cpp" tpl="../Templates/Cpp/Mdb/LockBased/MdbTables.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/Model/MdbPrimaryKeyComp.h" tpl="../Templates/Cpp/Mdb/Model/MdbPrimaryKeyComp.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/Model/MdbPrimaryKeyComp.cpp" tpl="../Templates/Cpp/Mdb/Model/MdbPrimaryKeyComp.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Common/MdbPrimaryKeyComp.h" tpl="../Templates/Cpp/Mdb/Common/MdbPrimaryKeyComp.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Common/MdbPrimaryKeyComp.cpp" tpl="../Templates/Cpp/Mdb/Common/MdbPrimaryKeyComp.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
     <pump dest="./src/Mdb/LockBased/MdbPrimaryKeys.h" tpl="../Templates/Cpp/Mdb/LockBased/MdbPrimaryKeys.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/LockBased/MdbPrimaryKeys.cpp" tpl="../Templates/Cpp/Mdb/LockBased/MdbPrimaryKeys.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
-    <pump dest="./src/Mdb/Model/MdbIndexComp.h" tpl="../Templates/Cpp/Mdb/Model/MdbIndexComp.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
-    <pump dest="./src/Mdb/Model/MdbIndexComp.cpp" tpl="../Templates/Cpp/Mdb/Model/MdbIndexComp.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
+    <pump dest="./src/Mdb/Common/MdbIndexComp.h" tpl="../Templates/Cpp/Mdb/Common/MdbIndexComp.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
+    <pump dest="./src/Mdb/Common/MdbIndexComp.cpp" tpl="../Templates/Cpp/Mdb/Common/MdbIndexComp.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
     <pump dest="./src/Mdb/LockBased/MdbIndexes.h" tpl="../Templates/Cpp/Mdb/LockBased/MdbIndexes.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/LockBased/MdbIndexes.cpp" tpl="../Templates/Cpp/Mdb/LockBased/MdbIndexes.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>
     

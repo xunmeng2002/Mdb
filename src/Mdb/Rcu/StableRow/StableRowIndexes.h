@@ -1,8 +1,8 @@
 // 本文件由 ../Templates/Cpp/Mdb/Rcu/StableRow/StableRowIndexes.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #pragma once
-#include "Model/MdbStructs.h"
-#include "Model/MdbIndexComp.h"
-#include "Model/MdbReadLease.h"
+#include "Common/MdbStructs.h"
+#include "Common/MdbIndexComp.h"
+#include "Common/MdbReadLease.h"
 #include <set>
 
 using std::multiset;

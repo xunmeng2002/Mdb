@@ -1,7 +1,7 @@
 // 本文件由 ../Templates/Cpp/Mdb/ModuleTableList.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #pragma once
-#include "Model/TableList.h"
-#include "Model/MdbStructs.h"
+#include "Common/TableList.h"
+#include "Common/MdbStructs.h"
 
 using namespace Mdb;
 namespace Mdb::Full

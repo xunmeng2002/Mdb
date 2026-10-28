@@ -2,9 +2,9 @@
 #pragma once
 #include <optional>
 #include <unordered_set>
-#include "Model/MdbStructs.h"
-#include "Model/MdbPrimaryKeyComp.h"
-#include "Model/MdbReadLease.h"
+#include "Common/MdbStructs.h"
+#include "Common/MdbPrimaryKeyComp.h"
+#include "Common/MdbReadLease.h"
 
 namespace Mdb
 {
