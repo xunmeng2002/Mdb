@@ -171,7 +171,7 @@ if __name__ == "__main__":
     out_content += "#coding:utf-8\n" 
     out_content += "import xml.etree.cElementTree as ET\n"
     out_content += "import sys\n\n"
-    out_content += "out_file = open('%s', 'w+', encoding='UTF-8-SIG', newline='\\n')\n\n" % staged_output_name
+    out_content += "out_file = open('%s', 'w+', encoding='UTF-8', newline='\\n')\n\n" % staged_output_name
     #每个生成物顶部写入「勿手改」头注释。注释符按扩展名白名单取；白名单外一律失败——
     #写错前缀会让产物变成语法非法的文件，而且退出码还是 0，事后极难发现
     comment_prefix_by_extension = {".c": "// ", ".cpp": "// ", ".h": "// ", ".hpp": "// ", ".cs": "// ", ".sql": "-- "}

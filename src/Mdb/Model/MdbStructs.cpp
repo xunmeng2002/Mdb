@@ -1,4 +1,4 @@
-﻿// 本文件由 ../Templates/Cpp/Mdb/Model/MdbStructs.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+// 本文件由 ../Templates/Cpp/Mdb/Model/MdbStructs.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #include "MdbStructs.h"
 #include <Spark/TemplateLib/TemplateLib.h>
 #include <string>

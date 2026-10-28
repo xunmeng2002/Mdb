@@ -5,6 +5,9 @@ import os
 import sys
 from pathlib import Path
 
+Utf8Bom = b'\xef\xbb\xbf'
+
+
 def detect_line_ending(content):
     """检测文件的行尾符类型"""
     if b'\r\n' in content:
@@ -14,29 +17,31 @@ def detect_line_ending(content):
     else:
         return '\n'    # Unix/Linux LF
 
-def convert_to_utf8_bom(file_path, dry_run=False):
-    """将文件转换为 UTF-8 with BOM 格式，保持原始行尾符"""
+
+def convert_to_utf8(file_path, dry_run=False):
+    """将文件统一为 UTF-8 且不带 BOM，保持原始行尾符"""
     try:
         # 读取文件内容（二进制模式）
         with open(file_path, 'rb') as f:
             content = f.read()
-        
-        # 检查是否已有 BOM
-        has_bom = content.startswith(b'\xef\xbb\xbf')
-        
+
+        # 去掉已有的 BOM，往下统一按「不带 BOM」处理
+        has_bom = content.startswith(Utf8Bom)
         if has_bom:
-            return False, "已有 BOM，跳过"
-        
+            content = content[len(Utf8Bom):]
+
         # 检测原始行尾符
         original_line_ending = detect_line_ending(content)
-        
+
         # 尝试解码文件（处理不同编码）
+        decoded_as_utf8 = False
         decoded = False
         text = None
-        
+
         try:
             # 尝试 UTF-8
             text = content.decode('utf-8')
+            decoded_as_utf8 = True
             decoded = True
         except UnicodeDecodeError:
             try:
@@ -58,50 +63,56 @@ def convert_to_utf8_bom(file_path, dry_run=False):
                         print(f"  ⚠ 使用 Latin-1 编码解码: {file_path.name}")
                     except:
                         pass
-        
+
         if not decoded:
             return False, "无法解码文件"
-        
+
+        # 已是 UTF-8 且不带 BOM：无需改动，也不触碰文件时间戳
+        if decoded_as_utf8 and not has_bom:
+            return False, "已是 UTF-8 且不带 BOM，跳过"
+
         # 规范化行尾符：将各种行尾符统一为原始格式
         # 先将所有行尾符标准化为 \n
         text = text.replace('\r\n', '\n').replace('\r', '\n')
         # 再转换回原始行尾符格式
         if original_line_ending != '\n':
             text = text.replace('\n', original_line_ending)
-        
+
         if not dry_run:
-            # 写入 UTF-8 with BOM，使用二进制模式以精确控制
-            encoded_content = text.encode('utf-8-sig')
+            # 写入 UTF-8 不带 BOM，使用二进制模式以精确控制
+            encoded_content = text.encode('utf-8')
             with open(file_path, 'wb') as f:
                 f.write(encoded_content)
-        
+
         return True, "已转换"
-    
+
     except Exception as e:
         return False, f"转换失败: {str(e)}"
+
 
 def should_exclude(file_path, exclude_dirs, exclude_patterns):
     """检查文件是否应该被排除"""
     file_str = str(file_path)
     parts = file_str.split(os.sep)
-    
+
     # 检查排除的目录
     for exclude_dir in exclude_dirs:
         if exclude_dir in parts:
             return True
-    
+
     # 检查排除的模式
     for pattern in exclude_patterns:
         if pattern in file_str:
             return True
-    
+
     return False
+
 
 def main():
     # 配置参数
     root_dir = Path(".")  # 当前目录，或修改为具体路径
     extensions = [".h", ".cpp", ".cu", ".cuh"]  # 要处理的文件扩展名
-    
+
     # 排除的文件夹名称（完全匹配）
     exclude_folders = [
         ".git", ".svn", ".hg",  # 版本控制
@@ -113,28 +124,28 @@ def main():
         "node_modules", "venv", "env",  # Python
         ".vs", ".vscode", "temp", "tmp"  # IDE和临时文件
     ]
-    
+
     # 排除的路径模式（部分匹配）
     exclude_patterns = [
         "cmake-build", "CMakeFiles",
         "out", "output", "bin", "obj"
     ]
-    
+
     # 是否只预览（不实际修改文件）
     dry_run = False
     if len(sys.argv) > 1 and sys.argv[1] == "--dry-run":
         dry_run = True
         print("=== 预览模式（不会修改文件）===\n")
-    
+
     print(f"开始处理目录: {root_dir.absolute()}")
     print(f"文件类型: {', '.join(extensions)}")
     print(f"排除文件夹: {', '.join(exclude_folders)}")
     print("-" * 60)
-    
+
     converted = 0
     skipped = 0
     errors = 0
-    
+
     # 递归查找文件
     for ext in extensions:
         for file_path in root_dir.rglob(f"*{ext}"):
@@ -143,29 +154,28 @@ def main():
                 print(f"⏭ 排除: {file_path}")
                 skipped += 1
                 continue
-            
+
             # 转换文件
-            success, message = convert_to_utf8_bom(file_path, dry_run)
-            
+            success, message = convert_to_utf8(file_path, dry_run)
+
             if success:
                 if not dry_run:
                     print(f"✓ {file_path.relative_to(root_dir)} - {message}")
                 else:
                     print(f"[预览] ✓ {file_path.relative_to(root_dir)}")
                 converted += 1
-            elif "已有 BOM" in message:
+            elif "跳过" in message:
                 print(f"○ {file_path.relative_to(root_dir)} - {message}")
                 skipped += 1
             else:
                 print(f"✗ {file_path.relative_to(root_dir)} - {message}")
                 errors += 1
-    
+
     print("-" * 60)
     print(f"完成！转换: {converted}, 跳过: {skipped}, 错误: {errors}")
     if dry_run:
         print("\n提示: 去掉 --dry-run 参数运行以实际修改文件")
 
+
 if __name__ == "__main__":
     main()
-    
-    

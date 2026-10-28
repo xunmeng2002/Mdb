@@ -17,6 +17,10 @@
 
 namespace
 {
+	using Mdb::AccountIdType;
+	using Mdb::DateType;
+	using Mdb::ExchangeIdType;
+	using Mdb::InstrumentIdType;
 	using Mdb::Order;
 	using Mdb::PrimaryAccount;
 	using Mdb::TradingDay;

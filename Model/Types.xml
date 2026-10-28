@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<types namespace="Mdb">
+	<bools>
+		<bool name="Bool" desc="布尔类型"/>
+	</bools>
+	<uint8s/>
+	<int8s/>
+	<uint16s/>
+	<int16s/>
+	<uint32s/>
+	<int32s>
+		<int32 name="Int32" desc="32位整型类型"/>
+		<int32 name="ClientOrderId" desc="客户端委托编号类型"/>
+		<int32 name="GroupId" desc="组代码类型"/>
+		<int32 name="OfferId" desc="报盘代码类型"/>
+		<int32 name="OrderId" desc="委托编号类型"/>
+		<int32 name="RequestId" desc="请求代码类型"/>
+		<int32 name="VolumeMultiple" desc="合约乘数类型"/>
+	</int32s>
+	<uint64s/>
+	<int64s>
+		<int64 name="SessionId" desc="会话代码类型"/>
+		<int64 name="Volume" desc="数量类型"/>
+	</int64s>
+	<doubles>
+		<double name="Money" desc="金额类型"/>
+		<double name="Price" desc="价格类型"/>
+	</doubles>
+	<strings>
+		<string name="AccountId" len="32" sqltype="char(32)" desc="账号类型"/>
+		<string name="AccountName" len="64" sqltype="char(64)" desc="账号名称类型"/>
+		<string name="Date" len="16" sqltype="char(16)" desc="日期类型"/>
+		<string name="ExchangeId" len="8" sqltype="char(8)" desc="交易所代码类型"/>
+		<string name="ExchangeName" len="64" sqltype="char(64)" desc="交易所名称类型"/>
+		<string name="InstrumentId" len="32" sqltype="char(32)" desc="合约代码类型"/>
+		<string name="InstrumentName" len="64" sqltype="char(64)" desc="合约名称类型"/>
+		<string name="OrderSysId" len="64" sqltype="char(64)" desc="系统委托编号类型"/>
+		<string name="Password" len="64" sqltype="char(64)" desc="密码类型"/>
+		<string name="ProductId" len="32" sqltype="char(32)" desc="品种代码类型"/>
+		<string name="ProductName" len="32" sqltype="char(32)" desc="品种名称类型"/>
+		<string name="SessionName" len="32" sqltype="char(32)" desc="交易节名称"/>
+		<string name="Time" len="16" sqltype="char(16)" desc="时间类型"/>
+		<string name="TradeId" len="64" sqltype="char(64)" desc="成交编号类型"/>
+	</strings>
+	<enums basetype="int32_t">
+		<enum name="AccountClass" desc="账户类别">
+			<item name="Future" value="0" desc="期货"/>
+			<item name="Stock" value="1" desc="股票"/>
+			<item name="Option" value="2" desc="期权"/>
+		</enum>
+		<enum name="AccountType" desc="账户类型">
+			<item name="Primary" value="0" desc="主账户"/>
+			<item name="Sub" value="1" desc="子账户"/>
+		</enum>
+		<enum name="AccountStatus" desc="账户状态">
+			<item name="Normal" value="0" desc="启用"/>
+			<item name="Forbidden" value="1" desc="禁用"/>
+		</enum>
+		<enum name="Direction" desc="买卖方向">
+			<item name="Buy" value="0" desc="买"/>
+			<item name="Sell" value="1" desc="卖"/>
+		</enum>
+		<enum name="InitStatus" desc="行情初始化状态">
+			<item name="UnInitialized" value="0" desc="未初始化"/>
+			<item name="Initializing" value="1" desc="正在初始化"/>
+			<item name="Initialized" value="2" desc="已初始化"/>
+		</enum>
+		<enum name="InstrumentClass" desc="合约类别">
+			<item name="Normal" value="0" desc="普通合约"/>
+			<item name="Main" value="1" desc="主力合约"/>
+		</enum>
+		<enum name="LoginStatus" desc="登录状态">
+			<item name="NotLog" value="0" desc="未登录"/>
+			<item name="Logging" value="1" desc="登录中"/>
+			<item name="Logged" value="2" desc="已登录"/>
+		</enum>
+		<enum name="PosiDirection" desc="持仓方向">
+			<item name="Long" value="0" desc="多头"/>
+			<item name="Short" value="1" desc="空头"/>
+			<item name="Net" value="2" desc="净持仓"/>
+		</enum>
+		<enum name="OffsetFlag" desc="开平标志">
+			<item name="Open" value="0" desc="开仓"/>
+			<item name="Close" value="1" desc="平仓"/>
+			<item name="CloseToday" value="2" desc="平今"/>
+		</enum>
+		<enum name="OrderPriceType" desc="委托价格类型">
+			<item name="LimitPrice" value="0" desc="限价"/>
+			<item name="AnyPriceFAK" value="1" desc="市价立即成交剩余撤销"/>
+			<item name="AnyPriceFOK" value="2" desc="市价立即成全部交否则撤销"/>
+			<item name="LimitPriceFAK" value="3" desc="限价立即成交剩余撤销"/>
+			<item name="LimitPriceFOK" value="4" desc="限价立即成全部交否则撤销"/>
+			<item name="BestOwnPrice" value="5" desc="本方最优价"/>
+			<item name="BestOppoPrice" value="6" desc="对方最优价"/>
+		</enum>
+		<enum name="OrderStatus" desc="委托状态">
+			<item name="Inserting" value="0" desc="正在申报"/>
+			<item name="Inserted" value="1" desc="已报"/>
+			<item name="PartTraded" value="2" desc="部成"/>
+			<item name="AllTraded" value="3" desc="已成"/>
+			<item name="Canceled" value="4" desc="已撤"/>
+			<item name="PartTradedCanceled" value="5" desc="部成部撤"/>
+			<item name="Auditing" value="A" desc="审核中"/>
+			<item name="AuditReject" value="B" desc="审核驳回"/>
+			<item name="RiskChecking" value="C" desc="风控检查中"/>
+			<item name="RiskCheckFailed" value="D" desc="风控检查失败"/>
+			<item name="Error" value="e" desc="废单"/>
+			<item name="NotTouched" value="p" desc="未触发"/>
+			<item name="Touched" value="t" desc="已触发"/>
+			<item name="Unknown" value="x" desc="未知"/>
+		</enum>
+		<enum name="ProductClass" desc="产品类型">
+			<item name="Future" value="0" desc="期货"/>
+			<item name="FutureOption" value="1" desc="期货期权"/>
+			<item name="Combination" value="2" desc="组合"/>
+			<item name="Spot" value="3" desc="即期"/>
+			<item name="EFP" value="4" desc="期转现"/>
+			<item name="Index" value="5" desc="指数"/>
+			<item name="Stock" value="6" desc="股票"/>
+			<item name="StockOption" value="7" desc="股票期权"/>
+			<item name="ETF" value="8" desc="ETF"/>
+		</enum>
+	</enums>
+</types>

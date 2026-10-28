@@ -1,4 +1,4 @@
-﻿// 本文件由 ../Templates/Cpp/Mdb/Rcu/StableRow/InitMdbFromCsv.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+// 本文件由 ../Templates/Cpp/Mdb/Rcu/StableRow/InitMdbFromCsv.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #include "InitMdbFromCsv.h"
 #include <Spark/Serialization/Csv/CsvRecord.h>
 #include <Spark/Core/Utility/Utility.h>

@@ -1,4 +1,4 @@
-﻿// 本文件由 ../Templates/Cpp/Mdb/Rcu/PointerSwap/PointerSwapPrimaryKeys.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+// 本文件由 ../Templates/Cpp/Mdb/Rcu/PointerSwap/PointerSwapPrimaryKeys.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #include "Rcu/PointerSwap/PointerSwapPrimaryKeys.h"
 #include "Rcu/PointerSwap/PointerSwapTables.h"
 #include <Spark/Core/Utility/Utility.h>

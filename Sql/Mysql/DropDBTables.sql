@@ -1,4 +1,4 @@
-﻿-- 本文件由 ../Templates/Sql/Mysql/DropTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+-- 本文件由 ../Templates/Sql/Mysql/DropTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 DROP TABLE IF EXISTS `TradingDay`;
 DROP TABLE IF EXISTS `Exchange`;
 DROP TABLE IF EXISTS `Product`;

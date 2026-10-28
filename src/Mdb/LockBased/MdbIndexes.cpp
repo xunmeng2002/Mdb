@@ -1,4 +1,4 @@
-﻿// 本文件由 ../Templates/Cpp/Mdb/MdbIndexes.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+// 本文件由 ../Templates/Cpp/Mdb/LockBased/MdbIndexes.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #include "MdbIndexes.h"
 #include "MdbTables.h"
 #include <Spark/Core/Utility/Utility.h>

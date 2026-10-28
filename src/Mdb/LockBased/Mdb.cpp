@@ -1,4 +1,4 @@
-﻿// 本文件由 ../Templates/Cpp/Mdb/LockBased/Mdb.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+// 本文件由 ../Templates/Cpp/Mdb/LockBased/Mdb.cpp.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #include "Mdb.h"
 
 
@@ -85,21 +85,21 @@ namespace Mdb
 	{
 		if (replicaSubscriber_ != nullptr)
 		{
-			replicaSubscriber_->OnTableOp(DbOperateType::CreateTables);
+			replicaSubscriber_->OnTableOp(DbAdapters::DbOperateType::CreateTables);
 		}
 	}
 	void Mdb::DropTables()
 	{
 		if (replicaSubscriber_ != nullptr)
 		{
-			replicaSubscriber_->OnTableOp(DbOperateType::DropTables);
+			replicaSubscriber_->OnTableOp(DbAdapters::DbOperateType::DropTables);
 		}
 	}
 	void Mdb::TruncateTables()
 	{
 		if (replicaSubscriber_ != nullptr)
 		{
-			replicaSubscriber_->OnTableOp(DbOperateType::TruncateTables);
+			replicaSubscriber_->OnTableOp(DbAdapters::DbOperateType::TruncateTables);
 		}
 		for (auto table : tables_)
 		{

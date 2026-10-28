@@ -1,4 +1,5 @@
 <pumplist>
+    <pump dest="./src/Mdb/Model/Types.h" tpl="../Templates/Cpp/Common/Types.h.tpl" model="./Model/Types.xml"/>
     <pump dest="./src/Mdb/LockBased/Mdb.h" tpl="../Templates/Cpp/Mdb/LockBased/Mdb.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/LockBased/Mdb.cpp" tpl="../Templates/Cpp/Mdb/LockBased/Mdb.cpp.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml"/>
     <pump dest="./src/Mdb/Model/MdbStructs.h" tpl="../Templates/Cpp/Mdb/Model/MdbStructs.h.tpl" model="./Model/Tables/Tables.xml ./Model/Tables/TableNames.xml ../Model/Types.xml"/>

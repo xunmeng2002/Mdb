@@ -1,4 +1,4 @@
-﻿-- 本文件由 ../Templates/Sql/Mysql/CreateTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+-- 本文件由 ../Templates/Sql/Mysql/CreateTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 
 CREATE TABLE IF NOT EXISTS `TradingDay` (
   `Pk` int COMMENT '主键',

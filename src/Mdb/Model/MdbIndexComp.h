@@ -1,4 +1,4 @@
-﻿// 本文件由 ../Templates/Cpp/Mdb/MdbIndexComp.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
+// 本文件由 ../Templates/Cpp/Mdb/Model/MdbIndexComp.h.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 #pragma once
 #include "MdbStructs.h"
 

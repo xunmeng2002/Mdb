@@ -111,7 +111,7 @@ Mdb/
 
 | 依赖 | 安装位置 | 提供内容 |
 | ---- | ---- | ---- |
-| **Spark** 基础库 | `../Libs/Spark/<triplet>` | `Spark::Core`（线程、日志）、`Spark/Types.h` 类型定义 |
+| **Spark** 基础库 | `../Libs/Spark/<triplet>` | `Spark::Core`（线程、日志）、`Spark::Serialization`（类型定义在本仓 `src/Mdb/Model/Types.h`） |
 | **DbAdapters** 数据库访问层 | `../Libs/DbAdapters/<triplet>` | `DbInterface` / `AsyncDbWriter` / 四种数据库 Wrapper |
 | **DuckDB** | `../Libs/duckdb/<triplet>` | `duckdb::duckdb`（DuckDB 后端运行时） |
 
