@@ -1,6 +1,6 @@
 -- 本文件由 ../Templates/Sql/Duckdb/CreateTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 
-CREATE TABLE IF NOT EXISTS TradingDay(
+CREATE TABLE IF NOT EXISTS TradingDays(
   Pk int, 
   CurrTradingDay varchar, 
   PreTradingDay varchar, 
@@ -8,14 +8,14 @@ CREATE TABLE IF NOT EXISTS TradingDay(
 );  -- '交易日'
 
 
-CREATE TABLE IF NOT EXISTS Exchange(
+CREATE TABLE IF NOT EXISTS Exchanges(
   ExchangeId varchar, 
   ExchangeName varchar, 
   PRIMARY KEY(ExchangeId)
 );  -- '交易所'
 
 
-CREATE TABLE IF NOT EXISTS Product(
+CREATE TABLE IF NOT EXISTS Products(
   ExchangeId varchar, 
   ProductId varchar, 
   ProductName varchar, 
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS Product(
 );  -- '品种表'
 
 
-CREATE TABLE IF NOT EXISTS Instrument(
+CREATE TABLE IF NOT EXISTS Instruments(
   ExchangeId varchar, 
   InstrumentId varchar, 
   ExchangeInstId varchar, 
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS Instrument(
 );  -- '合约'
 
 
-CREATE TABLE IF NOT EXISTS PrimaryAccount(
+CREATE TABLE IF NOT EXISTS PrimaryAccounts(
   PrimaryAccountId varchar, 
   PrimaryAccountName varchar, 
   AccountClass int, 
@@ -63,10 +63,10 @@ CREATE TABLE IF NOT EXISTS PrimaryAccount(
   InitStatus int, 
   PRIMARY KEY(PrimaryAccountId)
 );  -- '主账户'
-  CREATE INDEX PrimaryAccountOfferId ON PrimaryAccount(OfferId);
+  CREATE INDEX PrimaryAccountsOfferId ON PrimaryAccounts(OfferId);
 
 
-CREATE TABLE IF NOT EXISTS Account(
+CREATE TABLE IF NOT EXISTS Accounts(
   AccountId varchar, 
   AccountName varchar, 
   AccountType int, 
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS Account(
 );  -- '账户'
 
 
-CREATE TABLE IF NOT EXISTS Capital(
+CREATE TABLE IF NOT EXISTS Capitals(
   TradingDay varchar, 
   AccountId varchar, 
   AccountType int, 
@@ -102,10 +102,10 @@ CREATE TABLE IF NOT EXISTS Capital(
   Withdraw double, 
   PRIMARY KEY(TradingDay, AccountId)
 );  -- '资金'
-  CREATE INDEX CapitalTradingDay ON Capital(TradingDay);
+  CREATE INDEX CapitalsTradingDay ON Capitals(TradingDay);
 
 
-CREATE TABLE IF NOT EXISTS Position(
+CREATE TABLE IF NOT EXISTS Positions(
   TradingDay varchar, 
   AccountId varchar, 
   AccountType int, 
@@ -133,11 +133,11 @@ CREATE TABLE IF NOT EXISTS Position(
   PreSettlementPrice double, 
   PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection)
 );  -- '持仓'
-  CREATE INDEX PositionAccount ON Position(TradingDay, AccountId);
-  CREATE INDEX PositionTradingDay ON Position(TradingDay);
+  CREATE INDEX PositionsAccount ON Positions(TradingDay, AccountId);
+  CREATE INDEX PositionsTradingDay ON Positions(TradingDay);
 
 
-CREATE TABLE IF NOT EXISTS PositionDetail(
+CREATE TABLE IF NOT EXISTS PositionDetails(
   TradingDay varchar, 
   AccountId varchar, 
   AccountType int, 
@@ -165,11 +165,11 @@ CREATE TABLE IF NOT EXISTS PositionDetail(
   CloseAmount double, 
   PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection, OpenDate, TradeId)
 );  -- '持仓明细'
-  CREATE INDEX PositionDetailTradeMatch ON PositionDetail(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection);
-  CREATE INDEX PositionDetailTradingDay ON PositionDetail(TradingDay);
+  CREATE INDEX PositionDetailsTradeMatch ON PositionDetails(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection);
+  CREATE INDEX PositionDetailsTradingDay ON PositionDetails(TradingDay);
 
 
-CREATE TABLE IF NOT EXISTS Order(
+CREATE TABLE IF NOT EXISTS Orders(
   TradingDay varchar, 
   AccountId varchar, 
   AccountType int, 
@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS Order(
 );  -- '委托'
 
 
-CREATE TABLE IF NOT EXISTS Trade(
+CREATE TABLE IF NOT EXISTS Trades(
   TradingDay varchar, 
   AccountId varchar, 
   AccountType int, 

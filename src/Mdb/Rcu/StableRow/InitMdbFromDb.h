@@ -12,16 +12,16 @@ namespace Mdb::Rcu::StableRow
 	public:
 		static void LoadTables(Mdb* mdb, Db* db, const TableList& tableList);
 
-		static void LoadTradingDay(Mdb* mdb, Db* db);
-		static void LoadExchange(Mdb* mdb, Db* db);
-		static void LoadProduct(Mdb* mdb, Db* db);
-		static void LoadInstrument(Mdb* mdb, Db* db);
-		static void LoadPrimaryAccount(Mdb* mdb, Db* db);
-		static void LoadAccount(Mdb* mdb, Db* db);
-		static void LoadCapital(Mdb* mdb, Db* db);
-		static void LoadPosition(Mdb* mdb, Db* db);
-		static void LoadPositionDetail(Mdb* mdb, Db* db);
-		static void LoadOrder(Mdb* mdb, Db* db);
-		static void LoadTrade(Mdb* mdb, Db* db);
+		static void LoadTradingDays(Mdb* mdb, Db* db);
+		static void LoadExchanges(Mdb* mdb, Db* db);
+		static void LoadProducts(Mdb* mdb, Db* db);
+		static void LoadInstruments(Mdb* mdb, Db* db);
+		static void LoadPrimaryAccounts(Mdb* mdb, Db* db);
+		static void LoadAccounts(Mdb* mdb, Db* db);
+		static void LoadCapitals(Mdb* mdb, Db* db);
+		static void LoadPositions(Mdb* mdb, Db* db);
+		static void LoadPositionDetails(Mdb* mdb, Db* db);
+		static void LoadOrders(Mdb* mdb, Db* db);
+		static void LoadTrades(Mdb* mdb, Db* db);
 	};
 }

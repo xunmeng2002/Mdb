@@ -1,6 +1,6 @@
 -- 本文件由 ../Templates/Sql/Mysql/CreateTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 
-CREATE TABLE IF NOT EXISTS `TradingDay` (
+CREATE TABLE IF NOT EXISTS `TradingDays` (
   `Pk` int COMMENT '主键',
   `CurrTradingDay` char(16) COMMENT '当前交易日',
   `PreTradingDay` char(16) COMMENT '昨交易日',
@@ -8,14 +8,14 @@ CREATE TABLE IF NOT EXISTS `TradingDay` (
   PRIMARY KEY(Pk)
 ) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin' COMMENT='交易日';
 
-CREATE TABLE IF NOT EXISTS `Exchange` (
+CREATE TABLE IF NOT EXISTS `Exchanges` (
   `ExchangeId` char(8) COMMENT '交易所代码',
   `ExchangeName` char(64) COMMENT '交易所名称',
 
   PRIMARY KEY(ExchangeId)
 ) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin' COMMENT='交易所';
 
-CREATE TABLE IF NOT EXISTS `Product` (
+CREATE TABLE IF NOT EXISTS `Products` (
   `ExchangeId` char(8) COMMENT '交易所代码',
   `ProductId` char(32) COMMENT '品种代码',
   `ProductName` char(32) COMMENT '品种名称',
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `Product` (
   PRIMARY KEY(ExchangeId, ProductId)
 ) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin' COMMENT='品种表';
 
-CREATE TABLE IF NOT EXISTS `Instrument` (
+CREATE TABLE IF NOT EXISTS `Instruments` (
   `ExchangeId` char(8) COMMENT '交易所代码',
   `InstrumentId` char(32) COMMENT '合约代码',
   `ExchangeInstId` char(32) COMMENT '交易所合约代码',
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `Instrument` (
   PRIMARY KEY(ExchangeId, InstrumentId)
 ) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin' COMMENT='合约';
 
-CREATE TABLE IF NOT EXISTS `PrimaryAccount` (
+CREATE TABLE IF NOT EXISTS `PrimaryAccounts` (
   `PrimaryAccountId` char(32) COMMENT '主账户代码',
   `PrimaryAccountName` char(64) COMMENT '主账户名称',
   `AccountClass` int COMMENT '账户类别',
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `PrimaryAccount` (
   PRIMARY KEY(PrimaryAccountId)
 ) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin' COMMENT='主账户';
 
-CREATE TABLE IF NOT EXISTS `Account` (
+CREATE TABLE IF NOT EXISTS `Accounts` (
   `AccountId` char(32) COMMENT '账户代码',
   `AccountName` char(64) COMMENT '账户名称',
   `AccountType` int COMMENT '账户类型',
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS `Account` (
   PRIMARY KEY(AccountId)
 ) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin' COMMENT='账户';
 
-CREATE TABLE IF NOT EXISTS `Capital` (
+CREATE TABLE IF NOT EXISTS `Capitals` (
   `TradingDay` char(16) COMMENT '交易日',
   `AccountId` char(32) COMMENT '账户代码',
   `AccountType` int COMMENT '账户类型',
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS `Capital` (
   PRIMARY KEY(TradingDay, AccountId)
 ) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin' COMMENT='资金';
 
-CREATE TABLE IF NOT EXISTS `Position` (
+CREATE TABLE IF NOT EXISTS `Positions` (
   `TradingDay` char(16) COMMENT '交易日',
   `AccountId` char(32) COMMENT '账户代码',
   `AccountType` int COMMENT '账户类型',
@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS `Position` (
   PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection)
 ) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin' COMMENT='持仓';
 
-CREATE TABLE IF NOT EXISTS `PositionDetail` (
+CREATE TABLE IF NOT EXISTS `PositionDetails` (
   `TradingDay` char(16) COMMENT '交易日',
   `AccountId` char(32) COMMENT '账户代码',
   `AccountType` int COMMENT '账户类型',
@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS `PositionDetail` (
   PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection, OpenDate, TradeId)
 ) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin' COMMENT='持仓明细';
 
-CREATE TABLE IF NOT EXISTS `Order` (
+CREATE TABLE IF NOT EXISTS `Orders` (
   `TradingDay` char(16) COMMENT '交易日',
   `AccountId` char(32) COMMENT '账户代码',
   `AccountType` int COMMENT '账户类型',
@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS `Order` (
   PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, OrderId)
 ) ENGINE=MyISAM DEFAULT COLLATE='utf8mb4_bin' COMMENT='委托';
 
-CREATE TABLE IF NOT EXISTS `Trade` (
+CREATE TABLE IF NOT EXISTS `Trades` (
   `TradingDay` char(16) COMMENT '交易日',
   `AccountId` char(32) COMMENT '账户代码',
   `AccountType` int COMMENT '账户类型',

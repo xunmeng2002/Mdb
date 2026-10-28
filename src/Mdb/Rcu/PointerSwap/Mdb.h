@@ -30,17 +30,17 @@ namespace Mdb::Rcu::PointerSwap
 		virtual void OnDbConnected() override;
 		virtual void OnDbDisConnected() override;
 
-		TradingDayTable* TradingDay = nullptr;
-		ExchangeTable* Exchange = nullptr;
-		ProductTable* Product = nullptr;
-		InstrumentTable* Instrument = nullptr;
-		PrimaryAccountTable* PrimaryAccount = nullptr;
-		AccountTable* Account = nullptr;
-		CapitalTable* Capital = nullptr;
-		PositionTable* Position = nullptr;
-		PositionDetailTable* PositionDetail = nullptr;
-		OrderTable* Order = nullptr;
-		TradeTable* Trade = nullptr;
+		TradingDayTable* TradingDays = nullptr;
+		ExchangeTable* Exchanges = nullptr;
+		ProductTable* Products = nullptr;
+		InstrumentTable* Instruments = nullptr;
+		PrimaryAccountTable* PrimaryAccounts = nullptr;
+		AccountTable* Accounts = nullptr;
+		CapitalTable* Capitals = nullptr;
+		PositionTable* Positions = nullptr;
+		PositionDetailTable* PositionDetails = nullptr;
+		OrderTable* Orders = nullptr;
+		TradeTable* Trades = nullptr;
 
 	private:
 		MdbTableBase* FindTable(unsigned int tableId);

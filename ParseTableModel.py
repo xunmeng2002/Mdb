@@ -34,15 +34,16 @@ def GetItems(itemFile, items):
         item.Desc = itemNode.getAttribute("desc")
         items[item.Name] = item
 
-def GetTables(tableFile, items, tables) -> str:
+def GetTables(tableFile, items, tables) -> tuple[str, dict[str, str]]:
     dom = xml.dom.minidom.parse(tableFile)
     root = dom.documentElement
     project = root.getAttribute("project")
+    rootAttributes = dict(root.attributes.items())
     lastId = 0
     for tableNode in root.getElementsByTagName("table"):
         table = Table()
         table.Name = tableNode.getAttribute("name")
-        table.DbName = tableNode.getAttribute("dbname")
+        table.DbName = tableNode.getAttribute("dbname") or table.Name
         tableId = tableNode.getAttribute("id")
         if tableId:
             table.Id = int(tableId, 16)
@@ -76,7 +77,7 @@ def GetTables(tableFile, items, tables) -> str:
                     itemName = itemNode.getAttribute("name")
                     table.Indexes[indexName].append(items[itemName])
         tables.append(table)
-    return project
+    return project, rootAttributes
 	
 def AddItemNode(dom, parentNode, item):
     itemNode = dom.createElement('item')
@@ -129,23 +130,27 @@ def ReadXml(tableFile, itemFile):
     tables = []
     destFields = {}
     GetItems(itemFile, items)
-    project = GetTables(tableFile, items, tables)
-    return project, tables
+    project, rootAttributes = GetTables(tableFile, items, tables)
+    return project, rootAttributes, tables
 
-def WriteTablesFile(destTableFile, tables):
+def WriteTablesFile(destTableFile, tables, sourceRootAttributes):
     impl = xml.dom.minidom.getDOMImplementation()
     dom = impl.createDocument(None, 'tables', None)
     root = dom.documentElement
+    for name, value in sourceRootAttributes.items():
+        root.setAttribute(name, value)
     for table in tables:
         AddTableNode(dom, root, table)
     f = open(destTableFile, 'w', encoding="UTF-8")
     dom.writexml(f, indent="", addindent='\t', newl='\n', encoding="UTF-8")
     f.close()
 
-def WriteFullDbTablesFile(fullDbTablesFile, project, tables):
+def WriteFullDbTablesFile(fullDbTablesFile, project, tables, sourceRootAttributes):
     impl = xml.dom.minidom.getDOMImplementation()
     dom = impl.createDocument(None, 'dbtables', None)
     root = dom.documentElement
+    for name, value in sourceRootAttributes.items():
+        root.setAttribute(name, value)
     root.setAttribute("project", project)
     root.setAttribute("module", "Full")
     for table in tables:
@@ -165,6 +170,6 @@ if __name__ == "__main__":
     shortTableFile = sys.argv[3]
     itemFile = sys.argv[4]
 
-    project, tables = ReadXml(shortTableFile, itemFile)
-    WriteTablesFile(destTableFile, tables)
-    WriteFullDbTablesFile(fullDbTableFile, project, tables)
+    project, rootAttributes, tables = ReadXml(shortTableFile, itemFile)
+    WriteTablesFile(destTableFile, tables, rootAttributes)
+    WriteFullDbTablesFile(fullDbTableFile, project, tables, rootAttributes)

@@ -97,7 +97,7 @@ namespace testMdb
     static TradingDay* InitTradingDay(::Mdb::Mdb* mdb)
     {
         auto tradingDay = PrepareTradingDay();
-        mdb->TradingDay->Insert(tradingDay);
+        mdb->TradingDays->Insert(tradingDay);
         return tradingDay;
     }
     static void InitExchange(::Mdb::Mdb* mdb)
@@ -105,7 +105,7 @@ namespace testMdb
         auto exchanges = PrepareExchanges();
         for (auto exchange : *exchanges)
         {
-            mdb->Exchange->Insert(exchange);
+            mdb->Exchanges->Insert(exchange);
         }
         exchanges->clear();
         delete exchanges;
@@ -113,7 +113,7 @@ namespace testMdb
     static void InitAccount(::Mdb::Mdb* mdb)
     {
         Account* account = PrepareAccount("Xunmeng01", "Xunmeng01", "123456");
-        mdb->Account->Insert(account);
+        mdb->Accounts->Insert(account);
     }
 
     void Print(const TradingDay* tradingDay)
@@ -164,13 +164,13 @@ namespace testMdb
         strcpy(records[2]->ExchangeId, "CFFEX");
 
         Exchange* handedInRecord = records[0];
-        mdb->Exchange->BatchInsert(records);
+        mdb->Exchanges->BatchInsert(records);
         const bool callerContainerCleared = records.empty();
 
         int storedRowCount = 0;
         bool storedHandedInRecord = false;
         {
-            auto storedRange = mdb->Exchange->PrimaryKey->SelectAll();
+            auto storedRange = mdb->Exchanges->PrimaryKey->SelectAll();
             for (auto it = storedRange.begin(); it != storedRange.end(); ++it)
             {
                 ++storedRowCount;
@@ -181,7 +181,7 @@ namespace testMdb
             }
         }
 
-        mdb->Exchange->TruncateTable();
+        mdb->Exchanges->TruncateTable();
         delete mdb;
 
         WriteLog(LogLevel::Info, "BatchInsert ownership: storedRowCount=%d storedHandedInRecord=%d callerContainerCleared=%d",
@@ -196,10 +196,10 @@ namespace testMdb
         Exchange* firstExchange = Exchange::Allocate();
         strcpy(firstExchange->ExchangeId, "SHFE");
         strcpy(firstExchange->ExchangeName, "上海期货交易所");
-        mdb->Exchange->Insert(firstExchange);
+        mdb->Exchanges->Insert(firstExchange);
 
         ExchangeIdType exchangeId = "SHFE";
-        std::optional<Exchange> snapshot = mdb->Exchange->PrimaryKey->Select(exchangeId);
+        std::optional<Exchange> snapshot = mdb->Exchanges->PrimaryKey->Select(exchangeId);
         const bool selectReturnedCopy = snapshot.has_value() && &*snapshot != firstExchange;
 
         // 副本与表内活记录脱钩：改活记录不影响早已取走的副本
@@ -212,7 +212,7 @@ namespace testMdb
         {
             Exchange* secondExchange = Exchange::Allocate();
             strcpy(secondExchange->ExchangeId, "INE");
-            mdb->Exchange->Insert(secondExchange);
+            mdb->Exchanges->Insert(secondExchange);
             writerCompleted = true;
         });
         for (int waited = 0; waited < 3000 && !writerCompleted.load(); ++waited)
@@ -223,24 +223,24 @@ namespace testMdb
         writer.join();
 
         // Erase 按主键定位：传副本即可删掉表内活记录
-        const bool erased = mdb->Exchange->Erase(*snapshot);
-        const bool erasedLiveRecord = erased && !mdb->Exchange->PrimaryKey->Select(exchangeId).has_value();
+        const bool erased = mdb->Exchanges->Erase(*snapshot);
+        const bool erasedLiveRecord = erased && !mdb->Exchanges->PrimaryKey->Select(exchangeId).has_value();
 
         int rowCount = 0;
-        mdb->Exchange->ForEach([&rowCount](const Exchange*)
+        mdb->Exchanges->ForEach([&rowCount](const Exchange*)
         {
             ++rowCount;
             return true;
         });
 
         int visitedBeforeStop = 0;
-        mdb->Exchange->ForEach([&visitedBeforeStop](const Exchange*)
+        mdb->Exchanges->ForEach([&visitedBeforeStop](const Exchange*)
         {
             ++visitedBeforeStop;
             return false;
         });
 
-        mdb->Exchange->TruncateTable();
+        mdb->Exchanges->TruncateTable();
         delete mdb;
 
         WriteLog(LogLevel::Info,
@@ -413,7 +413,7 @@ namespace testMdb
         mdb->Subscribe(&secondSubscriber);
 
         Exchange* liveRecord = AllocateExchange("SHFE");
-        mdb->Exchange->Insert(liveRecord);
+        mdb->Exchanges->Insert(liveRecord);
 
         std::vector<RowChangeEventPtr> firstEvents = firstSubscriber.TakeReceivedEvents();
         std::vector<RowChangeEventPtr> secondEvents = secondSubscriber.TakeReceivedEvents();
@@ -441,7 +441,7 @@ namespace testMdb
         const bool recordReleasedWithLastReference = eventWatcher.expired();
 
         mdb->UnSubscribe();
-        mdb->Exchange->TruncateTable();
+        mdb->Exchanges->TruncateTable();
         delete mdb;
 
         WriteLog(LogLevel::Info,
@@ -458,7 +458,7 @@ namespace testMdb
     {
         ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
         RowChangeRecordingSubscriber recorder;
-        mdb->Order->Subscribe(&recorder);
+        mdb->Orders->Subscribe(&recorder);
 
         DateType tradingDay = "20261022";
         AccountIdType accountId = "A001";
@@ -475,7 +475,7 @@ namespace testMdb
         };
         auto selectLiveOrder = [&]() -> std::optional<Order>
         {
-            return mdb->Order->PrimaryKey->Select(tradingDay, accountId, exchangeId, instrumentId, 1001);
+            return mdb->Orders->PrimaryKey->Select(tradingDay, accountId, exchangeId, instrumentId, 1001);
         };
 
         Order* liveOrder = Order::Allocate();
@@ -483,13 +483,13 @@ namespace testMdb
         liveOrder->SessionId = 1;
         liveOrder->ClientOrderId = 5001;
         liveOrder->Volume = 1;
-        mdb->Order->Insert(liveOrder);
+        mdb->Orders->Insert(liveOrder);
         recorder.TakeReceivedEvents();                       // 丢掉插入事件，后面只看写入路径
 
         Order missingOrder{};
         fillOrderKey(missingOrder, 9999);
-        const bool updateMissingRejected = !mdb->Order->Update(missingOrder);
-        const bool eraseMissingRejected = !mdb->Order->Erase(missingOrder);
+        const bool updateMissingRejected = !mdb->Orders->Update(missingOrder);
+        const bool eraseMissingRejected = !mdb->Orders->Erase(missingOrder);
         const bool missingRecordEmittedNothing = recorder.TakeReceivedEvents().empty();
 
         std::optional<Order> changedUniqueKey = selectLiveOrder();
@@ -497,7 +497,7 @@ namespace testMdb
         if (changedUniqueKey.has_value())
         {
             changedUniqueKey->ClientOrderId = 6001;
-            uniqueKeyChangeRejected = !mdb->Order->Update(*changedUniqueKey);
+            uniqueKeyChangeRejected = !mdb->Orders->Update(*changedUniqueKey);
         }
         const bool uniqueKeyChangeEmittedNothing = recorder.TakeReceivedEvents().empty();
 
@@ -510,7 +510,7 @@ namespace testMdb
         if (volumeChange.has_value())
         {
             volumeChange->Volume = 7;
-            volumeUpdated = mdb->Order->Update(*volumeChange);
+            volumeUpdated = mdb->Orders->Update(*volumeChange);
         }
         std::optional<Order> afterUpdate = selectLiveOrder();
         const bool updatedValueStored = afterUpdate.has_value() && afterUpdate->Volume == 7;
@@ -521,7 +521,7 @@ namespace testMdb
             && updateEvents.front()->TableId == Order::TableId;
 
         mdb->UnSubscribe();
-        mdb->Order->TruncateTable();
+        mdb->Orders->TruncateTable();
         delete mdb;
 
         WriteLog(LogLevel::Info,
@@ -540,18 +540,18 @@ namespace testMdb
     static bool TestSnapshotBatchPrecedesLaterWrites()
     {
         ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
-        mdb->Exchange->Insert(AllocateExchange("SHFE"));
+        mdb->Exchanges->Insert(AllocateExchange("SHFE"));
 
         BlockingSnapshotReplica replica;
-        mdb->Exchange->SubscribeReplica(&replica);
+        mdb->Exchanges->SubscribeReplica(&replica);
 
-        std::thread snapshotThread([mdb]() { mdb->Exchange->InitDb(); });
+        std::thread snapshotThread([mdb]() { mdb->Exchanges->InitDb(); });
         replica.WaitForBatchEntered();
 
         std::atomic<bool> writerCompleted{ false };
         std::thread writerThread([mdb, &writerCompleted]()
         {
-            mdb->Exchange->Insert(AllocateExchange("INE"));
+            mdb->Exchanges->Insert(AllocateExchange("INE"));
             writerCompleted = true;
         });
 
@@ -569,7 +569,7 @@ namespace testMdb
             && replica.GetRowChangeCountAfterSnapshotComplete() == 1;
 
         mdb->UnSubscribe();
-        mdb->Exchange->TruncateTable();
+        mdb->Exchanges->TruncateTable();
         delete mdb;
 
         WriteLog(LogLevel::Info,
@@ -586,15 +586,15 @@ namespace testMdb
     static bool TestSnapshotWaitsForPendingPublication()
     {
         ::Mdb::Mdb* mdb = new ::Mdb::Mdb(FullTableList);
-        mdb->Exchange->Insert(AllocateExchange("SHFE"));
+        mdb->Exchanges->Insert(AllocateExchange("SHFE"));
 
         BlockingRowChangeReplica replica;
-        mdb->Exchange->SubscribeReplica(&replica);
+        mdb->Exchanges->SubscribeReplica(&replica);
 
-        std::thread writerThread([mdb]() { mdb->Exchange->Insert(AllocateExchange("INE")); });
+        std::thread writerThread([mdb]() { mdb->Exchanges->Insert(AllocateExchange("INE")); });
         replica.WaitForRowChangeEntered();
 
-        std::thread snapshotThread([mdb]() { mdb->Exchange->InitDb(); });
+        std::thread snapshotThread([mdb]() { mdb->Exchanges->InitDb(); });
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         const bool snapshotWaitedForPublication = replica.GetSnapshotBeginCount() == 0;
 
@@ -610,7 +610,7 @@ namespace testMdb
             && replica.GetRowChangeCountAfterSnapshotComplete() == 0;
 
         mdb->UnSubscribe();
-        mdb->Exchange->TruncateTable();
+        mdb->Exchanges->TruncateTable();
         delete mdb;
 
         WriteLog(LogLevel::Info,
@@ -715,15 +715,15 @@ namespace testMdb
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-        mdb->Exchange->Insert(AllocateExchange("SHFE"));
+        mdb->Exchanges->Insert(AllocateExchange("SHFE"));
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         const int pendingWhileConnected = dbWriter->PendingOperateCount();
 
         failingDb->ThrowOnNextWrite();
-        mdb->Exchange->Insert(AllocateExchange("INE"));
+        mdb->Exchanges->Insert(AllocateExchange("INE"));
         const bool writerDisconnectedItself = failingDb->WaitForDisconnect(5000);
 
-        mdb->Exchange->Insert(AllocateExchange("CFFEX"));
+        mdb->Exchanges->Insert(AllocateExchange("CFFEX"));
         const int pendingAfterDisconnectedInsert = dbWriter->PendingOperateCount();
 
         // 写线程休眠 5 秒后自行重连：重建表 -> 全表快照 -> 批量落库
@@ -787,7 +787,7 @@ namespace testMdb
 
         ExchangeIdType exchangeID("CFFEX");
         {
-            std::optional<Exchange> exchange = mdb->Exchange->PrimaryKey->Select(exchangeID);
+            std::optional<Exchange> exchange = mdb->Exchanges->PrimaryKey->Select(exchangeID);
             if (exchange.has_value())
             {
                 Print(&*exchange);
@@ -795,16 +795,16 @@ namespace testMdb
         }
 
         {
-            std::optional<TradingDay> tradingDay = mdb->TradingDay->PrimaryKey->Select(1);
+            std::optional<TradingDay> tradingDay = mdb->TradingDays->PrimaryKey->Select(1);
             if (tradingDay.has_value())
             {
                 Print(&*tradingDay);
             }
         }
-        mdb->TradingDay->Erase(*tradingDayRecord);
-        mdb->TradingDay->TruncateTable();
+        mdb->TradingDays->Erase(*tradingDayRecord);
+        mdb->TradingDays->TruncateTable();
         {
-            auto exchangeRange = mdb->Exchange->PrimaryKey->SelectAll();
+            auto exchangeRange = mdb->Exchanges->PrimaryKey->SelectAll();
             for (auto it = exchangeRange.begin(); it != exchangeRange.end(); ++it)
             {
                 Print(*it);

@@ -10,16 +10,16 @@ namespace Mdb
 	public:
 		static void LoadTables(Mdb* mdb, const char* dir, const TableList& tableList);
 	private:
-		static void LoadTradingDay(Mdb* mdb, const char* dir);
-		static void LoadExchange(Mdb* mdb, const char* dir);
-		static void LoadProduct(Mdb* mdb, const char* dir);
-		static void LoadInstrument(Mdb* mdb, const char* dir);
-		static void LoadPrimaryAccount(Mdb* mdb, const char* dir);
-		static void LoadAccount(Mdb* mdb, const char* dir);
-		static void LoadCapital(Mdb* mdb, const char* dir);
-		static void LoadPosition(Mdb* mdb, const char* dir);
-		static void LoadPositionDetail(Mdb* mdb, const char* dir);
-		static void LoadOrder(Mdb* mdb, const char* dir);
-		static void LoadTrade(Mdb* mdb, const char* dir);
+		static void LoadTradingDays(Mdb* mdb, const char* dir);
+		static void LoadExchanges(Mdb* mdb, const char* dir);
+		static void LoadProducts(Mdb* mdb, const char* dir);
+		static void LoadInstruments(Mdb* mdb, const char* dir);
+		static void LoadPrimaryAccounts(Mdb* mdb, const char* dir);
+		static void LoadAccounts(Mdb* mdb, const char* dir);
+		static void LoadCapitals(Mdb* mdb, const char* dir);
+		static void LoadPositions(Mdb* mdb, const char* dir);
+		static void LoadPositionDetails(Mdb* mdb, const char* dir);
+		static void LoadOrders(Mdb* mdb, const char* dir);
+		static void LoadTrades(Mdb* mdb, const char* dir);
 	};
 }

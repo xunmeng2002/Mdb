@@ -20,26 +20,26 @@ namespace Mdb::Rcu::StableRow
 		{
 			switch (tableList.TableIds[i])
 			{
-			case TradingDay::TableId:  LoadTradingDay(mdb, dir); break;
-			case Exchange::TableId:  LoadExchange(mdb, dir); break;
-			case Product::TableId:  LoadProduct(mdb, dir); break;
-			case Instrument::TableId:  LoadInstrument(mdb, dir); break;
-			case PrimaryAccount::TableId:  LoadPrimaryAccount(mdb, dir); break;
-			case Account::TableId:  LoadAccount(mdb, dir); break;
-			case Capital::TableId:  LoadCapital(mdb, dir); break;
-			case Position::TableId:  LoadPosition(mdb, dir); break;
-			case PositionDetail::TableId:  LoadPositionDetail(mdb, dir); break;
-			case Order::TableId:  LoadOrder(mdb, dir); break;
-			case Trade::TableId:  LoadTrade(mdb, dir); break;
+			case TradingDay::TableId:  LoadTradingDays(mdb, dir); break;
+			case Exchange::TableId:  LoadExchanges(mdb, dir); break;
+			case Product::TableId:  LoadProducts(mdb, dir); break;
+			case Instrument::TableId:  LoadInstruments(mdb, dir); break;
+			case PrimaryAccount::TableId:  LoadPrimaryAccounts(mdb, dir); break;
+			case Account::TableId:  LoadAccounts(mdb, dir); break;
+			case Capital::TableId:  LoadCapitals(mdb, dir); break;
+			case Position::TableId:  LoadPositions(mdb, dir); break;
+			case PositionDetail::TableId:  LoadPositionDetails(mdb, dir); break;
+			case Order::TableId:  LoadOrders(mdb, dir); break;
+			case Trade::TableId:  LoadTrades(mdb, dir); break;
 			default: break;
 			}
 		}
 	}
 
-	void InitMdbFromCsv::LoadTradingDay(Mdb* mdb, const char* dir)
+	void InitMdbFromCsv::LoadTradingDays(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		snprintf(fullPath, sizeof(fullPath), "%s/TradingDay.csv", dir);
+		snprintf(fullPath, sizeof(fullPath), "%s/TradingDays.csv", dir);
 		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
@@ -50,7 +50,7 @@ namespace Mdb::Rcu::StableRow
 		CsvRecord csvRecord;
 		if (!csvRecord.AnalysisFieldName(HeaderBuffer))
 		{
-			throw std::string("AnalysisFieldName TradingDay.csv failed");
+			throw std::string("AnalysisFieldName TradingDays.csv failed");
 		}
 		while (!file.eof())
 		{
@@ -60,21 +60,21 @@ namespace Mdb::Rcu::StableRow
 				break;
 			if (!csvRecord.AnalysisFieldContent(ContentBuffer))
 			{
-				throw std::string("AnalysisFieldContent TradingDay.csv failed");
+				throw std::string("AnalysisFieldContent TradingDays.csv failed");
 			}
 
 			auto record = TradingDay::Allocate();
 			record->Pk = csvRecord.GetFieldAsInt("Pk");
 			Utility::Strcpy(record->CurrTradingDay, csvRecord.GetFieldAsString("CurrTradingDay"));
 			Utility::Strcpy(record->PreTradingDay, csvRecord.GetFieldAsString("PreTradingDay"));
-			mdb->TradingDay->Insert(record);
+			mdb->TradingDays->Insert(record);
 		}
 		file.close();
 	}
-	void InitMdbFromCsv::LoadExchange(Mdb* mdb, const char* dir)
+	void InitMdbFromCsv::LoadExchanges(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		snprintf(fullPath, sizeof(fullPath), "%s/Exchange.csv", dir);
+		snprintf(fullPath, sizeof(fullPath), "%s/Exchanges.csv", dir);
 		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
@@ -85,7 +85,7 @@ namespace Mdb::Rcu::StableRow
 		CsvRecord csvRecord;
 		if (!csvRecord.AnalysisFieldName(HeaderBuffer))
 		{
-			throw std::string("AnalysisFieldName Exchange.csv failed");
+			throw std::string("AnalysisFieldName Exchanges.csv failed");
 		}
 		while (!file.eof())
 		{
@@ -95,20 +95,20 @@ namespace Mdb::Rcu::StableRow
 				break;
 			if (!csvRecord.AnalysisFieldContent(ContentBuffer))
 			{
-				throw std::string("AnalysisFieldContent Exchange.csv failed");
+				throw std::string("AnalysisFieldContent Exchanges.csv failed");
 			}
 
 			auto record = Exchange::Allocate();
 			Utility::Strcpy(record->ExchangeId, csvRecord.GetFieldAsString("ExchangeId"));
 			Utility::Strcpy(record->ExchangeName, csvRecord.GetFieldAsString("ExchangeName"));
-			mdb->Exchange->Insert(record);
+			mdb->Exchanges->Insert(record);
 		}
 		file.close();
 	}
-	void InitMdbFromCsv::LoadProduct(Mdb* mdb, const char* dir)
+	void InitMdbFromCsv::LoadProducts(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		snprintf(fullPath, sizeof(fullPath), "%s/Product.csv", dir);
+		snprintf(fullPath, sizeof(fullPath), "%s/Products.csv", dir);
 		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
@@ -119,7 +119,7 @@ namespace Mdb::Rcu::StableRow
 		CsvRecord csvRecord;
 		if (!csvRecord.AnalysisFieldName(HeaderBuffer))
 		{
-			throw std::string("AnalysisFieldName Product.csv failed");
+			throw std::string("AnalysisFieldName Products.csv failed");
 		}
 		while (!file.eof())
 		{
@@ -129,7 +129,7 @@ namespace Mdb::Rcu::StableRow
 				break;
 			if (!csvRecord.AnalysisFieldContent(ContentBuffer))
 			{
-				throw std::string("AnalysisFieldContent Product.csv failed");
+				throw std::string("AnalysisFieldContent Products.csv failed");
 			}
 
 			auto record = Product::Allocate();
@@ -144,14 +144,14 @@ namespace Mdb::Rcu::StableRow
 			record->MaxLimitOrderVolume = csvRecord.GetFieldAsInt64("MaxLimitOrderVolume");
 			record->MinLimitOrderVolume = csvRecord.GetFieldAsInt64("MinLimitOrderVolume");
 			Utility::Strcpy(record->SessionName, csvRecord.GetFieldAsString("SessionName"));
-			mdb->Product->Insert(record);
+			mdb->Products->Insert(record);
 		}
 		file.close();
 	}
-	void InitMdbFromCsv::LoadInstrument(Mdb* mdb, const char* dir)
+	void InitMdbFromCsv::LoadInstruments(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		snprintf(fullPath, sizeof(fullPath), "%s/Instrument.csv", dir);
+		snprintf(fullPath, sizeof(fullPath), "%s/Instruments.csv", dir);
 		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
@@ -162,7 +162,7 @@ namespace Mdb::Rcu::StableRow
 		CsvRecord csvRecord;
 		if (!csvRecord.AnalysisFieldName(HeaderBuffer))
 		{
-			throw std::string("AnalysisFieldName Instrument.csv failed");
+			throw std::string("AnalysisFieldName Instruments.csv failed");
 		}
 		while (!file.eof())
 		{
@@ -172,7 +172,7 @@ namespace Mdb::Rcu::StableRow
 				break;
 			if (!csvRecord.AnalysisFieldContent(ContentBuffer))
 			{
-				throw std::string("AnalysisFieldContent Instrument.csv failed");
+				throw std::string("AnalysisFieldContent Instruments.csv failed");
 			}
 
 			auto record = Instrument::Allocate();
@@ -191,14 +191,14 @@ namespace Mdb::Rcu::StableRow
 			record->MaxLimitOrderVolume = csvRecord.GetFieldAsInt64("MaxLimitOrderVolume");
 			record->MinLimitOrderVolume = csvRecord.GetFieldAsInt64("MinLimitOrderVolume");
 			Utility::Strcpy(record->SessionName, csvRecord.GetFieldAsString("SessionName"));
-			mdb->Instrument->Insert(record);
+			mdb->Instruments->Insert(record);
 		}
 		file.close();
 	}
-	void InitMdbFromCsv::LoadPrimaryAccount(Mdb* mdb, const char* dir)
+	void InitMdbFromCsv::LoadPrimaryAccounts(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		snprintf(fullPath, sizeof(fullPath), "%s/PrimaryAccount.csv", dir);
+		snprintf(fullPath, sizeof(fullPath), "%s/PrimaryAccounts.csv", dir);
 		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
@@ -209,7 +209,7 @@ namespace Mdb::Rcu::StableRow
 		CsvRecord csvRecord;
 		if (!csvRecord.AnalysisFieldName(HeaderBuffer))
 		{
-			throw std::string("AnalysisFieldName PrimaryAccount.csv failed");
+			throw std::string("AnalysisFieldName PrimaryAccounts.csv failed");
 		}
 		while (!file.eof())
 		{
@@ -219,7 +219,7 @@ namespace Mdb::Rcu::StableRow
 				break;
 			if (!csvRecord.AnalysisFieldContent(ContentBuffer))
 			{
-				throw std::string("AnalysisFieldContent PrimaryAccount.csv failed");
+				throw std::string("AnalysisFieldContent PrimaryAccounts.csv failed");
 			}
 
 			auto record = PrimaryAccount::Allocate();
@@ -232,14 +232,14 @@ namespace Mdb::Rcu::StableRow
 			record->IsSimulateAccount = static_cast<bool>(csvRecord.GetFieldAsInt("IsSimulateAccount"));
 			record->LoginStatus = static_cast<LoginStatusType>(csvRecord.GetFieldAsInt("LoginStatus"));
 			record->InitStatus = static_cast<InitStatusType>(csvRecord.GetFieldAsInt("InitStatus"));
-			mdb->PrimaryAccount->Insert(record);
+			mdb->PrimaryAccounts->Insert(record);
 		}
 		file.close();
 	}
-	void InitMdbFromCsv::LoadAccount(Mdb* mdb, const char* dir)
+	void InitMdbFromCsv::LoadAccounts(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		snprintf(fullPath, sizeof(fullPath), "%s/Account.csv", dir);
+		snprintf(fullPath, sizeof(fullPath), "%s/Accounts.csv", dir);
 		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
@@ -250,7 +250,7 @@ namespace Mdb::Rcu::StableRow
 		CsvRecord csvRecord;
 		if (!csvRecord.AnalysisFieldName(HeaderBuffer))
 		{
-			throw std::string("AnalysisFieldName Account.csv failed");
+			throw std::string("AnalysisFieldName Accounts.csv failed");
 		}
 		while (!file.eof())
 		{
@@ -260,7 +260,7 @@ namespace Mdb::Rcu::StableRow
 				break;
 			if (!csvRecord.AnalysisFieldContent(ContentBuffer))
 			{
-				throw std::string("AnalysisFieldContent Account.csv failed");
+				throw std::string("AnalysisFieldContent Accounts.csv failed");
 			}
 
 			auto record = Account::Allocate();
@@ -272,14 +272,14 @@ namespace Mdb::Rcu::StableRow
 			record->TradeGroupId = csvRecord.GetFieldAsInt("TradeGroupId");
 			record->RiskGroupId = csvRecord.GetFieldAsInt("RiskGroupId");
 			record->CommissionGroupId = csvRecord.GetFieldAsInt("CommissionGroupId");
-			mdb->Account->Insert(record);
+			mdb->Accounts->Insert(record);
 		}
 		file.close();
 	}
-	void InitMdbFromCsv::LoadCapital(Mdb* mdb, const char* dir)
+	void InitMdbFromCsv::LoadCapitals(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		snprintf(fullPath, sizeof(fullPath), "%s/Capital.csv", dir);
+		snprintf(fullPath, sizeof(fullPath), "%s/Capitals.csv", dir);
 		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
@@ -290,7 +290,7 @@ namespace Mdb::Rcu::StableRow
 		CsvRecord csvRecord;
 		if (!csvRecord.AnalysisFieldName(HeaderBuffer))
 		{
-			throw std::string("AnalysisFieldName Capital.csv failed");
+			throw std::string("AnalysisFieldName Capitals.csv failed");
 		}
 		while (!file.eof())
 		{
@@ -300,7 +300,7 @@ namespace Mdb::Rcu::StableRow
 				break;
 			if (!csvRecord.AnalysisFieldContent(ContentBuffer))
 			{
-				throw std::string("AnalysisFieldContent Capital.csv failed");
+				throw std::string("AnalysisFieldContent Capitals.csv failed");
 			}
 
 			auto record = Capital::Allocate();
@@ -324,14 +324,14 @@ namespace Mdb::Rcu::StableRow
 			record->PositionProfitByTrade = csvRecord.GetFieldAsDouble("PositionProfitByTrade");
 			record->Deposit = csvRecord.GetFieldAsDouble("Deposit");
 			record->Withdraw = csvRecord.GetFieldAsDouble("Withdraw");
-			mdb->Capital->Insert(record);
+			mdb->Capitals->Insert(record);
 		}
 		file.close();
 	}
-	void InitMdbFromCsv::LoadPosition(Mdb* mdb, const char* dir)
+	void InitMdbFromCsv::LoadPositions(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		snprintf(fullPath, sizeof(fullPath), "%s/Position.csv", dir);
+		snprintf(fullPath, sizeof(fullPath), "%s/Positions.csv", dir);
 		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
@@ -342,7 +342,7 @@ namespace Mdb::Rcu::StableRow
 		CsvRecord csvRecord;
 		if (!csvRecord.AnalysisFieldName(HeaderBuffer))
 		{
-			throw std::string("AnalysisFieldName Position.csv failed");
+			throw std::string("AnalysisFieldName Positions.csv failed");
 		}
 		while (!file.eof())
 		{
@@ -352,7 +352,7 @@ namespace Mdb::Rcu::StableRow
 				break;
 			if (!csvRecord.AnalysisFieldContent(ContentBuffer))
 			{
-				throw std::string("AnalysisFieldContent Position.csv failed");
+				throw std::string("AnalysisFieldContent Positions.csv failed");
 			}
 
 			auto record = Position::Allocate();
@@ -381,14 +381,14 @@ namespace Mdb::Rcu::StableRow
 			record->PositionProfitByTrade = csvRecord.GetFieldAsDouble("PositionProfitByTrade");
 			record->SettlementPrice = csvRecord.GetFieldAsDouble("SettlementPrice");
 			record->PreSettlementPrice = csvRecord.GetFieldAsDouble("PreSettlementPrice");
-			mdb->Position->Insert(record);
+			mdb->Positions->Insert(record);
 		}
 		file.close();
 	}
-	void InitMdbFromCsv::LoadPositionDetail(Mdb* mdb, const char* dir)
+	void InitMdbFromCsv::LoadPositionDetails(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		snprintf(fullPath, sizeof(fullPath), "%s/PositionDetail.csv", dir);
+		snprintf(fullPath, sizeof(fullPath), "%s/PositionDetails.csv", dir);
 		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
@@ -399,7 +399,7 @@ namespace Mdb::Rcu::StableRow
 		CsvRecord csvRecord;
 		if (!csvRecord.AnalysisFieldName(HeaderBuffer))
 		{
-			throw std::string("AnalysisFieldName PositionDetail.csv failed");
+			throw std::string("AnalysisFieldName PositionDetails.csv failed");
 		}
 		while (!file.eof())
 		{
@@ -409,7 +409,7 @@ namespace Mdb::Rcu::StableRow
 				break;
 			if (!csvRecord.AnalysisFieldContent(ContentBuffer))
 			{
-				throw std::string("AnalysisFieldContent PositionDetail.csv failed");
+				throw std::string("AnalysisFieldContent PositionDetails.csv failed");
 			}
 
 			auto record = PositionDetail::Allocate();
@@ -438,14 +438,14 @@ namespace Mdb::Rcu::StableRow
 			record->PreSettlementPrice = csvRecord.GetFieldAsDouble("PreSettlementPrice");
 			record->CloseVolume = csvRecord.GetFieldAsInt64("CloseVolume");
 			record->CloseAmount = csvRecord.GetFieldAsDouble("CloseAmount");
-			mdb->PositionDetail->Insert(record);
+			mdb->PositionDetails->Insert(record);
 		}
 		file.close();
 	}
-	void InitMdbFromCsv::LoadOrder(Mdb* mdb, const char* dir)
+	void InitMdbFromCsv::LoadOrders(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		snprintf(fullPath, sizeof(fullPath), "%s/Order.csv", dir);
+		snprintf(fullPath, sizeof(fullPath), "%s/Orders.csv", dir);
 		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
@@ -456,7 +456,7 @@ namespace Mdb::Rcu::StableRow
 		CsvRecord csvRecord;
 		if (!csvRecord.AnalysisFieldName(HeaderBuffer))
 		{
-			throw std::string("AnalysisFieldName Order.csv failed");
+			throw std::string("AnalysisFieldName Orders.csv failed");
 		}
 		while (!file.eof())
 		{
@@ -466,7 +466,7 @@ namespace Mdb::Rcu::StableRow
 				break;
 			if (!csvRecord.AnalysisFieldContent(ContentBuffer))
 			{
-				throw std::string("AnalysisFieldContent Order.csv failed");
+				throw std::string("AnalysisFieldContent Orders.csv failed");
 			}
 
 			auto record = Order::Allocate();
@@ -503,14 +503,14 @@ namespace Mdb::Rcu::StableRow
 			record->FrozenCommission = csvRecord.GetFieldAsDouble("FrozenCommission");
 			record->RebuildMark = static_cast<bool>(csvRecord.GetFieldAsInt("RebuildMark"));
 			record->IsForceClose = static_cast<bool>(csvRecord.GetFieldAsInt("IsForceClose"));
-			mdb->Order->Insert(record);
+			mdb->Orders->Insert(record);
 		}
 		file.close();
 	}
-	void InitMdbFromCsv::LoadTrade(Mdb* mdb, const char* dir)
+	void InitMdbFromCsv::LoadTrades(Mdb* mdb, const char* dir)
 	{
 		char fullPath[260];
-		snprintf(fullPath, sizeof(fullPath), "%s/Trade.csv", dir);
+		snprintf(fullPath, sizeof(fullPath), "%s/Trades.csv", dir);
 		std::fstream file(fullPath, std::fstream::in);
 		if (!file)
 		{
@@ -521,7 +521,7 @@ namespace Mdb::Rcu::StableRow
 		CsvRecord csvRecord;
 		if (!csvRecord.AnalysisFieldName(HeaderBuffer))
 		{
-			throw std::string("AnalysisFieldName Trade.csv failed");
+			throw std::string("AnalysisFieldName Trades.csv failed");
 		}
 		while (!file.eof())
 		{
@@ -531,7 +531,7 @@ namespace Mdb::Rcu::StableRow
 				break;
 			if (!csvRecord.AnalysisFieldContent(ContentBuffer))
 			{
-				throw std::string("AnalysisFieldContent Trade.csv failed");
+				throw std::string("AnalysisFieldContent Trades.csv failed");
 			}
 
 			auto record = Trade::Allocate();
@@ -553,7 +553,7 @@ namespace Mdb::Rcu::StableRow
 			record->Commission = csvRecord.GetFieldAsDouble("Commission");
 			Utility::Strcpy(record->TradeDate, csvRecord.GetFieldAsString("TradeDate"));
 			Utility::Strcpy(record->TradeTime, csvRecord.GetFieldAsString("TradeTime"));
-			mdb->Trade->Insert(record);
+			mdb->Trades->Insert(record);
 		}
 		file.close();
 	}

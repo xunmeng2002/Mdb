@@ -435,8 +435,8 @@ namespace
 		const unsigned int requestedTableIds[] = { TradingDay::TableId };
 		const Mdb::TableList tableList{ "aggregate", requestedTableIds, 1 };
 		MdbType mdb(tableList);
-		report.Check(mdb.TradingDay != nullptr, "aggregateCreatesRequestedTable");
-		report.Check(mdb.Trade == nullptr, "aggregateLeavesUnrequestedTable");
+		report.Check(mdb.TradingDays != nullptr, "aggregateCreatesRequestedTable");
+		report.Check(mdb.Trades == nullptr, "aggregateLeavesUnrequestedTable");
 		return report.FailureCount();
 	}
 }

@@ -38,7 +38,7 @@ namespace Mdb
 	}
 	const TableSchema& TradingDay::GetSchema()
 	{
-		static const TableSchema schema = {"TradingDay", TradingDayFields, 3, TradingDayPKIndices, 1, nullptr, 0};
+		static const TableSchema schema = {"TradingDays", TradingDayFields, 3, TradingDayPKIndices, 1, nullptr, 0};
 		return schema;
 	}
 	static const FieldDescriptor ExchangeFields[] = {
@@ -68,7 +68,7 @@ namespace Mdb
 	}
 	const TableSchema& Exchange::GetSchema()
 	{
-		static const TableSchema schema = {"Exchange", ExchangeFields, 2, ExchangePKIndices, 1, nullptr, 0};
+		static const TableSchema schema = {"Exchanges", ExchangeFields, 2, ExchangePKIndices, 1, nullptr, 0};
 		return schema;
 	}
 	static const FieldDescriptor ProductFields[] = {
@@ -107,7 +107,7 @@ namespace Mdb
 	}
 	const TableSchema& Product::GetSchema()
 	{
-		static const TableSchema schema = {"Product", ProductFields, 11, ProductPKIndices, 2, nullptr, 0};
+		static const TableSchema schema = {"Products", ProductFields, 11, ProductPKIndices, 2, nullptr, 0};
 		return schema;
 	}
 	static const FieldDescriptor InstrumentFields[] = {
@@ -150,7 +150,7 @@ namespace Mdb
 	}
 	const TableSchema& Instrument::GetSchema()
 	{
-		static const TableSchema schema = {"Instrument", InstrumentFields, 15, InstrumentPKIndices, 2, nullptr, 0};
+		static const TableSchema schema = {"Instruments", InstrumentFields, 15, InstrumentPKIndices, 2, nullptr, 0};
 		return schema;
 	}
 	static const FieldDescriptor PrimaryAccountFields[] = {
@@ -191,7 +191,7 @@ namespace Mdb
 	}
 	const TableSchema& PrimaryAccount::GetSchema()
 	{
-		static const TableSchema schema = {"PrimaryAccount", PrimaryAccountFields, 9, PrimaryAccountPKIndices, 1, PrimaryAccountIndices, 1};
+		static const TableSchema schema = {"PrimaryAccounts", PrimaryAccountFields, 9, PrimaryAccountPKIndices, 1, PrimaryAccountIndices, 1};
 		return schema;
 	}
 	static const FieldDescriptor AccountFields[] = {
@@ -227,7 +227,7 @@ namespace Mdb
 	}
 	const TableSchema& Account::GetSchema()
 	{
-		static const TableSchema schema = {"Account", AccountFields, 8, AccountPKIndices, 1, nullptr, 0};
+		static const TableSchema schema = {"Accounts", AccountFields, 8, AccountPKIndices, 1, nullptr, 0};
 		return schema;
 	}
 	static const FieldDescriptor CapitalFields[] = {
@@ -279,7 +279,7 @@ namespace Mdb
 	}
 	const TableSchema& Capital::GetSchema()
 	{
-		static const TableSchema schema = {"Capital", CapitalFields, 20, CapitalPKIndices, 2, CapitalIndices, 1};
+		static const TableSchema schema = {"Capitals", CapitalFields, 20, CapitalPKIndices, 2, CapitalIndices, 1};
 		return schema;
 	}
 	static const FieldDescriptor PositionFields[] = {
@@ -338,7 +338,7 @@ namespace Mdb
 	}
 	const TableSchema& Position::GetSchema()
 	{
-		static const TableSchema schema = {"Position", PositionFields, 25, PositionPKIndices, 5, PositionIndices, 2};
+		static const TableSchema schema = {"Positions", PositionFields, 25, PositionPKIndices, 5, PositionIndices, 2};
 		return schema;
 	}
 	static const FieldDescriptor PositionDetailFields[] = {
@@ -397,7 +397,7 @@ namespace Mdb
 	}
 	const TableSchema& PositionDetail::GetSchema()
 	{
-		static const TableSchema schema = {"PositionDetail", PositionDetailFields, 25, PositionDetailPKIndices, 7, PositionDetailIndices, 2};
+		static const TableSchema schema = {"PositionDetails", PositionDetailFields, 25, PositionDetailPKIndices, 7, PositionDetailIndices, 2};
 		return schema;
 	}
 	static const FieldDescriptor OrderFields[] = {
@@ -458,7 +458,7 @@ namespace Mdb
 	}
 	const TableSchema& Order::GetSchema()
 	{
-		static const TableSchema schema = {"Order", OrderFields, 33, OrderPKIndices, 5, nullptr, 0};
+		static const TableSchema schema = {"Orders", OrderFields, 33, OrderPKIndices, 5, nullptr, 0};
 		return schema;
 	}
 	static const FieldDescriptor TradeFields[] = {
@@ -504,7 +504,7 @@ namespace Mdb
 	}
 	const TableSchema& Trade::GetSchema()
 	{
-		static const TableSchema schema = {"Trade", TradeFields, 18, TradePKIndices, 4, nullptr, 0};
+		static const TableSchema schema = {"Trades", TradeFields, 18, TradePKIndices, 4, nullptr, 0};
 		return schema;
 	}
 

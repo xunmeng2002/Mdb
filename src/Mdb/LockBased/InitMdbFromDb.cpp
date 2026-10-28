@@ -14,130 +14,130 @@ namespace Mdb
 		{
 			switch (tableList.TableIds[i])
 			{
-			case TradingDay::TableId:  LoadTradingDay(mdb, db); break;
-			case Exchange::TableId:  LoadExchange(mdb, db); break;
-			case Product::TableId:  LoadProduct(mdb, db); break;
-			case Instrument::TableId:  LoadInstrument(mdb, db); break;
-			case PrimaryAccount::TableId:  LoadPrimaryAccount(mdb, db); break;
-			case Account::TableId:  LoadAccount(mdb, db); break;
-			case Capital::TableId:  LoadCapital(mdb, db); break;
-			case Position::TableId:  LoadPosition(mdb, db); break;
-			case PositionDetail::TableId:  LoadPositionDetail(mdb, db); break;
-			case Order::TableId:  LoadOrder(mdb, db); break;
-			case Trade::TableId:  LoadTrade(mdb, db); break;
+			case TradingDay::TableId:  LoadTradingDays(mdb, db); break;
+			case Exchange::TableId:  LoadExchanges(mdb, db); break;
+			case Product::TableId:  LoadProducts(mdb, db); break;
+			case Instrument::TableId:  LoadInstruments(mdb, db); break;
+			case PrimaryAccount::TableId:  LoadPrimaryAccounts(mdb, db); break;
+			case Account::TableId:  LoadAccounts(mdb, db); break;
+			case Capital::TableId:  LoadCapitals(mdb, db); break;
+			case Position::TableId:  LoadPositions(mdb, db); break;
+			case PositionDetail::TableId:  LoadPositionDetails(mdb, db); break;
+			case Order::TableId:  LoadOrders(mdb, db); break;
+			case Trade::TableId:  LoadTrades(mdb, db); break;
 			default: break;
 			}
 		}
 	}
 
-	void InitMdbFromDb::LoadTradingDay(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadTradingDays(Mdb* mdb, Db* db)
 	{
 		TypedTable<TradingDay> table(db);
 		std::vector<TradingDay*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->TradingDay->Insert(record);
+			mdb->TradingDays->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadExchange(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadExchanges(Mdb* mdb, Db* db)
 	{
 		TypedTable<Exchange> table(db);
 		std::vector<Exchange*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->Exchange->Insert(record);
+			mdb->Exchanges->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadProduct(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadProducts(Mdb* mdb, Db* db)
 	{
 		TypedTable<Product> table(db);
 		std::vector<Product*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->Product->Insert(record);
+			mdb->Products->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadInstrument(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadInstruments(Mdb* mdb, Db* db)
 	{
 		TypedTable<Instrument> table(db);
 		std::vector<Instrument*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->Instrument->Insert(record);
+			mdb->Instruments->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadPrimaryAccount(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadPrimaryAccounts(Mdb* mdb, Db* db)
 	{
 		TypedTable<PrimaryAccount> table(db);
 		std::vector<PrimaryAccount*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->PrimaryAccount->Insert(record);
+			mdb->PrimaryAccounts->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadAccount(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadAccounts(Mdb* mdb, Db* db)
 	{
 		TypedTable<Account> table(db);
 		std::vector<Account*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->Account->Insert(record);
+			mdb->Accounts->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadCapital(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadCapitals(Mdb* mdb, Db* db)
 	{
 		TypedTable<Capital> table(db);
 		std::vector<Capital*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->Capital->Insert(record);
+			mdb->Capitals->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadPosition(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadPositions(Mdb* mdb, Db* db)
 	{
 		TypedTable<Position> table(db);
 		std::vector<Position*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->Position->Insert(record);
+			mdb->Positions->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadPositionDetail(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadPositionDetails(Mdb* mdb, Db* db)
 	{
 		TypedTable<PositionDetail> table(db);
 		std::vector<PositionDetail*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->PositionDetail->Insert(record);
+			mdb->PositionDetails->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadOrder(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadOrders(Mdb* mdb, Db* db)
 	{
 		TypedTable<Order> table(db);
 		std::vector<Order*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->Order->Insert(record);
+			mdb->Orders->Insert(record);
 		}
 	}
-	void InitMdbFromDb::LoadTrade(Mdb* mdb, Db* db)
+	void InitMdbFromDb::LoadTrades(Mdb* mdb, Db* db)
 	{
 		TypedTable<Trade> table(db);
 		std::vector<Trade*> records;
 		table.SelectAll(records);
 		for (auto record : records)
 		{
-			mdb->Trade->Insert(record);
+			mdb->Trades->Insert(record);
 		}
 	}
 }

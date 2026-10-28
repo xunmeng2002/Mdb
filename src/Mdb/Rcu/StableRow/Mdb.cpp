@@ -10,17 +10,17 @@ namespace Mdb::Rcu::StableRow
 		{
 			switch (tableList.TableIds[i])
 			{
-			case TradingDay::TableId:  TradingDay = new TradingDayTable(); tables_.push_back(TradingDay); break;
-			case Exchange::TableId:  Exchange = new ExchangeTable(); tables_.push_back(Exchange); break;
-			case Product::TableId:  Product = new ProductTable(); tables_.push_back(Product); break;
-			case Instrument::TableId:  Instrument = new InstrumentTable(); tables_.push_back(Instrument); break;
-			case PrimaryAccount::TableId:  PrimaryAccount = new PrimaryAccountTable(); tables_.push_back(PrimaryAccount); break;
-			case Account::TableId:  Account = new AccountTable(); tables_.push_back(Account); break;
-			case Capital::TableId:  Capital = new CapitalTable(); tables_.push_back(Capital); break;
-			case Position::TableId:  Position = new PositionTable(); tables_.push_back(Position); break;
-			case PositionDetail::TableId:  PositionDetail = new PositionDetailTable(); tables_.push_back(PositionDetail); break;
-			case Order::TableId:  Order = new OrderTable(); tables_.push_back(Order); break;
-			case Trade::TableId:  Trade = new TradeTable(); tables_.push_back(Trade); break;
+			case TradingDay::TableId:  TradingDays = new TradingDayTable(); tables_.push_back(TradingDays); break;
+			case Exchange::TableId:  Exchanges = new ExchangeTable(); tables_.push_back(Exchanges); break;
+			case Product::TableId:  Products = new ProductTable(); tables_.push_back(Products); break;
+			case Instrument::TableId:  Instruments = new InstrumentTable(); tables_.push_back(Instruments); break;
+			case PrimaryAccount::TableId:  PrimaryAccounts = new PrimaryAccountTable(); tables_.push_back(PrimaryAccounts); break;
+			case Account::TableId:  Accounts = new AccountTable(); tables_.push_back(Accounts); break;
+			case Capital::TableId:  Capitals = new CapitalTable(); tables_.push_back(Capitals); break;
+			case Position::TableId:  Positions = new PositionTable(); tables_.push_back(Positions); break;
+			case PositionDetail::TableId:  PositionDetails = new PositionDetailTable(); tables_.push_back(PositionDetails); break;
+			case Order::TableId:  Orders = new OrderTable(); tables_.push_back(Orders); break;
+			case Trade::TableId:  Trades = new TradeTable(); tables_.push_back(Trades); break;
 			default: break;
 			}
 		}

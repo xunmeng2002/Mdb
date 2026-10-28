@@ -61,7 +61,9 @@ function(add_mdb_static_library target_name source_dir)
     set_target_properties(${target_name} PROPERTIES
         MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
         POSITION_INDEPENDENT_CODE ON)
-    target_include_directories(${target_name} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb>)
+    target_include_directories(${target_name} PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb>)
 endfunction()
 
 set(MdbSourceDir ${CMAKE_CURRENT_SOURCE_DIR}/src/Mdb)

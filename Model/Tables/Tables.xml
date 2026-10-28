@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tables>
-	<table name="TradingDay" dbname="TradingDay" id="0x0001" desc="交易日" batch="" session="">
+<tables project="Mdb">
+	<table name="TradingDay" dbname="TradingDays" id="0x0001" desc="交易日" batch="" session="">
 		<items>
 			<item name="Pk" id="0x2901" type="Int32" desc="主键"/>
 			<item name="CurrTradingDay" id="0x300F" type="Date" desc="当前交易日"/>
@@ -12,7 +12,7 @@
 		<uniquekeys/>
 		<indexes/>
 	</table>
-	<table name="Exchange" dbname="Exchange" id="0x0002" desc="交易所" batch="" session="">
+	<table name="Exchange" dbname="Exchanges" id="0x0002" desc="交易所" batch="" session="">
 		<items>
 			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
 			<item name="ExchangeName" id="0x2005" type="ExchangeName" desc="交易所名称"/>
@@ -23,7 +23,7 @@
 		<uniquekeys/>
 		<indexes/>
 	</table>
-	<table name="Product" dbname="Product" id="0x0003" desc="品种表" batch="" session="">
+	<table name="Product" dbname="Products" id="0x0003" desc="品种表" batch="" session="">
 		<items>
 			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
 			<item name="ProductId" id="0x1015" type="ProductId" desc="品种代码"/>
@@ -44,7 +44,7 @@
 		<uniquekeys/>
 		<indexes/>
 	</table>
-	<table name="Instrument" dbname="Instrument" id="0x0004" desc="合约" batch="true" session="">
+	<table name="Instrument" dbname="Instruments" id="0x0004" desc="合约" batch="true" session="">
 		<items>
 			<item name="ExchangeId" id="0x100A" type="ExchangeId" desc="交易所代码"/>
 			<item name="InstrumentId" id="0x100D" type="InstrumentId" desc="合约代码"/>
@@ -69,7 +69,7 @@
 		<uniquekeys/>
 		<indexes/>
 	</table>
-	<table name="PrimaryAccount" dbname="PrimaryAccount" id="0x0005" desc="主账户" batch="" session="">
+	<table name="PrimaryAccount" dbname="PrimaryAccounts" id="0x0005" desc="主账户" batch="" session="">
 		<items>
 			<item name="PrimaryAccountId" id="0x1014" type="AccountId" desc="主账户代码"/>
 			<item name="PrimaryAccountName" id="0x2009" type="AccountName" desc="主账户名称"/>
@@ -91,7 +91,7 @@
 			</index>
 		</indexes>
 	</table>
-	<table name="Account" dbname="Account" id="0x0006" desc="账户" batch="" session="">
+	<table name="Account" dbname="Accounts" id="0x0006" desc="账户" batch="" session="">
 		<items>
 			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
 			<item name="AccountName" id="0x2001" type="AccountName" desc="账户名称"/>
@@ -108,7 +108,7 @@
 		<uniquekeys/>
 		<indexes/>
 	</table>
-	<table name="Capital" dbname="Capital" id="0x0007" desc="资金" batch="" session="">
+	<table name="Capital" dbname="Capitals" id="0x0007" desc="资金" batch="" session="">
 		<items>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
 			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
@@ -142,7 +142,7 @@
 			</index>
 		</indexes>
 	</table>
-	<table name="Position" dbname="Position" id="0x0008" desc="持仓" batch="" session="">
+	<table name="Position" dbname="Positions" id="0x0008" desc="持仓" batch="" session="">
 		<items>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
 			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
@@ -188,7 +188,7 @@
 			</index>
 		</indexes>
 	</table>
-	<table name="PositionDetail" dbname="PositionDetail" id="0x0009" desc="持仓明细" batch="" session="">
+	<table name="PositionDetail" dbname="PositionDetails" id="0x0009" desc="持仓明细" batch="" session="">
 		<items>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
 			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
@@ -239,7 +239,7 @@
 			</index>
 		</indexes>
 	</table>
-	<table name="Order" dbname="Order" id="0x000A" desc="委托" batch="" session="">
+	<table name="Order" dbname="Orders" id="0x000A" desc="委托" batch="" session="">
 		<items>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
 			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>
@@ -294,7 +294,7 @@
 		</uniquekeys>
 		<indexes/>
 	</table>
-	<table name="Trade" dbname="Trade" id="0x000B" desc="成交" batch="" session="">
+	<table name="Trade" dbname="Trades" id="0x000B" desc="成交" batch="" session="">
 		<items>
 			<item name="TradingDay" id="0x3001" type="Date" desc="交易日"/>
 			<item name="AccountId" id="0x1001" type="AccountId" desc="账户代码"/>

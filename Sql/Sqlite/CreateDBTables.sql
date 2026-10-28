@@ -1,6 +1,6 @@
 -- 本文件由 ../Templates/Sql/Sqlite/CreateTables.sql.tpl 生成；请勿手改，改动请改模板后重跑 pumpall.py
 
-CREATE TABLE IF NOT EXISTS TradingDay(
+CREATE TABLE IF NOT EXISTS TradingDays(
   `Pk` int, 
   `CurrTradingDay` text, 
   `PreTradingDay` text, 
@@ -8,14 +8,14 @@ CREATE TABLE IF NOT EXISTS TradingDay(
 );
 
 
-CREATE TABLE IF NOT EXISTS Exchange(
+CREATE TABLE IF NOT EXISTS Exchanges(
   `ExchangeId` text, 
   `ExchangeName` text, 
   PRIMARY KEY(ExchangeId)
 );
 
 
-CREATE TABLE IF NOT EXISTS Product(
+CREATE TABLE IF NOT EXISTS Products(
   `ExchangeId` text, 
   `ProductId` text, 
   `ProductName` text, 
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS Product(
 );
 
 
-CREATE TABLE IF NOT EXISTS Instrument(
+CREATE TABLE IF NOT EXISTS Instruments(
   `ExchangeId` text, 
   `InstrumentId` text, 
   `ExchangeInstId` text, 
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS Instrument(
 );
 
 
-CREATE TABLE IF NOT EXISTS PrimaryAccount(
+CREATE TABLE IF NOT EXISTS PrimaryAccounts(
   `PrimaryAccountId` text, 
   `PrimaryAccountName` text, 
   `AccountClass` int, 
@@ -63,10 +63,10 @@ CREATE TABLE IF NOT EXISTS PrimaryAccount(
   `InitStatus` int, 
   PRIMARY KEY(PrimaryAccountId)
 );
-CREATE INDEX PrimaryAccountOfferId ON PrimaryAccount(OfferId);
+CREATE INDEX PrimaryAccountsOfferId ON PrimaryAccounts(OfferId);
 
 
-CREATE TABLE IF NOT EXISTS Account(
+CREATE TABLE IF NOT EXISTS Accounts(
   `AccountId` text, 
   `AccountName` text, 
   `AccountType` int, 
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS Account(
 );
 
 
-CREATE TABLE IF NOT EXISTS Capital(
+CREATE TABLE IF NOT EXISTS Capitals(
   `TradingDay` text, 
   `AccountId` text, 
   `AccountType` int, 
@@ -102,10 +102,10 @@ CREATE TABLE IF NOT EXISTS Capital(
   `Withdraw` double, 
   PRIMARY KEY(TradingDay, AccountId)
 );
-CREATE INDEX CapitalTradingDay ON Capital(TradingDay);
+CREATE INDEX CapitalsTradingDay ON Capitals(TradingDay);
 
 
-CREATE TABLE IF NOT EXISTS Position(
+CREATE TABLE IF NOT EXISTS Positions(
   `TradingDay` text, 
   `AccountId` text, 
   `AccountType` int, 
@@ -133,11 +133,11 @@ CREATE TABLE IF NOT EXISTS Position(
   `PreSettlementPrice` double, 
   PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection)
 );
-CREATE INDEX PositionAccount ON Position(TradingDay, AccountId);
-CREATE INDEX PositionTradingDay ON Position(TradingDay);
+CREATE INDEX PositionsAccount ON Positions(TradingDay, AccountId);
+CREATE INDEX PositionsTradingDay ON Positions(TradingDay);
 
 
-CREATE TABLE IF NOT EXISTS PositionDetail(
+CREATE TABLE IF NOT EXISTS PositionDetails(
   `TradingDay` text, 
   `AccountId` text, 
   `AccountType` int, 
@@ -165,11 +165,11 @@ CREATE TABLE IF NOT EXISTS PositionDetail(
   `CloseAmount` double, 
   PRIMARY KEY(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection, OpenDate, TradeId)
 );
-CREATE INDEX PositionDetailTradeMatch ON PositionDetail(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection);
-CREATE INDEX PositionDetailTradingDay ON PositionDetail(TradingDay);
+CREATE INDEX PositionDetailsTradeMatch ON PositionDetails(TradingDay, AccountId, ExchangeId, InstrumentId, PosiDirection);
+CREATE INDEX PositionDetailsTradingDay ON PositionDetails(TradingDay);
 
 
-CREATE TABLE IF NOT EXISTS Order(
+CREATE TABLE IF NOT EXISTS Orders(
   `TradingDay` text, 
   `AccountId` text, 
   `AccountType` int, 
@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS Order(
 );
 
 
-CREATE TABLE IF NOT EXISTS Trade(
+CREATE TABLE IF NOT EXISTS Trades(
   `TradingDay` text, 
   `AccountId` text, 
   `AccountType` int, 

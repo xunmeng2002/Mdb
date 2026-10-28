@@ -177,7 +177,7 @@ namespace Mdb::Rcu::PointerSwap
 
 	void TradingDayTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//TradingDay.csv";
+		string fileName = string(dir) + "//TradingDays.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -443,7 +443,7 @@ namespace Mdb::Rcu::PointerSwap
 
 	void ExchangeTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//Exchange.csv";
+		string fileName = string(dir) + "//Exchanges.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -709,7 +709,7 @@ namespace Mdb::Rcu::PointerSwap
 
 	void ProductTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//Product.csv";
+		string fileName = string(dir) + "//Products.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -975,7 +975,7 @@ namespace Mdb::Rcu::PointerSwap
 
 	void InstrumentTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//Instrument.csv";
+		string fileName = string(dir) + "//Instruments.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -1241,7 +1241,7 @@ namespace Mdb::Rcu::PointerSwap
 
 	void PrimaryAccountTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//PrimaryAccount.csv";
+		string fileName = string(dir) + "//PrimaryAccounts.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -1507,7 +1507,7 @@ namespace Mdb::Rcu::PointerSwap
 
 	void AccountTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//Account.csv";
+		string fileName = string(dir) + "//Accounts.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -1773,7 +1773,7 @@ namespace Mdb::Rcu::PointerSwap
 
 	void CapitalTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//Capital.csv";
+		string fileName = string(dir) + "//Capitals.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -2039,7 +2039,7 @@ namespace Mdb::Rcu::PointerSwap
 
 	void PositionTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//Position.csv";
+		string fileName = string(dir) + "//Positions.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -2305,7 +2305,7 @@ namespace Mdb::Rcu::PointerSwap
 
 	void PositionDetailTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//PositionDetail.csv";
+		string fileName = string(dir) + "//PositionDetails.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -2571,7 +2571,7 @@ namespace Mdb::Rcu::PointerSwap
 
 	void OrderTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//Order.csv";
+		string fileName = string(dir) + "//Orders.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
@@ -2837,7 +2837,7 @@ namespace Mdb::Rcu::PointerSwap
 
 	void TradeTable::Dump(const char* dir)
 	{
-		string fileName = string(dir) + "//Trade.csv";
+		string fileName = string(dir) + "//Trades.csv";
 		FILE* dumpFile = fopen(fileName.c_str(), "w");
 		if (dumpFile == nullptr)
 		{
