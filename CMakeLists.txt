@@ -119,3 +119,9 @@ add_application(TestConcurrency ${CMAKE_CURRENT_SOURCE_DIR}/test/TestConcurrency
 target_link_libraries(TestConcurrency PRIVATE MdbLockBasedStatic MdbRcuPointerSwapStatic MdbRcuStableRowStatic Threads::Threads doctest::doctest)
 target_include_directories(TestConcurrency PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/test)
 copy_dll_file(TestConcurrency)
+
+# 基准：单线程单次操作成本；数值只在 Release 下有效，Debug 运行会自报警告
+option(BUILD_BENCHMARKS "Build benchmarks (Release build gives meaningful numbers)" ON)
+if(BUILD_BENCHMARKS)
+    add_subdirectory(test/Benchmarks)
+endif()

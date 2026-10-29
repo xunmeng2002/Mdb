@@ -8,6 +8,7 @@
 #include "Common/MdbStructs.h"
 #include "Rcu/PointerSwap/PointerSwapTables.h"
 #include "Rcu/StableRow/StableRowTables.h"
+#include "TestSupport/ImplementationNames.h"
 #include "TestSupport/TestSupport.h"
 
 #include "doctest/doctest.h"
@@ -25,34 +26,14 @@ namespace
 	using Mdb::TradingDay;
 	using TestSupport::FillTradingDay;
 	using TestSupport::HasPairedDates;
+	using TestSupport::ImplementationName;
+	using TestSupport::InsertTradingDayRows;
 
 	constexpr int RowCount = 100000;
 	constexpr std::chrono::milliseconds MeasurementDuration{ 1000 };
 	// 读者在窗口后仍可能被写者的独占锁挡在 Select 里，给一段宽限让它们自行退出，
 	// 否则读写锁版的写者要等到读者恰好让出锁才能完成最后一次 Update，运行时长不可控
 	constexpr std::chrono::milliseconds ReaderGraceDuration{ 300 };
-
-	// 读数表要标明是哪种实现，类型本身不带这个名字
-	template <typename TableType>
-	const char* ImplementationName();
-
-	template <>
-	const char* ImplementationName<Mdb::TradingDayTable>()
-	{
-		return "LockBased";
-	}
-
-	template <>
-	const char* ImplementationName<Mdb::Rcu::PointerSwap::TradingDayTable>()
-	{
-		return "PointerSwap";
-	}
-
-	template <>
-	const char* ImplementationName<Mdb::Rcu::StableRow::TradingDayTable>()
-	{
-		return "StableRow";
-	}
 
 	// 用忙等而不是 sleep：Windows 的睡眠精度是毫秒级偏上，会把间隔撑大
 	void SpinOperationInterval(std::chrono::microseconds operationInterval)
@@ -82,14 +63,7 @@ namespace
 	{
 		const bool hasOperationInterval = operationInterval.count() > 0;
 		TableType table;
-		bool allRowsInserted = true;
-		for (int rowIndex = 0; rowIndex < RowCount; ++rowIndex)
-		{
-			TradingDay* row = TradingDay::Allocate();
-			FillTradingDay(*row, rowIndex + 1, 0);
-			// 被拒绝的记录由 Insert 自行归还对象池，这里不能重复释放
-			allRowsInserted = table.Insert(row) && allRowsInserted;
-		}
+		const bool allRowsInserted = InsertTradingDayRows(table, RowCount);
 
 		std::atomic<bool> startSignal{ false };
 		std::atomic<bool> stopSignal{ false };

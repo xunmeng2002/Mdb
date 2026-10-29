@@ -378,6 +378,9 @@ out/build/x64-Debug/bin/Debug/TestConcurrency.exe [操作间隔微秒数] [docte
 `TestConcurrency.exe 0 --test-case="*2 读者*"` 只跑读者数为 2 的三种实现且不设间隔。
 每配置仍先打印一行读数（实现名、读者数、读写次数、撕裂读与缺失行计数、耗时），随后断言。
 
+单线程单次操作成本（`Select` / `Update` / `InsertErase` 的 ns/op）由 `test/Benchmarks` 的 `BenchTableOps`
+给出，本目标只负责多读者扩展性与撕裂读；两份读数同规模（10 万行），可直接对照。
+
 设计要点：
 
 | 项 | 做法 |

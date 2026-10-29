@@ -44,3 +44,4 @@ pumptemp.py
 /build
 /log
 __pycache__/
+*.csv

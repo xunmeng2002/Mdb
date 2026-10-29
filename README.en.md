@@ -357,6 +357,31 @@ with 0 when everything passes:
 | `TestMdb` | Physical database (SQLite / DuckDB files). Async write-through, update and delete persistence, incremental loss while disconnected and full resync on reconnect, loading back via `InitMdbFromDb` |
 | `TestConcurrency` | Read-scaling comparison of the three implementations (2 / 4 / 8 readers × 1 writer); prints torn-read and missing-row counts for same-machine comparison only |
 
+The `BenchTableOps` benchmark (`test/Benchmarks`, `BUILD_BENCHMARKS` defaults to ON) makes no
+assertions and is not gated in CI: on a 100k-row trading-day table it measures the per-call cost
+of `Select` / `Update` / `InsertErase` for all three implementations, printed as CSV by Spark's
+`Benchmark::Measure`. **Use it for absolute costs; read scaling and torn reads still come from
+`TestConcurrency`.**
+
+```text
+./bin/Release/BenchTableOps
+# name,ns_per_call,ns_slowest,calls_per_round
+LockBased.Select,155.0,162.9,202511
+LockBased.Update,334.8,370.1,131891
+LockBased.InsertErase,550.0,658.4,127844
+PointerSwap.Select,79.5,104.1,759878
+PointerSwap.Update,305.8,344.4,186776
+PointerSwap.InsertErase,235.3,293.7,267522
+StableRow.Select,78.3,133.1,857632
+StableRow.Update,131.7,188.3,554323
+StableRow.InsertErase,261.6,270.6,148676
+```
+
+> **Note**: measured locally on 2026-10-29 with a Release build; numbers vary with machine and
+> scheduling and serve only for same-machine comparison across commits. They are meaningful only in
+> Release — a Debug run prints a warning to stderr first. `InsertErase` is a pair (insert, then
+> erase the same key so the row count stays constant); it measures the round trip of that pair.
+
 **The batch-insert contract assertion has no automated test**: by definition an assertion
 terminates the process, so it cannot both fire and continue in the same process; a child-process
 death test, in turn, is treated by Windows as a crash and pops up the "has stopped working"

@@ -356,6 +356,26 @@ mdb->Dump("./dump");
 | `TestMdb` | 接物理库（SQLite / DuckDB 文件）。异步写库落库、修改与删除落库、断连期间增量丢弃与重连全量补齐、`InitMdbFromDb` 从库加载 |
 | `TestConcurrency` | 三种实现的读扩展性对照（读者 2 / 4 / 8 × 写者 1），打印撕裂读与缺失行计数，只作同机对拍 |
 
+基准程序 `BenchTableOps`（`test/Benchmarks`，`BUILD_BENCHMARKS` 缺省开）不做断言，也不进门禁：在 10 万行交易日表上
+测三种实现的单次 `Select` / `Update` / `InsertErase` 成本，按 Spark 的 `Benchmark::Measure` 输出 CSV。
+**绝对成本看它，多读者扩展性与撕裂读仍看 `TestConcurrency`**。
+
+```text
+./bin/Release/BenchTableOps.exe
+# name,ns_per_call,ns_slowest,calls_per_round
+LockBased.Select,155.0,162.9,202511
+LockBased.Update,334.8,370.1,131891
+LockBased.InsertErase,550.0,658.4,127844
+PointerSwap.Select,79.5,104.1,759878
+PointerSwap.Update,305.8,344.4,186776
+PointerSwap.InsertErase,235.3,293.7,267522
+StableRow.Select,78.3,133.1,857632
+StableRow.Update,131.7,188.3,554323
+StableRow.InsertErase,261.6,270.6,148676
+```
+
+> **注意**：以上为本机 2026-10-29 Release 实测，数字随机器与调度变化，只作同机跨提交对拍。数值只在 Release 下有效，Debug 运行会先往 stderr 打一行警告。`InsertErase` 成对执行（插入后立删同一键，行数不变），量的是这一对的往返成本。
+
 **批插入的契约断言没有自动化用例**：断言的定义就是中断进程，无法在同一进程里既触发又继续；用子进程做
 死亡测试则会被 Windows 当成崩溃弹出「已停止工作」，故那套机制已整套撤回。要手工观察它响一次，临时把
 `UnitTests` 的「批量插入移交所有权并以单次批量下发事件」里所有记录改成同一个主键（`FillTradingDay(*row,

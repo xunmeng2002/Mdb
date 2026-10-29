@@ -27,4 +27,18 @@ namespace TestSupport
 	{
 		return std::strcmp(record.CurrTradingDay, record.PreTradingDay) == 0;
 	}
+
+	// 按主键 1..rowCount 灌满一张交易日表；被拒绝的记录由 Insert 自行归还对象池
+	template <typename TableType>
+	bool InsertTradingDayRows(TableType& table, int rowCount)
+	{
+		bool allInserted = true;
+		for (int rowIndex = 0; rowIndex < rowCount; ++rowIndex)
+		{
+			Mdb::TradingDay* row = Mdb::TradingDay::Allocate();
+			FillTradingDay(*row, rowIndex + 1, 0);
+			allInserted = table.Insert(row) && allInserted;
+		}
+		return allInserted;
+	}
 }

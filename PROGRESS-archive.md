@@ -2,6 +2,10 @@
 
 > `PROGRESS.md` 滚出的已关闭条目原文，按 ID 倒序；检索入口见 [PROGRESS-index.md](PROGRESS-index.md)。
 
+## D.37 — 移除 `DemoRcu` / `DemoRcuB` 两个原型 demo
+
+- **移除 `DemoRcu` / `DemoRcuB` 两个原型 demo（2026-10-29，删 `test/DemoRcu`、`test/DemoRcuB`，改 `CMakeLists.txt`、`docs/rcu-single-writer-multi-reader.md`）**：用户裁定移除。两个 demo 自包含、只依赖标准库，作用是演示 B（换指针 + 代数回收）与 B2（行地址稳定 + seqlock）两种 RCU 形态；`TestTables` 合并后同一套通用场景已在三种实现（含两个 RCU 形态）上跑过，demo 剩下的价值只是「不依赖 Mdb 接口的形态说明」，不值得各维护 815 / 622 行。落地：`git rm` 两个目录，`CMakeLists.txt` 删两个 `add_application` 与链接行；`docs/rcu-single-writer-multi-reader.md` 的指向改为真实实现（`src/Mdb/Rcu/PointerSwap`、`src/Mdb/Rcu/StableRow`），§5 的构建命令改指 `TestTables`，2026-10-22 的实测输出保留并标注为「原型 demo 输出（记录保留）」。**验证（已编译已跑）**：配置后构建目标只剩 `TestMdb` / `TestTables` / `TestConcurrency`，`TestTables` 34 用例 / 256 断言全过。**风险**：删除属仓内受控删除，`git show 4bbd40c:test/DemoRcu/DemoRcu.cpp` 可取回原文。
+
 ## D.36 — `TestTables` 迁到 doctest，补批量插入 / 副本订阅 / 索引登记用例
 
 - **`TestTables` 迁到 doctest，补批量插入 / 副本订阅 / 索引登记用例（2026-10-29，新增 `test/TestTables/Main.cpp`，改 `test/TestTables/TestTables.cpp`、`CMakeLists.txt`、`docs/rcu-single-writer-multi-reader.md`）**：用户问补单测时以为会引入 doctest，并指出 `D:/Gitee/Libs/doctest` 是兄弟仓共用的现成库——Spark / QuantTrading / DbAdapters / EGTTradingSystem 都走 `find_package(doctest CONFIG REQUIRED PATHS "../Libs/doctest")`（纯头文件、无 platform triplet，故不随其余库的双平台分支走），本仓照办即与兄弟仓同构，不经包管理器。落地：新增 `Main.cpp`（`DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN`）；`add_application` 自动 glob 目录内 `.cpp`，无需单独列源文件；通用表场景改为 `TEST_CASE_TEMPLATE` 一次覆盖三种实现，StableRow / LockBased 专有用例为 `TEST_CASE`；断言由 `report.Check(cond, "name")` 改为 `CHECK(cond)`，失败输出带 `文件:行号` 与表达式，`--test-case=` 可单跑。**新增用例**：`BatchInsert`（三种实现：所有权整批移交、调用方容器被清空、单次 `OnRowBatchChange` 且不逐行发 `OnRowChange`）；副本订阅（`SubscribeReplica` + `InitDb` 的「快照开始 → 整批在册行 → 快照完成」顺序，之后单行变更走 `OnRowChange`，`UnSubscribe` 后不再投递）；`PrimaryAccount` / `Order` 的批量插入索引与唯一键登记（StableRow + LockBased）。**顺带**：通用场景现在也跑读写锁版（原先只跑两个 RCU 形态），断言数由 142 升到 256；`HasSubscribers` 实为 private，原打算的断言取消，订阅契约改用事件计数间接验。**验证（已编译已跑）**：34 个用例、256 条断言全过，退出码 0。**风险**：① `CMakeLists.txt` 新增的 `find_package(doctest ...)` 是硬依赖，缺 `../Libs/doctest` 时连 `TestMdb` 等目标也无法配置；② `TestMdb` / `TestConcurrency` 仍是手写报告器，该差异已记入 ❓。
