@@ -1,7 +1,7 @@
 # 单写多读内存表（RCU 形态）设计与原型验证
 
 > 记录 B 方案（无锁读 + 原子换指针 + 代数回收）与 B2 变体（稳定行地址 + 行内版本号）的设计、讨论结论与原型验证。整理日期 2026-10-22，2026-10-27 补第 9 节（接入 Mdb 表接口）与第 10 节（三种实现的并发对照，操作间隔 0–1 ms 梯度）。
-> 原型代码：[DemoRcu](../test/DemoRcu/DemoRcu.cpp)；上层设计背景见 `D:\Gitlab\Trading\docs\C++-套利策略资管系统设计.md` §1。
+> 实现代码：[StableRowTables](../src/Mdb/Rcu/StableRow/StableRowTables.h)、[PointerSwapTables](../src/Mdb/Rcu/PointerSwap/PointerSwapTables.h)（原型 demo `DemoRcu` / `DemoRcuB` 已于 2026-10-29 移除，用例并入 [test/TestTables](../test/TestTables)）；上层设计背景见 `D:\Gitlab\Trading\docs\C++-套利策略资管系统设计.md` §1。
 
 ---
 
@@ -217,16 +217,16 @@ void RebuildForInsertIfNeeded()
 
 ## 5. 原型验证
 
-原型目标 `DemoRcu` 已接入根 `CMakeLists.txt`，与 `TestMdb` 共用 `add_application`：
+原型 demo（`test/DemoRcu`、`test/DemoRcuB`）已于 2026-10-29 移除：它们本就只依赖标准库、用来演示两种形态，而同样的用例已由 `TestTables` 覆盖到三个实现上。
 
 ```text
-cmake --build out/build/x64-Debug --target DemoRcu
-out/build/x64-Debug/bin/Debug/DemoRcu.exe
+cmake --build out/build/x64-Debug --target TestTables
+out/build/x64-Debug/bin/Debug/TestTables.exe
 ```
 
 覆盖用例：插入与查询、副本脱钩、重复主键拒绝、`Update` 后行地址不变、索引无需重指即可读到新值、索引键变化后重排、删除与索引同步、`ForEach`、扩容重建、4 主键读者 + 2 索引读者 + 1 写者并发。
 
-2026-10-22 在本机 Debug 构建的实测输出（数字随机器与调度变化，不作为性能基准）：
+2026-10-22 原型 demo 在本机 Debug 构建的实测输出（记录保留；数字随机器与调度变化，不作为性能基准）：
 
 ```text
 concurrentNoTornReads=1
@@ -267,9 +267,9 @@ failures=0
 
 ## 8. B2 变体
 
-`DemoRcu` 当前实现的是 B2，而不是 §2 的换指针 B。§2 的原形态保留在 `test/DemoRcuB`（只有主键、没有二级索引），不需要索引的场景可直接照它实现：`cmake --build <构建树> --target DemoRcuB`。两者都让主键查询无锁，区别在行的地址：
+Mdb 里两种形态各有实现：`Mdb::Rcu::StableRow` 是 B2（`src/Mdb/Rcu/StableRow`），`Mdb::Rcu::PointerSwap` 是 §2 的换指针 B（`src/Mdb/Rcu/PointerSwap`，只有主键、没有二级索引）。两者都让主键查询无锁，区别在行的地址：
 
-| | B（§2） | B2（DemoRcu 现形态） |
+| | B（§2，`Mdb::Rcu::PointerSwap`） | B2（`Mdb::Rcu::StableRow`） |
 | :--- | :--- | :--- |
 | 行地址 | 每次 `Update` 换新行 | 始终不变 |
 | 行内容 | 不可变 | seqlock：写者推进版本号，读者拷贝后校验 |
@@ -291,18 +291,18 @@ B2 的代价是 seqlock 的读侧重试：写者正在写同一行时，读者�
 
 ## 9. 接入 Mdb 表接口
 
-两个原型已按 Mdb 生成表的方式重做了一遍，与读写锁版一起按「一个库 = 一个文件夹」重排；全部由模板生成，勿手改。
+两个 RCU 形态已按 Mdb 生成表的方式重做了一遍，与读写锁版一起按「一个库 = 一个文件夹」重排；全部由模板生成，勿手改。
 
 | 目录 | 命名空间 | 内容 |
 | --- | --- | --- |
-| `Model/` | `Mdb` | 数据契约：记录结构、`MdbTableBase`、`TableRangeLease`、哈希/比较器、`TableList` |
+| `Common/` | `Mdb` | 数据契约：记录结构、`MdbTableBase`、`TableRangeLease`、哈希/比较器、`TableList` |
 | `LockBased/` | `Mdb` | 读写锁实现：`MdbTables` / `MdbPrimaryKeys` / `MdbIndexes` + `Mdb` 聚合、`MdbTableRegistry`、`InitMdbFrom*` |
 | `Rcu/` | `Mdb::Rcu` | 读者登记 + 代数回收，两形态共用 |
 | `Rcu/PointerSwap/` | `Mdb::Rcu::PointerSwap` | B 形态：`PointerSwapTables` + `PointerSwapPrimaryKeys` + 同名 `Mdb` 聚合与 `InitMdbFrom*`（换指针 + 退休旧行） |
 | `Rcu/StableRow/` | `Mdb::Rcu::StableRow` | B2 形态：`StableRowTables` + `StableRowPrimaryKeys` + `StableRowIndexes` + 同名 `Mdb` 聚合与 `InitMdbFrom*`（行地址稳定 + seqlock） |
 
-`Model/` 与 `LockBased/` 沿用 `Mdb` 根命名空间（公共类型名不冲突）；两个 RCU 目录才有子命名空间，因为它们的表类与读写锁版同名。
-索引序号挂在记录结构上（`PrimaryAccount::IndexOfferIdId`，与 `TableId` 并列），schema 与索引类都引用它，跨目录依赖只有 LockBased / 两个 RCU 库 → Model 一个方向。
+`Common/` 与 `LockBased/` 沿用 `Mdb` 根命名空间（公共类型名不冲突）；两个 RCU 目录才有子命名空间，因为它们的表类与读写锁版同名。
+索引序号挂在记录结构上（`PrimaryAccount::IndexOfferIdId`，与 `TableId` 并列），schema 与索引类都引用它，跨目录依赖只有 LockBased / 两个 RCU 库 → Common 一个方向。
 
 索引与唯一键按形态分工（2026-10-27 裁定）：**B 一律忽略 `indexes` 与 `uniquekeys` 节点**，不生成索引类、唯一键类与 `EraseBy<键>Index`，
 使用方只能按键访问；缺的是编译期可见的接口，不会退化成运行期慢路径。
@@ -371,8 +371,12 @@ B 没有索引类；B2 的索引类另立 `StableRowIndexes`，与 `StableRowTab
 
 ```text
 cmake --build out/build/x64-Debug --target TestConcurrency
-out/build/x64-Debug/bin/Debug/TestConcurrency.exe [操作间隔微秒数]
+out/build/x64-Debug/bin/Debug/TestConcurrency.exe [操作间隔微秒数] [doctest 选项]
 ```
+
+第一个裸数字参数被当作操作间隔，以 `-` 开头的参数原样交给 doctest；两者可同时给。例如
+`TestConcurrency.exe 0 --test-case="*2 读者*"` 只跑读者数为 2 的三种实现且不设间隔。
+每配置仍先打印一行读数（实现名、读者数、读写次数、撕裂读与缺失行计数、耗时），随后断言。
 
 设计要点：
 
@@ -381,7 +385,7 @@ out/build/x64-Debug/bin/Debug/TestConcurrency.exe [操作间隔微秒数]
 | 建表 | 表对象直接构造，先插 10 万行 `TradingDay`（约 3.6 MB 净数据，读侧开始出现缓存未命中）；全程不删行，读不到即为缺陷 |
 | 读负载 | 每个读者按自己的 LCG 序列挑主键，调真实读接口 `PrimaryKey->Select`，返回副本后校验 `CurrTradingDay == PreTradingDay` |
 | 写负载 | 写者在主线程用另一条 LCG 挑行调真实写接口 `Update`（顺序循环只会碰前几千行，与十万行扫读几乎不重叠），把两个日期字段写成同一个新值 |
-| 操作间隔 | 两端每完成一次操作后忙等该间隔，模拟两次操作之间的计算与 IO。命令行第一个参数给微秒数，缺省 1000；给 0 即无间隔的饱和最坏情况 |
+| 操作间隔 | 两端每完成一次操作后忙等该间隔，模拟两次操作之间的计算与 IO。命令行第一个参数给微秒数，缺省 10；给 0 即无间隔的饱和最坏情况 |
 | 时长 | 读写两端各跑固定 1 s 窗口；窗口内完成多少条 `Update` 只作观测量，不作断言 |
 | 收尾 | 读者除 `stopSignal` 外另有 300 ms 自超时，兜住读写锁版写者被读者挡住的情形，使总时长有界 |
 | 断言 | 每配置 7 条：建行成功、无撕裂读、无缺失行、无失败 `Update`、写者有进展、每个读者有进展、终态与写者最后写入一致 |
@@ -540,7 +544,6 @@ out/build/x64-Debug/bin/Debug/TestConcurrency.exe [操作间隔微秒数]
 
 ## 参考
 
-- 原型源码：[DemoRcu](../test/DemoRcu/DemoRcu.cpp)、[DemoRcuB](../test/DemoRcuB/DemoRcuB.cpp)
 - 表接口版本：[PointerSwapTables](../src/Mdb/Rcu/PointerSwap/PointerSwapTables.h)、[StableRowTables](../src/Mdb/Rcu/StableRow/StableRowTables.h)、
   [对照测试](../test/TestTables/TestTables.cpp)
 - 上层设计：`D:\Gitlab\Trading\docs\C++-套利策略资管系统设计.md` §1（内存数据库：从读写锁到一写多读）

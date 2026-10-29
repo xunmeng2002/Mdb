@@ -1,19 +1,21 @@
 // 三种实现的读扩展性对照：同一负载、同一断言，只改读线程数（2 / 4 / 8），写线程恒为一个。
 // 不接物理库：表对象直接构造，不走 InitDb / AsyncDbWriter。
 // 每轮跑固定时长：写侧完成多少条 Update 是观测量之一（读写锁版在读压下会骤降），不做时长断言。
-// 读写两端按命令行给出的操作间隔（微秒）各做一次操作；缺省 1 ms，给 0 即满载自旋的饱和最坏情况。
+// 读写两端按命令行给出的操作间隔（微秒）各做一次操作；缺省 10 µs，给 0 即满载自旋的饱和最坏情况。
+#include "OperationInterval.h"
+
 #include "LockBased/MdbTables.h"
 #include "Common/MdbStructs.h"
 #include "Rcu/PointerSwap/PointerSwapTables.h"
 #include "Rcu/StableRow/StableRowTables.h"
 #include "TestSupport/TestSupport.h"
 
+#include "doctest/doctest.h"
+
 #include <atomic>
 #include <chrono>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
-#include <initializer_list>
 #include <optional>
 #include <thread>
 #include <vector>
@@ -21,7 +23,6 @@
 namespace
 {
 	using Mdb::TradingDay;
-	using TestSupport::CheckReporter;
 	using TestSupport::FillTradingDay;
 	using TestSupport::HasPairedDates;
 
@@ -30,19 +31,30 @@ namespace
 	// 读者在窗口后仍可能被写者的独占锁挡在 Select 里，给一段宽限让它们自行退出，
 	// 否则读写锁版的写者要等到读者恰好让出锁才能完成最后一次 Update，运行时长不可控
 	constexpr std::chrono::milliseconds ReaderGraceDuration{ 300 };
-	// 读写两端的操作间隔：模拟真实业务里两次操作之间的计算与 IO，读者不再把共享锁占满。
-	// 命令行第一个参数给微秒数，缺省 1 ms；给 0 即回到「满载自旋」的饱和最坏情况。
-	// 用忙等而不是 sleep：Windows 的睡眠精度是毫秒级偏上，会把间隔撑大。
-	std::chrono::microseconds ParseOperationInterval(int argc, char** argv)
+
+	// 读数表要标明是哪种实现，类型本身不带这个名字
+	template <typename TableType>
+	const char* ImplementationName();
+
+	template <>
+	const char* ImplementationName<Mdb::TradingDayTable>()
 	{
-		if (argc < 2)
-		{
-			return std::chrono::microseconds{ 1000 };
-		}
-		const long long microseconds = std::strtoll(argv[1], nullptr, 10);
-		return std::chrono::microseconds{ microseconds < 0 ? 0 : microseconds };
+		return "LockBased";
 	}
 
+	template <>
+	const char* ImplementationName<Mdb::Rcu::PointerSwap::TradingDayTable>()
+	{
+		return "PointerSwap";
+	}
+
+	template <>
+	const char* ImplementationName<Mdb::Rcu::StableRow::TradingDayTable>()
+	{
+		return "StableRow";
+	}
+
+	// 用忙等而不是 sleep：Windows 的睡眠精度是毫秒级偏上，会把间隔撑大
 	void SpinOperationInterval(std::chrono::microseconds operationInterval)
 	{
 		const auto deadline = std::chrono::steady_clock::now() + operationInterval;
@@ -191,39 +203,44 @@ namespace
 		return outcome;
 	}
 
+	// 每轮跑满一个测量窗口，输出一行读数再断言；读数只用于同机同构建对拍，不做阈值判断
 	template <typename TableType>
-	int RunConfiguration(const char* implementationName, int readerCount, std::chrono::microseconds operationInterval)
+	void RunConfiguration(int readerCount)
 	{
-		char configurationName[96];
-		std::snprintf(configurationName, sizeof(configurationName), "%s readers=%d interval=%lldus", implementationName,
-			readerCount, static_cast<long long>(operationInterval.count()));
-		CheckReporter report(configurationName);
+		const std::chrono::microseconds operationInterval = ConfiguredOperationInterval();
 		const ScenarioOutcome outcome = RunReaderScenario<TableType>(readerCount, operationInterval);
-		std::printf("%s reads=%lld updates=%d torn=%d missing=%d failedUpdates=%d mismatchedRows=%d elapsedMs=%.1f\n",
-			configurationName, outcome.readCount, outcome.updateCount, outcome.tornReadCount, outcome.missingRowCount,
+		std::printf("%s readers=%d interval=%lldus reads=%lld updates=%d torn=%d missing=%d failedUpdates=%d mismatchedRows=%d elapsedMs=%.1f\n",
+			ImplementationName<TableType>(), readerCount, static_cast<long long>(operationInterval.count()),
+			outcome.readCount, outcome.updateCount, outcome.tornReadCount, outcome.missingRowCount,
 			outcome.failedUpdateCount, outcome.mismatchedRowCount, outcome.elapsedMilliseconds);
-		report.Check(outcome.allRowsInserted, "allRowsInserted");
-		report.Check(outcome.tornReadCount == 0, "noTornReads");
-		report.Check(outcome.missingRowCount == 0, "noMissingRows");
-		report.Check(outcome.failedUpdateCount == 0, "allUpdatesApplied");
-		report.Check(outcome.updateCount > 0, "writerMadeProgress");
-		report.Check(outcome.readerWithoutProgressCount == 0, "everyReaderMadeProgress");
-		report.Check(outcome.mismatchedRowCount == 0, "finalStateMatchesWriter");
-		return report.FailureCount();
+
+		CHECK(outcome.allRowsInserted);
+		CHECK(outcome.tornReadCount == 0);
+		CHECK(outcome.missingRowCount == 0);
+		CHECK(outcome.failedUpdateCount == 0);
+		CHECK(outcome.updateCount > 0);
+		CHECK(outcome.readerWithoutProgressCount == 0);
+		CHECK(outcome.mismatchedRowCount == 0);
 	}
 }
 
-int main(int argc, char** argv)
+TEST_SUITE("读扩展性对照")
 {
-	std::setvbuf(stdout, nullptr, _IONBF, 0);
-	const std::chrono::microseconds operationInterval = ParseOperationInterval(argc, argv);
-	int failureCount = 0;
-	for (int readerCount : { 2, 4, 8 })
+	TEST_CASE_TEMPLATE("2 读者 + 1 写者", TableType,
+		Mdb::TradingDayTable, Mdb::Rcu::PointerSwap::TradingDayTable, Mdb::Rcu::StableRow::TradingDayTable)
 	{
-		failureCount += RunConfiguration<Mdb::TradingDayTable>("LockBased", readerCount, operationInterval);
-		failureCount += RunConfiguration<Mdb::Rcu::PointerSwap::TradingDayTable>("PointerSwap", readerCount, operationInterval);
-		failureCount += RunConfiguration<Mdb::Rcu::StableRow::TradingDayTable>("StableRow", readerCount, operationInterval);
+		RunConfiguration<TableType>(2);
 	}
-	std::printf("failures=%d\n", failureCount);
-	return failureCount == 0 ? 0 : 1;
+
+	TEST_CASE_TEMPLATE("4 读者 + 1 写者", TableType,
+		Mdb::TradingDayTable, Mdb::Rcu::PointerSwap::TradingDayTable, Mdb::Rcu::StableRow::TradingDayTable)
+	{
+		RunConfiguration<TableType>(4);
+	}
+
+	TEST_CASE_TEMPLATE("8 读者 + 1 写者", TableType,
+		Mdb::TradingDayTable, Mdb::Rcu::PointerSwap::TradingDayTable, Mdb::Rcu::StableRow::TradingDayTable)
+	{
+		RunConfiguration<TableType>(8);
+	}
 }

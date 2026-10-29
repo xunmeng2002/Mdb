@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <cstring>
 
-// 并发测试程序共用的辅助：撕裂读检测用的成对日期写入，以及逐条打印的断言记录。
+// 测试程序共用的辅助：定长字符串写入，以及撕裂读检测用的成对日期写入。
 namespace TestSupport
 {
 	template <std::size_t Size>
@@ -27,27 +27,4 @@ namespace TestSupport
 	{
 		return std::strcmp(record.CurrTradingDay, record.PreTradingDay) == 0;
 	}
-
-	class CheckReporter
-	{
-	public:
-		explicit CheckReporter(const char* configurationName) : configurationName_(configurationName)
-		{
-		}
-
-		void Check(bool passed, const char* checkName)
-		{
-			std::printf("%s %s=%d\n", configurationName_, checkName, passed ? 1 : 0);
-			failureCount_ += passed ? 0 : 1;
-		}
-
-		int FailureCount() const
-		{
-			return failureCount_;
-		}
-
-	private:
-		const char* configurationName_;
-		int failureCount_ = 0;
-	};
 }

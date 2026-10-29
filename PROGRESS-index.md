@@ -35,3 +35,5 @@
 | D.29 | B2 接入唯一键，B 保持不生成 | 2026-10-27 | `563333e` | 已编译已跑 |
 | D.30 | 三种实现的并发对照测试 `TestConcurrency` | 2026-10-27 | `a25e088` | 已编译已跑 |
 | D.31 | 类型定义迁回本仓自持，`Types.h.tpl` 改为跨仓公用 | 2026-10-28 | `2d12d75` | 已编译已跑 |
+| D.32 | `src/Mdb/Model/` 改名 `src/Mdb/Common/`，目标改名 `MdbCommonStatic` | 2026-10-28 | `8a3de93` | 已编译已跑 |
+| D.33 | 项登记收回本仓：新增 `Model/ShortItems.xml` 与 `ParseShortItem.py` | 2026-10-28 | `—` | 生成物逐字节不变 |

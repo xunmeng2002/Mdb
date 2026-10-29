@@ -107,13 +107,6 @@ target_link_libraries(TestMdb PRIVATE
     Spark::Serialization)
 copy_dll_file(TestMdb)
 
-# RCU 形态 demo：自包含，只依赖标准库
-# DemoRcu 为 B2（行地址稳定 + seqlock，含二级索引）；DemoRcuB 为 B（换指针 + 代数回收，仅主键）
-add_application(DemoRcu ${CMAKE_CURRENT_SOURCE_DIR}/test/DemoRcu ${CMAKE_CURRENT_SOURCE_DIR}/test/DemoRcu)
-target_link_libraries(DemoRcu PRIVATE Threads::Threads)
-add_application(DemoRcuB ${CMAKE_CURRENT_SOURCE_DIR}/test/DemoRcuB ${CMAKE_CURRENT_SOURCE_DIR}/test/DemoRcuB)
-target_link_libraries(DemoRcuB PRIVATE Threads::Threads)
-
 # 三种实现的表级直连测试，不接物理库：
 # RCU 两种形态跑同一套通用场景（PointerSwap 为 B、StableRow 为 B2），索引与唯一键只在 StableRow 存在；
 # 读写锁版补二级索引 / 复合主键 / 清表登记 / 导出
@@ -124,6 +117,6 @@ copy_dll_file(TestTables)
 
 # 三种实现的读扩展性对照：读线程 2 / 4 / 8，写线程恒为一个，同进程链接三个库，不接物理库
 add_application(TestConcurrency ${CMAKE_CURRENT_SOURCE_DIR}/test/TestConcurrency ${CMAKE_CURRENT_SOURCE_DIR}/test/TestConcurrency)
-target_link_libraries(TestConcurrency PRIVATE MdbLockBasedStatic MdbRcuPointerSwapStatic MdbRcuStableRowStatic Threads::Threads)
+target_link_libraries(TestConcurrency PRIVATE MdbLockBasedStatic MdbRcuPointerSwapStatic MdbRcuStableRowStatic Threads::Threads doctest::doctest)
 target_include_directories(TestConcurrency PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/test)
 copy_dll_file(TestConcurrency)
