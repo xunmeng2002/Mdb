@@ -2,6 +2,11 @@
 
 > `PROGRESS.md` 滚出的已关闭条目原文，按 ID 倒序；检索入口见 [PROGRESS-index.md](PROGRESS-index.md)。
 
+## D.34 — 项登记表改为每类首个显式 `id`，88 个降到 12 个
+
+- **项登记表改为「每类首个显式 `id`、其余自增」，`Model/ShortItems.xml` 的 88 个 id 降到 12 个（2026-10-28，改 `Model/ShortItems.xml`，重生成 `Model/Items.xml`、`Model/Tables/Tables.xml`）**：用户指出上一批提取时把 88 项的 `id` 全抄了过来，而 QuantTrading 的 `Model/ShortItems.xml`（285 项）只在每个 id 分类块的首项写 `id`，其余交给 `ParseShortItem.py` 的 `lastId += 1` 自增，人工维护才不会出现重复 / 错漏。现每块只留首项一个显式 `id`，块起点统一取 `0xNN01`（`0x1001` / `0x2001` / `0x2801` / `0x2901` / `0x3001` / `0x3801` / `0x4001` / `0x6001` / `0x7001` / `0x8001` / `0x8401` / `0x9001`）——原先的 `0x3802` / `0x4015` / `0x6015` / `0x8403` 是上游稀疏编号的残留。用户同时裁定 Mdb 的项 id 不必与 QuantTrading 对应，本仓自定即可。**验证（已重生成已编译已跑）**：`parseall.py` 重跑后 88 项 id 在 12 个块内各自连续、无重复（16 / 6 / 2 / 2 / 7 / 3 / 11 / 5 / 19 / 4 / 1 / 12）；`ShortItems.xml` 去掉 `id` 属性后与 HEAD 逐字节相同（仅删 76 个 id）；`Items.xml` 与 `Tables.xml` 归一化核对后**仅 id 值变化**，名称 / 类型 / 描述 / 顺序不变；`pumpall.py` 重泵后 C++ 与 SQL 生成物零改动（id 不流入代码与 SQL，仓内除 `Model/` 外无旧 id 残留）；`TestRcuTables` 94 条断言全为 1、`TestConcurrency` 63 条全为 1，两个 `failures=0`。**风险**：① 项 id 数值整体变化，仓外若按 id 硬编码会失配（本仓已扫无引用，QuantTrading / Spark 各自持有项登记，不受影响）；② 块内新增项须追加到块尾，插在中间会让后续 id 整体后移；③ `TestMdb` 本轮 5 次运行 3 过 2 挂，差异只在 `pendingWhileConnected`，属既有偶发（见 ❓），与本次改动无关——改动前后生成物逐字节相同。
+
+
 ## D.33 — 项登记收回本仓：新增 `Model/ShortItems.xml` 与 `ParseShortItem.py`
 
 - **表模型的项登记收回本仓：新增 `Model/ShortItems.xml`（88 项）、`ParseShortItem.py` 与生成物 `Model/Items.xml`（2026-10-28，改 `Model/parselist.xml`）**：`Model/parselist.xml` 原指 `../Model/Items.xml`——那是仓外的共享登记表（`D:/Gitee/Model/`，盘上已不存在），本仓自己一项都没有，改路径时才暴露。做法与 `Model/Types.xml`（38 个类型，同样是裁剪视图）同构：从共享登记表裁出本仓 11 张表实际引用的 **88 项**，保留原 `id`/`type`/`desc`（源文件里省 `id` 的按顺序推导后写死，避免换仓重排）——**此「写死 id」的做法已于 2026-10-28 推翻，见上条**；`ParseShortItem.py` 取 `D:/Gitee/Python` 的规范副本；parselist 先出 `Model/Items.xml` 再喂表模型。**判据**：`Tables.xml` 与重泵前**逐字节相同**（说明 88 项覆盖完整、id 也对得上）；全量重泵后所有生成物与 HEAD 一致；`TestMdb` / `TestRcuTables` / `TestConcurrency` 全过。**代价**：这 88 项与 QuantTrading、Spark 各存一份，改 `id`/`type`/`desc` 要三处同步；如需单一真源，须另立共享模型仓（未做）。

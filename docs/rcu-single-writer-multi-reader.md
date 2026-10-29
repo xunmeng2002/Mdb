@@ -1,7 +1,7 @@
 # 单写多读内存表（RCU 形态）设计与原型验证
 
 > 记录 B 方案（无锁读 + 原子换指针 + 代数回收）与 B2 变体（稳定行地址 + 行内版本号）的设计、讨论结论与原型验证。整理日期 2026-10-22，2026-10-27 补第 9 节（接入 Mdb 表接口）与第 10 节（三种实现的并发对照，操作间隔 0–1 ms 梯度）。
-> 实现代码：[StableRowTables](../src/Mdb/Rcu/StableRow/StableRowTables.h)、[PointerSwapTables](../src/Mdb/Rcu/PointerSwap/PointerSwapTables.h)（原型 demo `DemoRcu` / `DemoRcuB` 已于 2026-10-29 移除，用例并入 [test/TestTables](../test/TestTables)）；上层设计背景见 `D:\Gitlab\Trading\docs\C++-套利策略资管系统设计.md` §1。
+> 实现代码：[StableRowTables](../src/Mdb/Rcu/StableRow/StableRowTables.h)、[PointerSwapTables](../src/Mdb/Rcu/PointerSwap/PointerSwapTables.h)（原型 demo `DemoRcu` / `DemoRcuB` 已于 2026-10-29 移除，用例并入 [test/UnitTests](../test/UnitTests)）；上层设计背景见 `D:\Gitlab\Trading\docs\C++-套利策略资管系统设计.md` §1。
 
 ---
 
@@ -217,11 +217,11 @@ void RebuildForInsertIfNeeded()
 
 ## 5. 原型验证
 
-原型 demo（`test/DemoRcu`、`test/DemoRcuB`）已于 2026-10-29 移除：它们本就只依赖标准库、用来演示两种形态，而同样的用例已由 `TestTables` 覆盖到三个实现上。
+原型 demo（`test/DemoRcu`、`test/DemoRcuB`）已于 2026-10-29 移除：它们本就只依赖标准库、用来演示两种形态，而同样的用例已由 `UnitTests` 覆盖到三个实现上。
 
 ```text
-cmake --build out/build/x64-Debug --target TestTables
-out/build/x64-Debug/bin/Debug/TestTables.exe
+cmake --build out/build/x64-Debug --target UnitTests
+out/build/x64-Debug/bin/Debug/UnitTests.exe
 ```
 
 覆盖用例：插入与查询、副本脱钩、重复主键拒绝、`Update` 后行地址不变、索引无需重指即可读到新值、索引键变化后重排、删除与索引同步、`ForEach`、扩容重建、4 主键读者 + 2 索引读者 + 1 写者并发。
@@ -347,7 +347,7 @@ B 没有索引类；B2 的索引类另立 `StableRowIndexes`，与 `StableRowTab
 每线程一个 `thread_local` 槽位且线程退出不回收，超限直接 `abort`；B 与 B2 的订阅/发布管道与 `MdbTables` 生成码重复，
 后续若要抽公共基类，属跨形态重构，需单独评估。
 
-验证由 `test/TestTables`（doctest 2.5.3，与兄弟仓共用 `../Libs/doctest`）承担：通用场景用 `TEST_CASE_TEMPLATE` 以模板参数分别跑
+验证由 `test/UnitTests`（doctest 2.5.3，与兄弟仓共用 `../Libs/doctest`）承担：通用场景用 `TEST_CASE_TEMPLATE` 以模板参数分别跑
 `Mdb::Rcu::PointerSwap::TradingDayTable`、`Mdb::Rcu::StableRow::TradingDayTable` 与 `Mdb::TradingDayTable`，覆盖单行增删改查、
 2000 行批量插入与扩容、墓碑后可达性、`SelectAll` 阻塞写者、订阅事件（含 `Erase` 副本）、`BatchInsert` 的所有权移交与单次批量事件、
 副本订阅的快照与增量顺序、3 读者 × 20000 次 `Update` 的撕裂读检测、`TruncateTable`。
@@ -545,7 +545,7 @@ out/build/x64-Debug/bin/Debug/TestConcurrency.exe [操作间隔微秒数] [docte
 ## 参考
 
 - 表接口版本：[PointerSwapTables](../src/Mdb/Rcu/PointerSwap/PointerSwapTables.h)、[StableRowTables](../src/Mdb/Rcu/StableRow/StableRowTables.h)、
-  [对照测试](../test/TestTables/TestTables.cpp)
+  [对照测试](../test/UnitTests/TableTests.cpp)
 - 上层设计：`D:\Gitlab\Trading\docs\C++-套利策略资管系统设计.md` §1（内存数据库：从读写锁到一写多读）
 - 现有读接口与租约语义：[README](../README.md)
 - 环境准备：[环境准备指南](environment-setup.md)
