@@ -347,18 +347,19 @@ B 没有索引类；B2 的索引类另立 `StableRowIndexes`，与 `StableRowTab
 每线程一个 `thread_local` 槽位且线程退出不回收，超限直接 `abort`；B 与 B2 的订阅/发布管道与 `MdbTables` 生成码重复，
 后续若要抽公共基类，属跨形态重构，需单独评估。
 
-验证由 `test/TestTables/TestTables.cpp` 承担：同一套场景以模板参数分别跑 `Mdb::Rcu::PointerSwap::TradingDayTable` 与
-`Mdb::Rcu::StableRow::TradingDayTable`，覆盖单行增删改查、2000 行批量插入与扩容、墓碑后可达性、`SelectAll` 阻塞写者、
-订阅事件（含 `Erase` 副本）、3 读者 × 20000 次 `Update` 的撕裂读检测、`TruncateTable`。
+验证由 `test/TestTables`（doctest 2.5.3，与兄弟仓共用 `../Libs/doctest`）承担：通用场景用 `TEST_CASE_TEMPLATE` 以模板参数分别跑
+`Mdb::Rcu::PointerSwap::TradingDayTable`、`Mdb::Rcu::StableRow::TradingDayTable` 与 `Mdb::TradingDayTable`，覆盖单行增删改查、
+2000 行批量插入与扩容、墓碑后可达性、`SelectAll` 阻塞写者、订阅事件（含 `Erase` 副本）、`BatchInsert` 的所有权移交与单次批量事件、
+副本订阅的快照与增量顺序、3 读者 × 20000 次 `Update` 的撕裂读检测、`TruncateTable`。
 另有一组只跑 B2 的二级索引场景（`PrimaryAccount`）：重复索引键计数、`Range` 双边界、`Update` 改索引键后的重排、
 改非索引字段不重排、`EraseByOfferIdIndex` 的返回数与 `EraseByIndex` 事件（含 `IndexId`）、`TruncateTable` 清空索引。
 唯一键另有一组只跑 B2 的场景（`Order.ClientOrderId`）：插入后按键查得到、主键不同而唯一键相同被拒、`Update` 改唯一键被拒且原登记保留、
 改非键字段后仍能按键查到新值、`Erase` 后键失效、同一唯一键可重新插入。
-最后各跑一条 `Mdb` 聚合冒烟：只申请 `TradingDay` 的 `TableList` 建出的聚合，该表指针非空、未申请的表保持空指针。
-同一可执行文件另跑读写锁版（`namespace LockBased`）的表级直连场景：`Product` 复合字符串主键、`Position` 五列混合主键配合
+`Mdb` 聚合冒烟同样以模板参数跑两个 RCU 形态：只申请 `TradingDay` 的 `TableList` 建出的聚合，该表指针非空、未申请的表保持空指针。
+同一可执行文件另跑读写锁版的表级直连场景：`Product` 复合字符串主键、`Position` 五列混合主键配合
 `AccountIndex` / `TradingDayIndex` 与 `EraseByAccountIndex`、`PrimaryAccount` 索引列改值后的重排、`TruncateTable` 清三份登记、
-`OrderTable::Dump` 的表头与行数。
-实测 142 条断言全为 1、`failures=0`。
+`OrderTable::Dump` 的表头与行数，以及两种实现的 `BatchInsert` 索引 / 唯一键登记。
+实测 34 个用例、256 条断言全过（`--test-case=` 可单跑，失败输出带文件与行号）。
 
 ---
 

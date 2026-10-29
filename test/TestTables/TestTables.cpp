@@ -6,6 +6,8 @@
 #include "Rcu/StableRow/StableRowTables.h"
 #include "TestSupport/TestSupport.h"
 
+#include "doctest/doctest.h"
+
 #include <DbAdapters/DbInterface/MdbSubscriber.h>
 #include <atomic>
 #include <chrono>
@@ -28,7 +30,6 @@ namespace
 	using Mdb::PrimaryAccount;
 	using Mdb::Product;
 	using Mdb::TradingDay;
-	using TestSupport::CheckReporter;
 	using TestSupport::FillFixedString;
 	using TestSupport::FillTradingDay;
 	using TestSupport::HasPairedDates;
@@ -37,9 +38,11 @@ namespace
 	constexpr std::int32_t SharedOfferId = 10;
 	constexpr std::int32_t UniqueOfferId = 20;
 	constexpr std::int32_t MovedOfferId = 30;
+	constexpr std::int32_t BatchOfferId = 40;
 	constexpr int ReaderThreadCount = 3;
 	constexpr int ConcurrentUpdateCount = 20000;
 	constexpr int BulkRowCount = 2000;
+	constexpr int BatchInsertRowCount = 128;
 
 	template <typename Iterator>
 	int CountIterators(Iterator first, Iterator last)
@@ -74,11 +77,25 @@ namespace
 		return CountIterators(rangeLease.begin(), rangeLease.end());
 	}
 
+	template <typename Table>
+	std::optional<Order> SelectOrderByClientOrderId(Table& table, const Order& key)
+	{
+		return table.ClientOrderIdUniqueKey->Select(key.TradingDay, key.AccountId, key.ExchangeId,
+			key.InstrumentId, key.SessionId, key.ClientOrderId);
+	}
+
 	void FillPrimaryAccount(PrimaryAccount& record, const char* primaryAccountId, std::int32_t offerId, const char* name)
 	{
 		FillFixedString(record.PrimaryAccountId, primaryAccountId);
 		FillFixedString(record.PrimaryAccountName, name);
 		record.OfferId = offerId;
+	}
+
+	PrimaryAccount MakePrimaryAccount(const char* primaryAccountId, std::int32_t offerId)
+	{
+		PrimaryAccount record{};
+		FillPrimaryAccount(record, primaryAccountId, offerId, primaryAccountId);
+		return record;
 	}
 
 	Order MakeOrder(const char* tradingDay, const char* accountId, const char* exchangeId, const char* instrumentId,
@@ -121,50 +138,93 @@ namespace
 			retainedEvents_.push_back(event);
 		}
 
+		void OnRowBatchChange(const std::vector<DbAdapters::RowChangeEventPtr>& events) override
+		{
+			++batchCount_;
+			lastBatchSize_ = static_cast<int>(events.size());
+		}
+
 		int insertCount_ = 0;
 		int eraseCount_ = 0;
+		int batchCount_ = 0;
+		int lastBatchSize_ = 0;
 		std::vector<DbAdapters::RowChangeEventPtr> retainedEvents_;
 	};
 
+	// 副本订阅者：快照与增量走不同入口，接收方靠「快照开始 → 批量 → 快照完成」的顺序判断何时可以入队
+	class CountingReplicaSubscriber : public DbAdapters::MdbReplicaSubscriber
+	{
+	public:
+		void OnRowChange(const DbAdapters::RowChangeEventPtr& event) override
+		{
+			++changeCount_;
+			lastTableId_ = event->TableId;
+		}
+
+		void OnRowBatchChange(const std::vector<DbAdapters::RowChangeEventPtr>& events) override
+		{
+			++batchCount_;
+			lastBatchSize_ = static_cast<int>(events.size());
+		}
+
+		void OnSnapshotBegin(unsigned int tableId) override
+		{
+			snapshotBeginTableId_ = tableId;
+			snapshotCompleted_ = false;
+		}
+
+		void OnSnapshotComplete(unsigned int tableId) override
+		{
+			snapshotCompleteTableId_ = tableId;
+			snapshotCompleted_ = true;
+		}
+
+		int changeCount_ = 0;
+		int batchCount_ = 0;
+		int lastBatchSize_ = 0;
+		unsigned int lastTableId_ = 0;
+		unsigned int snapshotBeginTableId_ = 0;
+		unsigned int snapshotCompleteTableId_ = 0;
+		bool snapshotCompleted_ = false;
+	};
+
 	template <typename Table>
-	void CheckSingleRowInterface(Table& table, CheckReporter& report)
+	void CheckSingleRowInterface(Table& table)
 	{
 		TradingDay* firstRow = TradingDay::Allocate();
 		FillTradingDay(*firstRow, 1, 100);
-		report.Check(table.Insert(firstRow), "insertAccepted");
-		report.Check(HasDate(table.PrimaryKey->Select(1), "100"), "selectFound");
+		CHECK(table.Insert(firstRow));
+		CHECK(HasDate(table.PrimaryKey->Select(1), "100"));
 
 		std::optional<TradingDay> detached = table.PrimaryKey->Select(1);
-		if (detached.has_value())
-		{
-			std::snprintf(detached->CurrTradingDay, sizeof(detached->CurrTradingDay), "999");
-		}
-		report.Check(HasDate(table.PrimaryKey->Select(1), "100"), "selectReturnsDetachedCopy");
+		REQUIRE(detached.has_value());
+		std::snprintf(detached->CurrTradingDay, sizeof(detached->CurrTradingDay), "999");
+		CHECK(HasDate(table.PrimaryKey->Select(1), "100"));
 
 		TradingDay* duplicateRow = TradingDay::Allocate();
 		FillTradingDay(*duplicateRow, 1, 200);
 		// 被拒绝的记录由 Insert 自行归还对象池
-		report.Check(!table.Insert(duplicateRow), "duplicateRejected");
-		report.Check(HasDate(table.PrimaryKey->Select(1), "100"), "duplicateKeptOriginal");
+		CHECK(!table.Insert(duplicateRow));
+		CHECK(HasDate(table.PrimaryKey->Select(1), "100"));
 
 		TradingDay updatedRecord{};
 		FillTradingDay(updatedRecord, 1, 300);
-		report.Check(table.Update(updatedRecord), "updateAccepted");
-		report.Check(HasDate(table.PrimaryKey->Select(1), "300"), "updateApplied");
+		CHECK(table.Update(updatedRecord));
+		CHECK(HasDate(table.PrimaryKey->Select(1), "300"));
 
 		TradingDay missingRecord{};
 		missingRecord.Pk = 777;
-		report.Check(!table.Update(missingRecord), "updateMissingRejected");
+		CHECK(!table.Update(missingRecord));
 
 		TradingDay eraseKey{};
 		eraseKey.Pk = 1;
-		report.Check(table.Erase(eraseKey), "eraseAccepted");
-		report.Check(!table.PrimaryKey->Select(1).has_value(), "erasedRowGone");
-		report.Check(!table.Erase(eraseKey), "eraseMissingRejected");
+		CHECK(table.Erase(eraseKey));
+		CHECK(!table.PrimaryKey->Select(1).has_value());
+		CHECK(!table.Erase(eraseKey));
 	}
 
 	template <typename Table>
-	void CheckBulkAndRange(Table& table, CheckReporter& report)
+	void CheckBulkAndRange(Table& table)
 	{
 		bool allInserted = true;
 		for (int index = 0; index < BulkRowCount; ++index)
@@ -173,9 +233,9 @@ namespace
 			FillTradingDay(*row, 1000 + index, index);
 			allInserted = table.Insert(row) && allInserted;
 		}
-		report.Check(allInserted, "bulkInsertAccepted");
-		report.Check(table.PrimaryKey->Select(1000).has_value(), "bulkFirstFoundAfterRebuild");
-		report.Check(table.PrimaryKey->Select(1000 + BulkRowCount - 1).has_value(), "bulkLastFound");
+		CHECK(allInserted);
+		CHECK(table.PrimaryKey->Select(1000).has_value());
+		CHECK(table.PrimaryKey->Select(1000 + BulkRowCount - 1).has_value());
 
 		bool allErased = true;
 		for (int index = 0; index < BulkRowCount; index += 2)
@@ -184,9 +244,9 @@ namespace
 			key.Pk = 1000 + index;
 			allErased = table.Erase(key) && allErased;
 		}
-		report.Check(allErased, "bulkEraseAccepted");
-		report.Check(!table.PrimaryKey->Select(1000).has_value(), "bulkErasedRowGone");
-		report.Check(table.PrimaryKey->Select(1001).has_value(), "keptRowStillReachableAcrossTombstones");
+		CHECK(allErased);
+		CHECK(!table.PrimaryKey->Select(1000).has_value());
+		CHECK(table.PrimaryKey->Select(1001).has_value());
 
 		int liveCount = 0;
 		table.ForEach([&liveCount](TradingDay*)
@@ -194,7 +254,7 @@ namespace
 			++liveCount;
 			return true;
 		});
-		report.Check(liveCount == BulkRowCount / 2, "forEachCount");
+		CHECK(liveCount == BulkRowCount / 2);
 
 		std::atomic<bool> writerFinished{ false };
 		std::thread writer;
@@ -205,7 +265,7 @@ namespace
 			{
 				++leaseCount;
 			}
-			report.Check(leaseCount == BulkRowCount / 2, "selectAllCount");
+			CHECK(leaseCount == BulkRowCount / 2);
 
 			writer = std::thread([&table, &writerFinished]()
 			{
@@ -215,30 +275,30 @@ namespace
 				writerFinished.store(true);
 			});
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
-			report.Check(!writerFinished.load(), "selectAllBlocksWriter");
+			CHECK(!writerFinished.load());
 		}
 		writer.join();
-		report.Check(writerFinished.load(), "writerResumedAfterLease");
+		CHECK(writerFinished.load());
 	}
 
 	template <typename Table>
-	void CheckSubscribers(Table& table, CheckReporter& report)
+	void CheckSubscribers(Table& table)
 	{
 		CountingSubscriber subscriber;
 		table.Subscribe(&subscriber);
 
 		TradingDay* eventRow = TradingDay::Allocate();
 		FillTradingDay(*eventRow, 9000, 1);
-		report.Check(table.Insert(eventRow), "subscribedInsertAccepted");
+		CHECK(table.Insert(eventRow));
 
 		TradingDay eventKey{};
 		eventKey.Pk = 9000;
-		report.Check(table.Erase(eventKey), "subscribedEraseAccepted");
+		CHECK(table.Erase(eventKey));
 		table.UnSubscribe();
 
-		report.Check(subscriber.insertCount_ == 1, "subscriberSawInsert");
-		report.Check(subscriber.eraseCount_ == 1, "subscriberSawErase");
-		report.Check(subscriber.retainedEvents_.size() == 2, "subscriberRetainedEvents");
+		CHECK(subscriber.insertCount_ == 1);
+		CHECK(subscriber.eraseCount_ == 1);
+		REQUIRE(subscriber.retainedEvents_.size() == 2);
 
 		bool eraseEventCarriesRowCopy = false;
 		for (const DbAdapters::RowChangeEventPtr& event : subscriber.retainedEvents_)
@@ -248,15 +308,15 @@ namespace
 				eraseEventCarriesRowCopy = static_cast<const TradingDay*>(event->Record.Get())->Pk == 9000;
 			}
 		}
-		report.Check(eraseEventCarriesRowCopy, "eraseEventCarriesRowCopy");
+		CHECK(eraseEventCarriesRowCopy);
 	}
 
 	template <typename Table>
-	void CheckConcurrentSelect(Table& table, CheckReporter& report)
+	void CheckConcurrentSelect(Table& table)
 	{
 		TradingDay* pairedRow = TradingDay::Allocate();
 		FillTradingDay(*pairedRow, PairedPrimaryKey, 0);
-		report.Check(table.Insert(pairedRow), "pairedRowInserted");
+		CHECK(table.Insert(pairedRow));
 
 		std::atomic<bool> stopReaders{ false };
 		std::atomic<int> tornReadCount{ 0 };
@@ -290,20 +350,16 @@ namespace
 			reader.join();
 		}
 
-		report.Check(tornReadCount.load() == 0, "concurrentNoTornReads");
-		report.Check(readCount.load() > 0, "concurrentReadersMadeProgress");
+		CHECK(tornReadCount.load() == 0);
+		CHECK(readCount.load() > 0);
 	}
 
 	template <typename Table>
-	int RunScenario(const char* variantName)
+	void CheckTruncateClearsTable(Table& table)
 	{
-		CheckReporter report(variantName);
-		Table table;
-
-		CheckSingleRowInterface(table, report);
-		CheckBulkAndRange(table, report);
-		CheckSubscribers(table, report);
-		CheckConcurrentSelect(table, report);
+		TradingDay* row = TradingDay::Allocate();
+		FillTradingDay(*row, PairedPrimaryKey, 0);
+		CHECK(table.Insert(row));
 
 		table.TruncateTable();
 		int liveCountAfterTruncate = 0;
@@ -312,21 +368,111 @@ namespace
 			++liveCountAfterTruncate;
 			return true;
 		});
-		report.Check(liveCountAfterTruncate == 0, "truncateEmptiesTable");
-		report.Check(!table.PrimaryKey->Select(PairedPrimaryKey).has_value(), "truncateSelectGone");
-		return report.FailureCount();
+		CHECK(liveCountAfterTruncate == 0);
+		CHECK(!table.PrimaryKey->Select(PairedPrimaryKey).has_value());
 	}
 
-	template <typename MdbType>
-	int CheckAggregate(const char* variantName)
+	// 批量插入是独立入口：所有权整批移交、事件以单次批量下发，不逐行发 OnRowChange
+	template <typename Table>
+	void CheckBatchInsert(Table& table)
 	{
-		CheckReporter report(variantName);
-		const unsigned int requestedTableIds[] = { TradingDay::TableId };
-		const Mdb::TableList tableList{ "aggregate", requestedTableIds, 1 };
-		MdbType mdb(tableList);
-		report.Check(mdb.TradingDays != nullptr, "aggregateCreatesRequestedTable");
-		report.Check(mdb.Trades == nullptr, "aggregateLeavesUnrequestedTable");
-		return report.FailureCount();
+		CountingSubscriber subscriber;
+		table.Subscribe(&subscriber);
+
+		std::vector<TradingDay*> records;
+		records.reserve(BatchInsertRowCount);
+		for (int index = 0; index < BatchInsertRowCount; ++index)
+		{
+			TradingDay* row = TradingDay::Allocate();
+			FillTradingDay(*row, 20000 + index, index);
+			records.push_back(row);
+		}
+		table.BatchInsert(records);
+		table.UnSubscribe();
+
+		CHECK(records.empty());
+		CHECK(table.PrimaryKey->Select(20000).has_value());
+		CHECK(table.PrimaryKey->Select(20000 + BatchInsertRowCount - 1).has_value());
+		CHECK(CountPrimaryKeyRows(table) == BatchInsertRowCount);
+		CHECK(subscriber.batchCount_ == 1);
+		CHECK(subscriber.lastBatchSize_ == BatchInsertRowCount);
+		CHECK(subscriber.insertCount_ == 0);
+	}
+
+	// InitDb 的快照要把在册行整批交给副本，之后单行变更才走 OnRowChange
+	template <typename Table>
+	void CheckReplicaSubscriber(Table& table)
+	{
+		TradingDay* snapshotRow = TradingDay::Allocate();
+		FillTradingDay(*snapshotRow, 40001, 1);
+		CHECK(table.Insert(snapshotRow));
+
+		CountingReplicaSubscriber replica;
+		table.SubscribeReplica(&replica);
+		table.InitDb();
+
+		CHECK(replica.snapshotBeginTableId_ == TradingDay::TableId);
+		CHECK(replica.snapshotCompleteTableId_ == TradingDay::TableId);
+		CHECK(replica.snapshotCompleted_);
+		CHECK(replica.batchCount_ == 1);
+		CHECK(replica.lastBatchSize_ == 1);
+		CHECK(replica.changeCount_ == 0);
+
+		TradingDay* changeRow = TradingDay::Allocate();
+		FillTradingDay(*changeRow, 40002, 2);
+		CHECK(table.Insert(changeRow));
+		CHECK(replica.changeCount_ == 1);
+		CHECK(replica.lastTableId_ == TradingDay::TableId);
+
+		table.UnSubscribe();
+
+		TradingDay* afterUnsubscribeRow = TradingDay::Allocate();
+		FillTradingDay(*afterUnsubscribeRow, 40003, 3);
+		CHECK(table.Insert(afterUnsubscribeRow));
+		CHECK(replica.changeCount_ == 1);
+	}
+
+	// 批量插入要顺手登记索引：否则行进了主键、索引里查不到
+	template <typename Table>
+	void CheckBatchInsertKeepsIndexedRows(Table& table)
+	{
+		std::vector<PrimaryAccount*> records;
+		records.reserve(BatchInsertRowCount);
+		for (int index = 0; index < BatchInsertRowCount; ++index)
+		{
+			char primaryAccountId[32];
+			std::snprintf(primaryAccountId, sizeof(primaryAccountId), "BATCH%d", index);
+			PrimaryAccount* row = PrimaryAccount::Allocate();
+			FillPrimaryAccount(*row, primaryAccountId, BatchOfferId, primaryAccountId);
+			records.push_back(row);
+		}
+		table.BatchInsert(records);
+
+		CHECK(records.empty());
+		CHECK(CountPrimaryKeyRows(table) == BatchInsertRowCount);
+		CHECK(CountOfferId(table, BatchOfferId) == BatchInsertRowCount);
+	}
+
+	// 唯一键同理：批量插入漏登记，后续按键查不到、同键还能再插一份
+	template <typename Table>
+	void CheckBatchInsertKeepsUniqueKey(Table& table)
+	{
+		std::vector<Order*> records;
+		records.reserve(BatchInsertRowCount);
+		for (int index = 0; index < BatchInsertRowCount; ++index)
+		{
+			Order* row = Order::Allocate();
+			*row = MakeOrder("20261029", "ACC1", "SHFE", "cu2601", index + 1, 1, 8000 + index);
+			records.push_back(row);
+		}
+		table.BatchInsert(records);
+
+		CHECK(records.empty());
+		CHECK(CountPrimaryKeyRows(table) == BatchInsertRowCount);
+		CHECK(SelectOrderByClientOrderId(table, MakeOrder("20261029", "ACC1", "SHFE", "cu2601", 1, 1, 8000)).has_value());
+		CHECK(SelectOrderByClientOrderId(table,
+			MakeOrder("20261029", "ACC1", "SHFE", "cu2601", BatchInsertRowCount, 1,
+				8000 + BatchInsertRowCount - 1)).has_value());
 	}
 
 	// 两个 RCU 形态：B（换指针）不生成索引与唯一键，B2（稳定行地址）两者都生成
@@ -337,9 +483,8 @@ namespace
 		using Mdb::Rcu::StableRow::PrimaryAccountTableIndexOfferId;
 
 		// 只有 StableRow 生成二级索引：B 形态按形态分工一律忽略 indexes
-		int CheckPrimaryAccountIndex()
+		void CheckPrimaryAccountIndex()
 		{
-			CheckReporter report("StableRowIndex");
 			PrimaryAccountTable table;
 			CountingSubscriber subscriber;
 			table.Subscribe(&subscriber);
@@ -353,37 +498,38 @@ namespace
 				FillPrimaryAccount(row, accountIds[index], offerIds[index], accountIds[index]);
 				allInserted = InsertRecord(table, row) && allInserted;
 			}
-			report.Check(allInserted, "accountInsertAccepted");
-			report.Check(CountOfferId(table, SharedOfferId) == 2, "indexKeepsDuplicateKeys");
-			report.Check(CountOfferId(table, UniqueOfferId) == 1, "indexSingleKeyCount");
+			CHECK(allInserted);
+			CHECK(CountOfferId(table, SharedOfferId) == 2);
+			CHECK(CountOfferId(table, UniqueOfferId) == 1);
 
 			{
 				auto rangeLease = table.OfferIdIndex->Range(SharedOfferId, UniqueOfferId);
-				report.Check(CountIterators(rangeLease.begin(), rangeLease.end()) == 3, "indexRangeCoversBothBounds");
+				CHECK(CountIterators(rangeLease.begin(), rangeLease.end()) == 3);
 			}
 
 			// 改索引键：节点必须在索引中重排，主键查询读到新值
 			PrimaryAccount movedRecord{};
 			FillPrimaryAccount(movedRecord, "C", MovedOfferId, "C");
-			report.Check(table.Update(movedRecord), "indexKeyUpdateAccepted");
+			CHECK(table.Update(movedRecord));
 			AccountIdType movedAccountKey{};
 			FillFixedString(movedAccountKey, "C");
 			const std::optional<PrimaryAccount> updatedRecord = table.PrimaryKey->Select(movedAccountKey);
-			report.Check(updatedRecord.has_value() && updatedRecord->OfferId == MovedOfferId, "indexKeyUpdateApplied");
-			report.Check(CountOfferId(table, SharedOfferId) == 1, "indexKeyMovedOutOfOldKey");
-			report.Check(CountOfferId(table, MovedOfferId) == 1, "indexKeyMovedIntoNewKey");
+			REQUIRE(updatedRecord.has_value());
+			CHECK(updatedRecord->OfferId == MovedOfferId);
+			CHECK(CountOfferId(table, SharedOfferId) == 1);
+			CHECK(CountOfferId(table, MovedOfferId) == 1);
 
 			// 改非索引字段：节点不动，计数与键都保持
 			PrimaryAccount renamedRecord{};
 			FillPrimaryAccount(renamedRecord, "A", SharedOfferId, "renamed");
-			report.Check(table.Update(renamedRecord), "indexUnrelatedFieldUpdateAccepted");
-			report.Check(CountOfferId(table, SharedOfferId) == 1, "indexUnchangedAfterUnrelatedFieldUpdate");
+			CHECK(table.Update(renamedRecord));
+			CHECK(CountOfferId(table, SharedOfferId) == 1);
 
-			report.Check(table.EraseByOfferIdIndex(UniqueOfferId) == 1, "eraseByIndexCount");
-			report.Check(CountOfferId(table, UniqueOfferId) == 0, "eraseByIndexRemovedNode");
+			CHECK(table.EraseByOfferIdIndex(UniqueOfferId) == 1);
+			CHECK(CountOfferId(table, UniqueOfferId) == 0);
 			AccountIdType erasedAccountKey{};
 			FillFixedString(erasedAccountKey, "B");
-			report.Check(!table.PrimaryKey->Select(erasedAccountKey).has_value(), "eraseByIndexRemovedRow");
+			CHECK(!table.PrimaryKey->Select(erasedAccountKey).has_value());
 			table.UnSubscribe();
 
 			bool eraseByIndexEventFound = false;
@@ -397,24 +543,22 @@ namespace
 				eraseByIndexEventFound = event->IndexId == PrimaryAccountTableIndexOfferId::IndexID
 					&& eventRecord != nullptr && eventRecord->OfferId == UniqueOfferId;
 			}
-			report.Check(eraseByIndexEventFound, "eraseByIndexEventCarriesIndexId");
+			CHECK(eraseByIndexEventFound);
 
 			table.TruncateTable();
-			report.Check(CountOfferId(table, SharedOfferId) == 0, "truncateClearsIndex");
+			CHECK(CountOfferId(table, SharedOfferId) == 0);
 			AccountIdType keptAccountKey{};
 			FillFixedString(keptAccountKey, "A");
-			report.Check(!table.PrimaryKey->Select(keptAccountKey).has_value(), "truncateClearsIndexedRows");
-			return report.FailureCount();
+			CHECK(!table.PrimaryKey->Select(keptAccountKey).has_value());
 		}
 
 		// 唯一键只在 StableRow 生成：B 形态不维护任何辅助结构
-		int CheckOrderUniqueKey()
+		void CheckOrderUniqueKey()
 		{
-			CheckReporter report("StableRowUniqueKey");
 			OrderTable table;
 
 			const Order firstOrder = MakeOrder("20261027", "ACC1", "CFFEX", "IF2612", 1, 1, 100);
-			report.Check(InsertRecord(table, firstOrder), "uniqueKeyInsertAccepted");
+			CHECK(InsertRecord(table, firstOrder));
 
 			DateType tradingDay{};
 			FillFixedString(tradingDay, "20261027");
@@ -428,28 +572,27 @@ namespace
 			{
 				return table.ClientOrderIdUniqueKey->Select(tradingDay, accountId, exchangeId, instrumentId, 1, clientOrderId);
 			};
-			report.Check(selectOrder(100).has_value(), "uniqueKeySelectFound");
+			CHECK(selectOrder(100).has_value());
 
 			// 主键不同，六个唯一键字段全同
 			const Order duplicateOrder = MakeOrder("20261027", "ACC1", "CFFEX", "IF2612", 2, 1, 100);
-			report.Check(!InsertRecord(table, duplicateOrder), "duplicateUniqueKeyRejected");
+			CHECK(!InsertRecord(table, duplicateOrder));
 
 			const Order changedKey = MakeOrder("20261027", "ACC1", "CFFEX", "IF2612", 1, 1, 200);
-			report.Check(!table.Update(changedKey), "uniqueKeyUpdateRejected");
-			report.Check(selectOrder(100).has_value(), "uniqueKeyKeptAfterRejectedUpdate");
+			CHECK(!table.Update(changedKey));
+			CHECK(selectOrder(100).has_value());
 
 			Order changedPrice = firstOrder;
 			changedPrice.Price = 3800.5;
-			report.Check(table.Update(changedPrice), "nonKeyUpdateAccepted");
+			CHECK(table.Update(changedPrice));
 			const std::optional<Order> updatedOrder = selectOrder(100);
-			report.Check(updatedOrder.has_value() && updatedOrder->Price == 3800.5, "uniqueKeySelectSeesUpdate");
+			REQUIRE(updatedOrder.has_value());
+			CHECK(updatedOrder->Price == 3800.5);
 
-			const Order eraseKey = MakeOrder("20261027", "ACC1", "CFFEX", "IF2612", 1, 1, 100);
-			report.Check(table.Erase(eraseKey), "uniqueKeyEraseAccepted");
-			report.Check(!selectOrder(100).has_value(), "uniqueKeyEraseRemovedEntry");
+			CHECK(table.Erase(MakeOrder("20261027", "ACC1", "CFFEX", "IF2612", 1, 1, 100)));
+			CHECK(!selectOrder(100).has_value());
 
-			report.Check(InsertRecord(table, duplicateOrder), "uniqueKeyReusableAfterErase");
-			return report.FailureCount();
+			CHECK(InsertRecord(table, duplicateOrder));
 		}
 	}
 
@@ -520,49 +663,33 @@ namespace
 			return table.EraseByAccountIndex(key.TradingDay, key.AccountId);
 		}
 
-		PrimaryAccount MakePrimaryAccount(const char* primaryAccountId, std::int32_t offerId)
-		{
-			PrimaryAccount record{};
-			FillPrimaryAccount(record, primaryAccountId, offerId, primaryAccountId);
-			return record;
-		}
-
-		std::optional<Order> SelectOrderByClientOrderId(OrderTable& table, const Order& key)
-		{
-			return table.ClientOrderIdUniqueKey->Select(key.TradingDay, key.AccountId, key.ExchangeId,
-				key.InstrumentId, key.SessionId, key.ClientOrderId);
-		}
-
 		// 复合字符串主键：Product 按 (ExchangeId, ProductId) 定行，Update 只能改非键字段
-		int CheckCompositeKeyTable()
+		void CheckCompositeKeyTable()
 		{
-			CheckReporter report("LockBasedCompositeKey");
 			ProductTable table;
 
-			report.Check(InsertRecord(table, MakeProduct("SHFE", "cu2601", "Copper2601")), "insertAccepted");
-			report.Check(SelectProduct(table, "SHFE", "cu2601").has_value(), "selectFound");
-			report.Check(!SelectProduct(table, "CFFEX", "cu2601").has_value(), "exchangeDiscriminatesKey");
+			CHECK(InsertRecord(table, MakeProduct("SHFE", "cu2601", "Copper2601")));
+			CHECK(SelectProduct(table, "SHFE", "cu2601").has_value());
+			CHECK(!SelectProduct(table, "CFFEX", "cu2601").has_value());
 
-			report.Check(!InsertRecord(table, MakeProduct("SHFE", "cu2601", "Duplicate")), "duplicateRejected");
-			report.Check(InsertRecord(table, MakeProduct("SHFE", "ag2601", "Silver2601")), "siblingKeyAccepted");
+			CHECK(!InsertRecord(table, MakeProduct("SHFE", "cu2601", "Duplicate")));
+			CHECK(InsertRecord(table, MakeProduct("SHFE", "ag2601", "Silver2601")));
 
-			report.Check(table.Update(MakeProduct("SHFE", "cu2601", "Copper2601Renamed")), "updateAccepted");
+			CHECK(table.Update(MakeProduct("SHFE", "cu2601", "Copper2601Renamed")));
 			const std::optional<Product> renamedRow = SelectProduct(table, "SHFE", "cu2601");
-			report.Check(renamedRow.has_value() && std::strcmp(renamedRow->ProductName, "Copper2601Renamed") == 0,
-				"updateApplied");
+			REQUIRE(renamedRow.has_value());
+			CHECK(std::strcmp(renamedRow->ProductName, "Copper2601Renamed") == 0);
 
 			const Product eraseKey = MakeProduct("SHFE", "cu2601", "");
-			report.Check(table.Erase(eraseKey), "eraseAccepted");
-			report.Check(!SelectProduct(table, "SHFE", "cu2601").has_value(), "erasedRowGone");
-			report.Check(SelectProduct(table, "SHFE", "ag2601").has_value(), "siblingKeyKept");
-			report.Check(!table.Erase(eraseKey), "eraseMissingRejected");
-			return report.FailureCount();
+			CHECK(table.Erase(eraseKey));
+			CHECK(!SelectProduct(table, "SHFE", "cu2601").has_value());
+			CHECK(SelectProduct(table, "SHFE", "ag2601").has_value());
+			CHECK(!table.Erase(eraseKey));
 		}
 
 		// 多列二级索引：重复键全部保留，按索引批量删要连带摘主键
-		int CheckPositionAccountIndex()
+		void CheckPositionAccountIndex()
 		{
-			CheckReporter report("LockBasedPositionIndex");
 			PositionTable table;
 
 			const bool allInserted =
@@ -570,133 +697,217 @@ namespace
 				&& InsertRecord(table, MakePosition("20261029", "ACC1", "SHFE", "ag2601", PosiDirectionType::Long))
 				&& InsertRecord(table, MakePosition("20261029", "ACC1", "SHFE", "cu2601", PosiDirectionType::Short))
 				&& InsertRecord(table, MakePosition("20261030", "ACC1", "SHFE", "cu2601", PosiDirectionType::Long));
-			report.Check(allInserted, "insertAllAccepted");
-			report.Check(SelectPosition(table,
-				MakePosition("20261029", "ACC1", "SHFE", "cu2601", PosiDirectionType::Long)).has_value(),
-				"longDirectionSelectFound");
-			report.Check(SelectPosition(table,
-				MakePosition("20261029", "ACC1", "SHFE", "cu2601", PosiDirectionType::Short)).has_value(),
-				"shortDirectionSelectFound");
+			CHECK(allInserted);
+			CHECK(SelectPosition(table,
+				MakePosition("20261029", "ACC1", "SHFE", "cu2601", PosiDirectionType::Long)).has_value());
+			CHECK(SelectPosition(table,
+				MakePosition("20261029", "ACC1", "SHFE", "cu2601", PosiDirectionType::Short)).has_value());
 
-			report.Check(CountAccountIndex(table, "20261029", "ACC1") == 3, "accountIndexKeepsEveryRow");
-			report.Check(CountTradingDayIndex(table, "20261029") == 3, "tradingDayIndexCountsSameDayRows");
-			report.Check(CountTradingDayIndex(table, "20261030") == 1, "tradingDayIndexSeparatesDays");
+			CHECK(CountAccountIndex(table, "20261029", "ACC1") == 3);
+			CHECK(CountTradingDayIndex(table, "20261029") == 3);
+			CHECK(CountTradingDayIndex(table, "20261030") == 1);
 
-			report.Check(EraseByAccountIndex(table, "20261029", "ACC1") == 3, "eraseByAccountIndexCount");
-			report.Check(!SelectPosition(table,
-				MakePosition("20261029", "ACC1", "SHFE", "ag2601", PosiDirectionType::Long)).has_value(),
-				"erasedByIndexRowGone");
-			report.Check(CountAccountIndex(table, "20261029", "ACC1") == 0, "indexEmptiedByErase");
-			report.Check(SelectPosition(table,
-				MakePosition("20261030", "ACC1", "SHFE", "cu2601", PosiDirectionType::Long)).has_value(),
-				"otherDayRowKept");
-			report.Check(EraseByAccountIndex(table, "20261029", "ACC1") == 0, "eraseByIndexIdempotent");
-			return report.FailureCount();
+			CHECK(EraseByAccountIndex(table, "20261029", "ACC1") == 3);
+			CHECK(!SelectPosition(table,
+				MakePosition("20261029", "ACC1", "SHFE", "ag2601", PosiDirectionType::Long)).has_value());
+			CHECK(CountAccountIndex(table, "20261029", "ACC1") == 0);
+			CHECK(SelectPosition(table,
+				MakePosition("20261030", "ACC1", "SHFE", "cu2601", PosiDirectionType::Long)).has_value());
+			CHECK(EraseByAccountIndex(table, "20261029", "ACC1") == 0);
 		}
 
 		// 索引列不在主键里：Update 改它要把记录在新旧键之间挪动，挪不动二叉搜索就会漏查
-		int CheckPrimaryAccountIndexReorder()
+		void CheckPrimaryAccountIndexReorder()
 		{
-			CheckReporter report("LockBasedIndexReorder");
 			PrimaryAccountTable table;
 
 			const bool allInserted = InsertRecord(table, MakePrimaryAccount("ACC1", 10))
 				&& InsertRecord(table, MakePrimaryAccount("ACC2", 20))
 				&& InsertRecord(table, MakePrimaryAccount("ACC3", 30));
-			report.Check(allInserted, "insertAllAccepted");
-			report.Check(CountOfferId(table, 10) == 1, "offerIdIndexCountBefore");
-			report.Check(CountOfferId(table, 20) == 1, "offerIdIndexMiddleKeyCount");
-			report.Check(CountOfferId(table, 30) == 1, "offerIdIndexLastKeyCount");
+			CHECK(allInserted);
+			CHECK(CountOfferId(table, 10) == 1);
+			CHECK(CountOfferId(table, 20) == 1);
+			CHECK(CountOfferId(table, 30) == 1);
 
-			report.Check(table.Update(MakePrimaryAccount("ACC1", 90)), "indexKeyUpdateAccepted");
-			report.Check(CountOfferId(table, 10) == 0, "indexKeyMovedOutOfOldKey");
-			report.Check(CountOfferId(table, 90) == 1, "indexKeyMovedIntoNewKey");
-			report.Check(CountOfferId(table, 20) == 1, "indexKeyNeighbourKept");
+			CHECK(table.Update(MakePrimaryAccount("ACC1", 90)));
+			CHECK(CountOfferId(table, 10) == 0);
+			CHECK(CountOfferId(table, 90) == 1);
+			CHECK(CountOfferId(table, 20) == 1);
 
 			PrimaryAccount eraseKey{};
 			FillFixedString(eraseKey.PrimaryAccountId, "ACC1");
-			report.Check(table.Erase(eraseKey), "eraseAccepted");
-			report.Check(CountOfferId(table, 90) == 0, "indexKeyReleasedByErase");
-			return report.FailureCount();
+			CHECK(table.Erase(eraseKey));
+			CHECK(CountOfferId(table, 90) == 0);
 		}
 
 		// TruncateTable 必须把主键、索引、唯一键三份登记一起清掉，否则同键再插会撞旧登记
-		int CheckTruncateClearsRegistrations()
+		void CheckTruncateClearsRegistrations()
 		{
-			CheckReporter report("LockBasedTruncate");
 			PositionTable positionTable;
 			const Position longPosition = MakePosition("20261029", "ACC1", "SHFE", "cu2601", PosiDirectionType::Long);
 			const Position shortPosition = MakePosition("20261029", "ACC1", "SHFE", "ag2601", PosiDirectionType::Short);
-			report.Check(InsertRecord(positionTable, longPosition) && InsertRecord(positionTable, shortPosition),
-				"positionInsertAccepted");
-			report.Check(CountAccountIndex(positionTable, "20261029", "ACC1") == 2, "positionIndexPopulated");
+			CHECK(InsertRecord(positionTable, longPosition));
+			CHECK(InsertRecord(positionTable, shortPosition));
+			CHECK(CountAccountIndex(positionTable, "20261029", "ACC1") == 2);
 
 			OrderTable orderTable;
 			const Order firstOrder = MakeOrder("20261029", "ACC1", "SHFE", "cu2601", 1, 1, 7001);
-			report.Check(InsertRecord(orderTable, firstOrder), "orderInsertAccepted");
-			report.Check(SelectOrderByClientOrderId(orderTable, firstOrder).has_value(), "orderUniqueKeyPopulated");
+			CHECK(InsertRecord(orderTable, firstOrder));
+			CHECK(SelectOrderByClientOrderId(orderTable, firstOrder).has_value());
 
 			positionTable.TruncateTable();
 			orderTable.TruncateTable();
-			report.Check(CountPrimaryKeyRows(positionTable) == 0, "truncateClearsPositionRows");
-			report.Check(CountAccountIndex(positionTable, "20261029", "ACC1") == 0, "truncateClearsPositionIndex");
-			report.Check(CountPrimaryKeyRows(orderTable) == 0, "truncateClearsOrderRows");
-			report.Check(!SelectOrderByClientOrderId(orderTable, firstOrder).has_value(), "truncateClearsOrderUniqueKey");
+			CHECK(CountPrimaryKeyRows(positionTable) == 0);
+			CHECK(CountAccountIndex(positionTable, "20261029", "ACC1") == 0);
+			CHECK(CountPrimaryKeyRows(orderTable) == 0);
+			CHECK(!SelectOrderByClientOrderId(orderTable, firstOrder).has_value());
 
-			report.Check(InsertRecord(positionTable, longPosition), "positionReinsertAccepted");
-			report.Check(CountAccountIndex(positionTable, "20261029", "ACC1") == 1, "positionIndexUsableAfterTruncate");
-			report.Check(InsertRecord(orderTable, firstOrder), "orderReinsertAccepted");
-			report.Check(SelectOrderByClientOrderId(orderTable, firstOrder).has_value(),
-				"orderUniqueKeyUsableAfterTruncate");
-			return report.FailureCount();
+			CHECK(InsertRecord(positionTable, longPosition));
+			CHECK(CountAccountIndex(positionTable, "20261029", "ACC1") == 1);
+			CHECK(InsertRecord(orderTable, firstOrder));
+			CHECK(SelectOrderByClientOrderId(orderTable, firstOrder).has_value());
 		}
 
-		int CheckDumpWritesRows()
+		void CheckDumpWritesRows()
 		{
-			CheckReporter report("LockBasedDump");
 			OrderTable table;
-			const bool allInserted = InsertRecord(table, MakeOrder("20261029", "ACC1", "SHFE", "cu2601", 1, 1, 7001))
-				&& InsertRecord(table, MakeOrder("20261029", "ACC1", "SHFE", "cu2601", 2, 1, 7002));
-			report.Check(allInserted, "insertAccepted");
+			CHECK(InsertRecord(table, MakeOrder("20261029", "ACC1", "SHFE", "cu2601", 1, 1, 7001)));
+			CHECK(InsertRecord(table, MakeOrder("20261029", "ACC1", "SHFE", "cu2601", 2, 1, 7002)));
 
 			table.Dump(".");
 			FILE* dumpFile = std::fopen(".//Orders.csv", "r");
-			report.Check(dumpFile != nullptr, "dumpFileCreated");
+			REQUIRE(dumpFile != nullptr);
 
 			int lineCount = 0;
 			bool headerMatched = false;
-			if (dumpFile != nullptr)
+			char line[4096];
+			while (std::fgets(line, sizeof(line), dumpFile) != nullptr)
 			{
-				char line[4096];
-				while (std::fgets(line, sizeof(line), dumpFile) != nullptr)
-				{
-					headerMatched = headerMatched
-						|| (lineCount == 0 && std::strncmp(line, "TradingDay,AccountId", 20) == 0);
-					++lineCount;
-				}
-				std::fclose(dumpFile);
+				headerMatched = headerMatched
+					|| (lineCount == 0 && std::strncmp(line, "TradingDay,AccountId", 20) == 0);
+				++lineCount;
 			}
-			report.Check(headerMatched, "dumpHeaderMatched");
-			report.Check(lineCount == 3, "dumpRowCount");
-			return report.FailureCount();
+			std::fclose(dumpFile);
+			CHECK(headerMatched);
+			CHECK(lineCount == 3);
 		}
 	}
 }
 
-int main()
+// 通用场景：三种实现走同一套断言，只有指针换 / 稳定行地址的实现差异
+TEST_CASE_TEMPLATE("单行接口：插入、副本读、改、删", Table,
+	Mdb::Rcu::PointerSwap::TradingDayTable, Mdb::Rcu::StableRow::TradingDayTable, Mdb::TradingDayTable)
 {
-	int failureCount = 0;
-	failureCount += RunScenario<Mdb::Rcu::PointerSwap::TradingDayTable>("PointerSwap");
-	failureCount += RunScenario<Mdb::Rcu::StableRow::TradingDayTable>("StableRow");
-	failureCount += StableRow::CheckPrimaryAccountIndex();
-	failureCount += StableRow::CheckOrderUniqueKey();
-	failureCount += CheckAggregate<Mdb::Rcu::PointerSwap::Mdb>("PointerSwap");
-	failureCount += CheckAggregate<Mdb::Rcu::StableRow::Mdb>("StableRow");
-	failureCount += LockBased::CheckCompositeKeyTable();
-	failureCount += LockBased::CheckPositionAccountIndex();
-	failureCount += LockBased::CheckPrimaryAccountIndexReorder();
-	failureCount += LockBased::CheckTruncateClearsRegistrations();
-	failureCount += LockBased::CheckDumpWritesRows();
-	std::printf("failures=%d\n", failureCount);
-	return failureCount == 0 ? 0 : 1;
+	Table table;
+	CheckSingleRowInterface(table);
+}
+
+TEST_CASE_TEMPLATE("批量插入与读租约阻塞写者", Table,
+	Mdb::Rcu::PointerSwap::TradingDayTable, Mdb::Rcu::StableRow::TradingDayTable, Mdb::TradingDayTable)
+{
+	Table table;
+	CheckBulkAndRange(table);
+}
+
+TEST_CASE_TEMPLATE("订阅者收到插入与删除事件，删除事件带记录副本", Table,
+	Mdb::Rcu::PointerSwap::TradingDayTable, Mdb::Rcu::StableRow::TradingDayTable, Mdb::TradingDayTable)
+{
+	Table table;
+	CheckSubscribers(table);
+}
+
+TEST_CASE_TEMPLATE("并发读不撕裂", Table,
+	Mdb::Rcu::PointerSwap::TradingDayTable, Mdb::Rcu::StableRow::TradingDayTable, Mdb::TradingDayTable)
+{
+	Table table;
+	CheckConcurrentSelect(table);
+}
+
+TEST_CASE_TEMPLATE("清表后行与主键查询一起失效", Table,
+	Mdb::Rcu::PointerSwap::TradingDayTable, Mdb::Rcu::StableRow::TradingDayTable, Mdb::TradingDayTable)
+{
+	Table table;
+	CheckTruncateClearsTable(table);
+}
+
+TEST_CASE_TEMPLATE("批量插入移交所有权并以单次批量下发事件", Table,
+	Mdb::Rcu::PointerSwap::TradingDayTable, Mdb::Rcu::StableRow::TradingDayTable, Mdb::TradingDayTable)
+{
+	Table table;
+	CheckBatchInsert(table);
+}
+
+TEST_CASE_TEMPLATE("副本订阅：先整批快照，再收单行增量", Table,
+	Mdb::Rcu::PointerSwap::TradingDayTable, Mdb::Rcu::StableRow::TradingDayTable, Mdb::TradingDayTable)
+{
+	Table table;
+	CheckReplicaSubscriber(table);
+}
+
+TEST_CASE_TEMPLATE("聚合只建出申请的表", MdbType, Mdb::Rcu::PointerSwap::Mdb, Mdb::Rcu::StableRow::Mdb)
+{
+	const unsigned int requestedTableIds[] = { Mdb::TradingDay::TableId };
+	const Mdb::TableList tableList{ "aggregate", requestedTableIds, 1 };
+	MdbType mdb(tableList);
+	CHECK(mdb.TradingDays != nullptr);
+	CHECK(mdb.Trades == nullptr);
+}
+
+TEST_CASE("StableRow 二级索引：重复键、区间、改键重排、按索引批删")
+{
+	StableRow::CheckPrimaryAccountIndex();
+}
+
+TEST_CASE("StableRow 唯一键：冲突插入与改键被拒、删除后键可复用")
+{
+	StableRow::CheckOrderUniqueKey();
+}
+
+TEST_CASE("StableRow 批量插入登记二级索引")
+{
+	Mdb::Rcu::StableRow::PrimaryAccountTable table;
+	CheckBatchInsertKeepsIndexedRows(table);
+}
+
+TEST_CASE("StableRow 批量插入登记唯一键")
+{
+	Mdb::Rcu::StableRow::OrderTable table;
+	CheckBatchInsertKeepsUniqueKey(table);
+}
+
+TEST_CASE("LockBased 复合字符串主键：增删改查与主键区分度")
+{
+	LockBased::CheckCompositeKeyTable();
+}
+
+TEST_CASE("LockBased 多列二级索引与按索引批删")
+{
+	LockBased::CheckPositionAccountIndex();
+}
+
+TEST_CASE("LockBased 索引列改值后重排")
+{
+	LockBased::CheckPrimaryAccountIndexReorder();
+}
+
+TEST_CASE("LockBased 清表清掉主键、索引与唯一键三份登记")
+{
+	LockBased::CheckTruncateClearsRegistrations();
+}
+
+TEST_CASE("LockBased 导出 csv 的表头与行数")
+{
+	LockBased::CheckDumpWritesRows();
+}
+
+TEST_CASE("LockBased 批量插入登记二级索引")
+{
+	Mdb::PrimaryAccountTable table;
+	CheckBatchInsertKeepsIndexedRows(table);
+}
+
+TEST_CASE("LockBased 批量插入登记唯一键")
+{
+	Mdb::OrderTable table;
+	CheckBatchInsertKeepsUniqueKey(table);
 }

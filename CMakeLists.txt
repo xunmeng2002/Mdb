@@ -51,6 +51,8 @@ endif()
 
 
 find_package(Threads REQUIRED)
+# doctest 是纯头文件、无平台差异，与兄弟仓共用 ../Libs/doctest，不经包管理器
+find_package(doctest CONFIG REQUIRED PATHS "../Libs/doctest")
 
 # 三种表实现拆成独立库，共用数据契约（MdbStructs / MdbTableBase / MdbReadLease / 比较器）。
 # 允许同进程共存：读写锁版在 Mdb，另两个在 Mdb::Rcu::PointerSwap / Mdb::Rcu::StableRow。
@@ -116,7 +118,7 @@ target_link_libraries(DemoRcuB PRIVATE Threads::Threads)
 # RCU 两种形态跑同一套通用场景（PointerSwap 为 B、StableRow 为 B2），索引与唯一键只在 StableRow 存在；
 # 读写锁版补二级索引 / 复合主键 / 清表登记 / 导出
 add_application(TestTables ${CMAKE_CURRENT_SOURCE_DIR}/test/TestTables ${CMAKE_CURRENT_SOURCE_DIR}/test/TestTables)
-target_link_libraries(TestTables PRIVATE MdbLockBasedStatic MdbRcuPointerSwapStatic MdbRcuStableRowStatic Threads::Threads)
+target_link_libraries(TestTables PRIVATE MdbLockBasedStatic MdbRcuPointerSwapStatic MdbRcuStableRowStatic Threads::Threads doctest::doctest)
 target_include_directories(TestTables PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/test)
 copy_dll_file(TestTables)
 
