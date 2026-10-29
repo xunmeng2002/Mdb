@@ -112,11 +112,13 @@ target_link_libraries(DemoRcu PRIVATE Threads::Threads)
 add_application(DemoRcuB ${CMAKE_CURRENT_SOURCE_DIR}/test/DemoRcuB ${CMAKE_CURRENT_SOURCE_DIR}/test/DemoRcuB)
 target_link_libraries(DemoRcuB PRIVATE Threads::Threads)
 
-# RCU 形态接入 Mdb 接口的对照测试：同一套场景分别跑 PointerSwap（B）与 StableRow（B2）
-add_application(TestRcuTables ${CMAKE_CURRENT_SOURCE_DIR}/test/TestRcuTables ${CMAKE_CURRENT_SOURCE_DIR}/test/TestRcuTables)
-target_link_libraries(TestRcuTables PRIVATE MdbCommonStatic MdbRcuPointerSwapStatic MdbRcuStableRowStatic Threads::Threads)
-target_include_directories(TestRcuTables PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/test)
-copy_dll_file(TestRcuTables)
+# 三种实现的表级直连测试，不接物理库：
+# RCU 两种形态跑同一套通用场景（PointerSwap 为 B、StableRow 为 B2），索引与唯一键只在 StableRow 存在；
+# 读写锁版补二级索引 / 复合主键 / 清表登记 / 导出
+add_application(TestTables ${CMAKE_CURRENT_SOURCE_DIR}/test/TestTables ${CMAKE_CURRENT_SOURCE_DIR}/test/TestTables)
+target_link_libraries(TestTables PRIVATE MdbLockBasedStatic MdbRcuPointerSwapStatic MdbRcuStableRowStatic Threads::Threads)
+target_include_directories(TestTables PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/test)
+copy_dll_file(TestTables)
 
 # 三种实现的读扩展性对照：读线程 2 / 4 / 8，写线程恒为一个，同进程链接三个库，不接物理库
 add_application(TestConcurrency ${CMAKE_CURRENT_SOURCE_DIR}/test/TestConcurrency ${CMAKE_CURRENT_SOURCE_DIR}/test/TestConcurrency)

@@ -2,6 +2,7 @@
 
 #include "Common/MdbStructs.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -9,6 +10,12 @@
 // 并发测试程序共用的辅助：撕裂读检测用的成对日期写入，以及逐条打印的断言记录。
 namespace TestSupport
 {
+	template <std::size_t Size>
+	void FillFixedString(char (&fixedString)[Size], const char* value)
+	{
+		std::snprintf(fixedString, Size, "%s", value);
+	}
+
 	inline void FillTradingDay(Mdb::TradingDay& record, std::int32_t primaryKey, int value)
 	{
 		record.Pk = primaryKey;
