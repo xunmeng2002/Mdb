@@ -93,7 +93,7 @@ target_link_libraries(MdbRcuStableRowStatic PRIVATE Spark::Serialization)
 add_library(MdbStatic INTERFACE)
 target_link_libraries(MdbStatic INTERFACE MdbCommonStatic MdbLockBasedStatic)
 
-# 测试可执行文件
+# 集成测试：接物理库（SQLite / DuckDB 文件），验证异步写库、断连重连、从库加载
 add_application(TestMdb  ${CMAKE_CURRENT_SOURCE_DIR}/test/TestMdb ${CMAKE_CURRENT_SOURCE_DIR}/test/TestMdb)
 target_link_libraries(TestMdb PRIVATE
     MdbStatic
@@ -101,10 +101,9 @@ target_link_libraries(TestMdb PRIVATE
     DbAdapters::AsyncDbWriter
     DbAdapters::SqliteWrapper
     DbAdapters::DuckdbWrapper
-    DbAdapters::MysqlWrapper
-    DbAdapters::MariadbWrapper
     Spark::Core
-    Spark::Serialization)
+    Spark::Serialization
+    doctest::doctest)
 copy_dll_file(TestMdb)
 
 # 单元测试：三种实现的表级直连，不接物理库（命名与兄弟仓一致，UnitTests = 无外部依赖，TestMdb = 接物理库）

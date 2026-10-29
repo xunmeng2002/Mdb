@@ -69,9 +69,11 @@ Mdb/
 │   ├── TableList.h                # Table list struct (TableList)
 │   ├── InitMdbFromDb.h/.cpp       # Bulk-load in-memory data from a persistent database
 │   └── InitMdbFromCsv.h/.cpp      # Bulk-load in-memory data from a CSV directory
-├── test/TestMdb/                  # Integration tests (TestDB: full flow across four DBs + async writes)
-│   ├── FullTableList.h            # TableList definition for all 11 tables
-│   └── TestDB.cpp
+├── test/TestMdb/                  # Integration tests (physical DB: async writes, reconnect resync, loading back)
+│   ├── DatabaseSession.h/.cpp     # RAII combination of physical DB + in-memory tables + writer thread
+│   ├── Main.cpp                   # doctest entry point (initializes the Logger)
+│   ├── TestMdb.cpp                # integration cases
+│   └── FullTableList.h            # TableList definition for all 11 tables
 ├── Model/                         # Data table model definitions (Tables.xml / TableNames.xml, etc.)
 │   ├── TableNames/                # Table name lists (FullTableNames.xml)
 │   └── Tables/                    # Table structure definitions (Tables.xml / ShortTables.xml / TableNames.xml)
@@ -346,26 +348,21 @@ Table models are defined in `Model/*.xml`; the Python scripts in the project roo
 
 ## 9. Test Programs
 
-The `test/TestMdb/TestMdb.cpp` integration test covers:
+Three targets, split by dependency; all use doctest, support `--test-case=` filtering, and exit
+with 0 when everything passes:
 
-| Test Item | Description |
+| Target | Coverage |
 | ---- | ---- |
-| `TestSqlite` | SQLite backend: full in-memory + async write flow |
-| `TestDuckdb` | DuckDB backend: full in-memory + async write flow |
-| `TestMysql` | MySQL backend full flow (requires local MySQL X Plugin; commented out by default) |
-| `TestMariadb` | MariaDB backend full flow (requires local MariaDB; commented out by default) |
-| Primary key / index | `primaryKey->Select` / `SelectAll`, `offerIDIndex->EqualRange`, `Range`, etc. |
-| In-memory ops | Insert / Update / Erase / TruncateTable with broadcast persistence verification |
-| `TestBatchInsertTakesOwnership` | Batch-insert ownership: the table holds the records the caller handed in (pointer identity) |
-| `TestSelectReturnsDetachedCopy` | Value-semantics read: the copy from `Select` differs in address from the live record, mutating the live record leaves the copy untouched, a writer is not blocked while the copy is held, and `Erase` given the copy removes the live record; `ForEach` count and early exit |
-| `TestWriteRejectsInvalidRecords` | Write-failure contract: `Update` / `Erase` return `false` and emit nothing when the primary key is absent; an `Update` that rewrites a unique-key field is rejected and the live record keeps its old value; non-key fields still update (positive control) |
+| `UnitTests` | No external dependency. Table-level direct tests on all three implementations (single-row interface, batch insert and read lease, subscribers, tear-free concurrent read, indexes and unique keys, truncate, CSV export), plus aggregate-layer contracts (subscriber fan-out, snapshot under read lease, publish barrier, write validation, replica semantics) |
+| `TestMdb` | Physical database (SQLite / DuckDB files). Async write-through, update and delete persistence, incremental loss while disconnected and full resync on reconnect, loading back via `InitMdbFromDb` |
+| `TestConcurrency` | Read-scaling comparison of the three implementations (2 / 4 / 8 readers × 1 writer); prints torn-read and missing-row counts for same-machine comparison only |
 
-Exit code 0 means everything passed. **The batch-insert contract assertion has no automated test**:
-by definition an assertion terminates the process, so it cannot both fire and continue in the same
-process; a child-process death test, in turn, is treated by Windows as a crash and pops up the
-"has stopped working" dialog, so that mechanism was removed entirely. To watch it fire by hand,
-temporarily give the second `Exchange` in `TestBatchInsertTakesOwnership()` the same `ExchangeId` as
-the first (`SHFE` / `SHFE`); a Debug build then prints
+**The batch-insert contract assertion has no automated test**: by definition an assertion
+terminates the process, so it cannot both fire and continue in the same process; a child-process
+death test, in turn, is treated by Windows as a crash and pops up the "has stopped working"
+dialog, so that mechanism was removed entirely. To watch it fire by hand, temporarily make every
+record in `UnitTests`' batch-insert case share one primary key (pass `20000` as the second argument
+of `FillTradingDay(*row, 20000 + index, index)`); a Debug build then prints
 `Assertion failed: insertedIntoPrimaryKey, ...` and terminates, while the same input runs clean in
 Release.
 

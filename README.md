@@ -69,9 +69,11 @@ Mdb/
 │   ├── TableList.h                # 表清单结构体（TableList）
 │   ├── InitMdbFromDb.h/.cpp       # 从持久化数据库批量载入内存
 │   └── InitMdbFromCsv.h/.cpp      # 从 CSV 目录批量载入内存
-├── test/TestMdb/                  # 集成测试（TestDB：四库 + 异步写库全流程）
-│   ├── FullTableList.h            # 全量 11 表的 TableList 定义
-│   └── TestDB.cpp
+├── test/TestMdb/                  # 集成测试（接物理库：异步写库、断连重连、从库加载）
+│   ├── DatabaseSession.h/.cpp     # 物理库 + 内存表 + 写库线程的 RAII 组合
+│   ├── Main.cpp                   # doctest 入口（初始化 Logger）
+│   ├── TestMdb.cpp                # 集成用例
+│   └── FullTableList.h            # 全量 11 表的 TableList 定义
 ├── Model/                         # 数据表模型定义（Tables.xml / TableNames.xml 等）
 │   ├── TableNames/                # 表名清单（FullTableNames.xml）
 │   └── Tables/                    # 表结构定义（Tables.xml / ShortTables.xml / TableNames.xml）
@@ -346,25 +348,19 @@ mdb->Dump("./dump");
 
 ## 九、测试程序
 
-`test/TestMdb/TestMdb.cpp` 集成测试覆盖以下内容：
+三个测试目标按依赖程度分开，都用 doctest，支持 `--test-case=` 过滤，退出码为 0 表示全部通过：
 
-| 测试项 | 说明 |
+| 目标 | 覆盖内容 |
 | ---- | ---- |
-| `TestSqlite` | SQLite 后端：内存库 + 异步写库全流程 |
-| `TestDuckdb` | DuckDB 后端：内存库 + 异步写库全流程 |
-| `TestMysql` | MySQL 后端全流程（需本机 MySQL X Plugin，默认注释关闭） |
-| `TestMariadb` | MariaDB 后端全流程（需本机 MariaDB，默认注释关闭） |
-| 主键 / 索引 | `primaryKey->Select` / `SelectAll`、`offerIDIndex->EqualRange`、`Range` 等检索验证 |
-| `TestSelectReturnsDetachedCopy` | 值语义读：`Select` 返回的副本与表内活记录不同址、改活记录不影响副本、副本在手不阻塞写者、传副本给 `Erase` 能删掉活记录；`ForEach` 计数与提前退出 |
-| `TestWriteRejectsInvalidRecords` | 写入失败契约：主键不在表内时 `Update` / `Erase` 均返回 `false` 且不发事件；改唯一键字段的 `Update` 被拒且活记录保持原值；非键字段照常可改（正对照） |
-| 内存操作 | Insert / Update / Erase / TruncateTable 与广播落库验证 |
-| `TestBatchInsertTakesOwnership` | 批插入归属：表直接持有调用方交来的记录（指针恒等） |
+| `UnitTests` | 无外部依赖。三种实现的表级直连（单行接口、批量插入与读租约、订阅、并发读不撕裂、索引与唯一键、清表、导出），以及聚合层协作契约（订阅扇出、快照持读租约、发布屏障、写入校验、副本语义） |
+| `TestMdb` | 接物理库（SQLite / DuckDB 文件）。异步写库落库、修改与删除落库、断连期间增量丢弃与重连全量补齐、`InitMdbFromDb` 从库加载 |
+| `TestConcurrency` | 三种实现的读扩展性对照（读者 2 / 4 / 8 × 写者 1），打印撕裂读与缺失行计数，只作同机对拍 |
 
-退出码为 0 表示全部通过。**批插入的契约断言没有自动化用例**：断言的定义就是中断进程，无法在同一进程里
-既触发又继续；用子进程做死亡测试则会被 Windows 当成崩溃弹出「已停止工作」，故那套机制已整套撤回。要手工
-观察它响一次，临时把 `TestBatchInsertTakesOwnership()` 里第二个 `Exchange` 的 `ExchangeId` 改成与第一个
-相同（`SHFE` / `SHFE`），Debug 构建下运行即打印 `Assertion failed: insertedIntoPrimaryKey, ...` 后终止，
-Release 下同输入正常跑完。
+**批插入的契约断言没有自动化用例**：断言的定义就是中断进程，无法在同一进程里既触发又继续；用子进程做
+死亡测试则会被 Windows 当成崩溃弹出「已停止工作」，故那套机制已整套撤回。要手工观察它响一次，临时把
+`UnitTests` 的「批量插入移交所有权并以单次批量下发事件」里所有记录改成同一个主键（`FillTradingDay(*row,
+20000 + index, index)` 的第二个参数统一取 `20000`），Debug 构建下运行即打印
+`Assertion failed: insertedIntoPrimaryKey, ...` 后终止，Release 下同输入正常跑完。
 
 ## 十、许可证 & 声明
 
