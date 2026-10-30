@@ -1,0 +1,7 @@
+# 行尾由仓库决定，不随各机 core.autocrlf 漂移（与 .editorconfig 的 end_of_line = lf 一致）。
+# text=auto 按 NUL 字节探测二进制，二进制件无需另外列规则。
+* text=auto eol=lf
+
+# cmd.exe 对 LF 批处理在 goto/label 与多行块上会解析出错
+*.bat text eol=crlf
+*.cmd text eol=crlf
