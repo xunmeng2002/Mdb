@@ -55,38 +55,80 @@ The framework ships with 11 financial trading example tables (table structures a
 
 ```
 Mdb/
-├── src/Mdb/                       # Source code & public headers (includes generated code)
-│   ├── Mdb.h / Mdb.cpp            # In-memory database entry point (Mdb class, owns all typed tables)
-│   ├── MdbStructs.h/.cpp          # Record structs + TableSchema for the 11 tables (generated)
-│   ├── MdbTables.h/.cpp           # Typed table containers (TradingDayTable / ExchangeTable / ...)
-│   ├── MdbTableBase.h             # Table base class (MdbTableBase: Subscribe / InitDB / Truncate / Dump)
-│   ├── MdbReadLease.h             # Range lease (TableRangeLease: lock travels with the result)
-│   ├── MdbTableRegistry.h/.cpp    # SchemaRegistry implementation for AsyncDbWriter to resolve table schemas
-│   ├── MdbPrimaryKeys.h/.cpp      # Primary-key index containers (Select / SelectAll / uniqueness check)
-│   ├── MdbIndexes.h/.cpp          # Secondary-index containers (Range / EqualRange)
-│   ├── MdbPrimaryKeyComp.h/.cpp   # Primary-key hash / equality comparators (generated)
-│   ├── MdbIndexComp.h/.cpp        # Index comparators (generated)
-│   ├── TableList.h                # Table list struct (TableList)
-│   ├── InitMdbFromDb.h/.cpp       # Bulk-load in-memory data from a persistent database
-│   └── InitMdbFromCsv.h/.cpp      # Bulk-load in-memory data from a CSV directory
-├── test/TestMdb/                  # Integration tests (physical DB: async writes, reconnect resync, loading back)
-│   ├── DatabaseSession.h/.cpp     # RAII combination of physical DB + in-memory tables + writer thread
-│   ├── Main.cpp                   # doctest entry point (initializes the Logger)
-│   ├── TestMdb.cpp                # integration cases
-│   └── FullTableList.h            # TableList definition for all 11 tables
-├── Model/                         # Data table model definitions (Tables.xml / TableNames.xml, etc.)
-│   ├── TableNames/                # Table name lists (FullTableNames.xml)
-│   └── Tables/                    # Table structure definitions (Tables.xml / ShortTables.xml / TableNames.xml)
-├── sql/                           # Per-database table creation scripts
+├── include/
+│   └── Mdb/
+│       └── Types.h                # Public types (fixed-length strings, dates, enums)
+├── src/Mdb/                       # Sources for all three implementations (generated from ../Templates by pumpall.py)
+│   ├── Common/                    # Shared data contract (MdbCommonStatic)
+│   │   ├── MdbStructs.h/.cpp      # Record structs + TableSchema for the 11 tables
+│   │   ├── MdbTableBase.h         # Table base class (Subscribe / InitDB / Truncate / Dump)
+│   │   ├── MdbReadLease.h         # Range lease (TableRangeLease: lock travels with the result)
+│   │   ├── MdbTableRegistry.h/.cpp  # SchemaRegistry implementation for AsyncDbWriter
+│   │   ├── MdbPrimaryKeyComp.h/.cpp # Primary-key hash / equality comparators
+│   │   ├── MdbIndexComp.h/.cpp    # Index comparators
+│   │   └── TableList.h            # Table list struct (TableList)
+│   ├── LockBased/                 # shared_mutex implementation (MdbLockBasedStatic, namespace Mdb)
+│   │   ├── Mdb.h/.cpp             # Database entry point (owns all typed tables)
+│   │   ├── MdbTables.h/.cpp       # Typed table containers (TradingDayTable / ExchangeTable / ...)
+│   │   ├── MdbPrimaryKeys.h/.cpp  # Primary-key containers (Select / SelectAll / uniqueness check)
+│   │   ├── MdbIndexes.h/.cpp      # Secondary-index containers (Range / EqualRange)
+│   │   ├── InitMdbFromDb.h/.cpp   # Bulk-load in-memory data from a persistent database
+│   │   └── InitMdbFromCsv.h/.cpp  # Bulk-load in-memory data from a CSV directory
+│   └── Rcu/
+│       ├── RcuEpoch.h/.cpp        # Epoch-based reclamation shared by both RCU forms (MdbRcuCoreStatic)
+│       ├── PointerSwap/           # Implementation B: primary keys only (MdbRcuPointerSwapStatic)
+│       │   ├── Mdb.h/.cpp
+│       │   ├── PointerSwapTables.h/.cpp
+│       │   ├── PointerSwapPrimaryKeys.h/.cpp
+│       │   ├── InitMdbFromDb.h/.cpp
+│       │   └── InitMdbFromCsv.h/.cpp
+│       └── StableRow/             # Implementation B2: with indexes / unique keys (MdbRcuStableRowStatic)
+│           ├── Mdb.h/.cpp
+│           ├── StableRowTables.h/.cpp
+│           ├── StableRowPrimaryKeys.h/.cpp
+│           ├── StableRowIndexes.h/.cpp
+│           ├── InitMdbFromDb.h/.cpp
+│           └── InitMdbFromCsv.h/.cpp
+├── test/
+│   ├── UnitTests/                 # Unit tests (no physical DB): TableTests.cpp / ContractTests.cpp / Main.cpp
+│   ├── TestMdb/                   # Integration tests (physical DB: async writes, reconnect resync, load-back)
+│   │   ├── DatabaseSession.h/.cpp # RAII combination of physical DB + in-memory tables + writer thread
+│   │   ├── FullTableList.h        # TableList definition for all 11 tables
+│   │   ├── Main.cpp               # doctest entry point (initializes the Logger)
+│   │   └── TestMdb.cpp            # Integration cases
+│   ├── TestConcurrency/           # Read-scaling comparison (2 / 4 / 8 readers × 1 writer)
+│   │   ├── OperationInterval.h    # Command-line operation interval
+│   │   ├── TestConcurrency.cpp    # Comparison cases
+│   │   └── Main.cpp               # doctest entry point
+│   ├── TestSupport/               # Shared test helpers
+│   │   ├── TestSupport.h          # Record filling, fill-table-by-primary-key
+│   │   └── ImplementationNames.h  # Display names for the three implementations
+│   └── Benchmarks/                # Per-operation cost benchmark (BenchTableOps)
+│       ├── CMakeLists.txt
+│       └── BenchTableOps/BenchTableOps.cpp
+├── Model/                         # Table models (input to code generation)
+│   ├── Types.xml                  # Field type definitions
+│   ├── ShortItems.xml             # Concise item list (hand-maintained)
+│   ├── Items.xml                  # Item registry with explicit ids (generated by ParseShortItem.py)
+│   ├── parselist.xml              # Model parsing manifest (drives parseall.py)
+│   ├── TableNames/
+│   │   └── FullTableNames.xml     # Table name list (generates FullTableList.h)
+│   └── Tables/
+│       ├── ShortTables.xml        # Concise table definitions (hand-maintained)
+│       ├── Tables.xml             # Full table definitions (generated by parsing)
+│       └── TableNames.xml         # Table names and descriptions (generated by parsing)
+├── Sql/                           # Per-database table scripts (generated from Sql/pumplist.xml)
+│   ├── pumplist.xml               # SQL generation manifest
 │   ├── Duckdb/                    # CreateDBTables.sql / DropDBTables.sql
 │   ├── Mysql/                     # CreateDBTables.sql / DropDBTables.sql
 │   └── Sqlite/                    # CreateDBTables.sql / DropDBTables.sql
+├── docs/                          # Environment setup and RCU design docs
 ├── submodules/                    # Dependent submodule (CMakeCommon)
 ├── bin/                           # Build outputs: executables / shared libraries (per config)
 ├── lib/                           # Build outputs: static libraries / import libraries (per config)
 ├── out/                           # CMake Presets build directory
-├── *.py                           # Python automation scripts
-├── pumplist.xml                   # Code generation manifest (drives pump.py)
+├── *.py                           # Parsing / code-generation scripts (see section 8)
+├── pumplist.xml                   # C++ code generation manifest (drives pumpall.py)
 ├── CMakeLists.txt                 # CMake main build configuration
 ├── CMakePresets.json              # CMake preset configuration (VS / command line)
 ├── vcpkg.json                     # vcpkg manifest (third-party drivers)
@@ -171,27 +213,30 @@ cmake --preset WSL-GCC-Release
 cmake --build out/build/WSL-GCC-Release
 ```
 
-After building, the `MdbStatic` static library is output to `lib/<Config>` and the `TestDB` test program to `bin/<Config>` (e.g. `bin/Release/TestDB.exe`). On Windows, vcpkg's applocal mechanism copies runtime DLLs such as `sqlite3.dll`, `mysqlcppconnx-*.dll`, `mariadbcpp.dll`, and `duckdb.dll` next to the executable automatically.
+After building, the five static libraries (`MdbCommonStatic` / `MdbLockBasedStatic` / `MdbRcuCoreStatic` / `MdbRcuPointerSwapStatic` / `MdbRcuStableRowStatic`) are output to `lib/<Config>`, and the test and benchmark programs `UnitTests`, `TestMdb`, `TestConcurrency`, and `BenchTableOps` to `bin/<Config>` (e.g. `bin/Release/UnitTests.exe`). Runtime DLLs required by the executables (Spark / DbAdapters / DuckDB / SQLite / MySQL / MariaDB) are copied next to them by `copy_dll_file` after linking.
 
-### 6.5 Run Integration Tests
+### 6.5 Run Tests
 
 ```bash
-# Windows
-./bin/Release/TestDB.exe
+# Unit tests: table-level direct tests and aggregate contracts on all three implementations, no external dependency
+./bin/Release/UnitTests.exe
 
-# Linux
-./bin/Release/TestDB
+# Integration tests: async writes, reconnect resync, and load-back on SQLite / DuckDB files
+./bin/Release/TestMdb.exe
+
+# Read-scaling comparison: 2 / 4 / 8 readers × 1 writer; pass the operation interval in microseconds
+./bin/Release/TestConcurrency.exe 10
 ```
 
-The test program runs the "in-memory DB + async write" full flow against SQLite / DuckDB / MySQL in sequence (MariaDB is commented out by default and needs a local service), verifying in-memory reads/writes, async persistence, and primary-key / index queries.
+These targets need no MySQL / MariaDB service by default; once the environment variables are set, `TestMdb` also runs the server cases (see section 9).
 
 ## 7. Usage Examples
 
 ### Example 1: In-Memory DB + Async Persistence (Full Wiring)
 
 ```cpp
-#include "Mdb.h"
-#include "MdbTableRegistry.h"
+#include "LockBased/Mdb.h"
+#include "Common/MdbTableRegistry.h"
 #include "FullTableList.h"
 #include <DbAdapters/AsyncDbWriter/AsyncDbWriter.h>
 #include <DbAdapters/SqliteWrapper/SqliteWrapper.h>
@@ -317,8 +362,8 @@ mdb->TruncateTables();
 ### Example 4: Load from DB / CSV and Dump
 
 ```cpp
-#include "InitMdbFromDb.h"
-#include "InitMdbFromCsv.h"
+#include "LockBased/InitMdbFromDb.h"
+#include "LockBased/InitMdbFromCsv.h"
 
 // Bulk-load from a persistent database into memory (after tables are created)
 InitMdbFromDb::LoadTables(mdb, db, FullTableList);
@@ -354,8 +399,33 @@ with 0 when everything passes:
 | Target | Coverage |
 | ---- | ---- |
 | `UnitTests` | No external dependency. Table-level direct tests on all three implementations (single-row interface, batch insert and read lease, subscribers, tear-free concurrent read, indexes and unique keys, truncate, CSV export), plus aggregate-layer contracts (subscriber fan-out, snapshot under read lease, publish barrier, write validation, replica semantics) |
-| `TestMdb` | Physical database (SQLite / DuckDB files). Async write-through, update and delete persistence, incremental loss while disconnected and full resync on reconnect, loading back via `InitMdbFromDb` |
+| `TestMdb` | Physical database (SQLite / DuckDB files by default; MySQL / MariaDB optional, see below). Async write-through, update and delete persistence, incremental loss while disconnected and full resync on reconnect, loading back via `InitMdbFromDb` |
 | `TestConcurrency` | Read-scaling comparison of the three implementations (2 / 4 / 8 readers × 1 writer); prints torn-read and missing-row counts for same-machine comparison only |
+
+### Optional Server Backends (MySQL / MariaDB)
+
+`TestMdb` runs SQLite / DuckDB files by default; the MySQL and MariaDB cases run only when the
+variables below are set. Otherwise they print a `[skip] ...` line and return (doctest counts them
+as passed):
+
+| Environment Variable | Meaning |
+| ---- | ---- |
+| `MDB_TEST_ALLOW_DESTRUCTIVE=1` | Required; without it all server cases are skipped |
+| `MDB_TEST_MYSQL_URL` | MySQL X DevAPI URL, e.g. `mysqlx://user:pass@host:33060/mdb_test` |
+| `MDB_TEST_MARIADB_URL` | MariaDB URL, e.g. `tcp://host:3306/mdb_test` |
+| `MDB_TEST_MARIADB_USER` / `MDB_TEST_MARIADB_PASSWORD` | MariaDB credentials |
+
+> **Warning**: at startup the tests truncate all 11 tables in the target database before loading
+> the snapshot (`InitDb` behavior). Always point them at a dedicated test database.
+
+```bash
+# Linux / WSL
+MDB_TEST_ALLOW_DESTRUCTIVE=1 MDB_TEST_MYSQL_URL="mysqlx://user:pass@localhost:33060/mdb_test" ./bin/Debug/TestMdb
+```
+
+On Windows set `$env:MDB_TEST_ALLOW_DESTRUCTIVE=1` and `$env:MDB_TEST_MYSQL_URL="..."` first, then
+run `TestMdb.exe`. Server adapters and their client DLLs are copied into `bin/<Config>` by
+`copy_dll_file` during the build, so no manual deployment is needed.
 
 The `BenchTableOps` benchmark (`test/Benchmarks`, `BUILD_BENCHMARKS` defaults to ON) makes no
 assertions and is not gated in CI: on a 100k-row trading-day table it measures the per-call cost
@@ -401,7 +471,7 @@ Release.
 
 - **Project Positioning**: this project is an **implementation example** of an in-memory database — the focus is on "how to implement and use"; the built-in financial tables are for demonstration only, and new businesses can define their own tables via `Model/*.xml` + code generation
 - **Dependencies**: Mdb is built on [Spark](https://gitee.com/xunmeng2002/Spark.git) (foundational capabilities) and [DbAdapters](https://gitee.com/xunmeng2002/DbAdapters.git) (unified database access layer); both are prebuilt dependencies
-- **Include Paths**: Mdb headers live in `src/Mdb/`, referenced as `#include "Mdb.h"`
-- **Namespaces**: all interfaces are in the `mdb` namespace; database interfaces reuse the `DbAdapters` namespace
+- **Include Paths**: public type definitions live in `include/Mdb/Types.h`; implementations and remaining headers live in `src/Mdb/{Common,LockBased,Rcu}/`, referenced as `#include "LockBased/Mdb.h"`
+- **Namespaces**: the lock-based implementation lives in the `Mdb` namespace, the two RCU implementations in `Mdb::Rcu::PointerSwap` / `Mdb::Rcu::StableRow`; database interfaces reuse the `DbAdapters` namespace
 - **Concurrency**: in-memory tables are thread-safe by design; a single-record `Select` returns a copy you can use freely — it holds no lock and does not block writers. `SelectAll` / `Range` / `EqualRange` return a range lease holding the shared lock: **never write to the same table while it is alive** (Insert / Update / Erase / TruncateTable) — that self-deadlocks. Subscriber callbacks run inside the write transaction's publication barrier: they may read the table, but **must not write the same table** (that also self-deadlocks). Copy what you need out of the loop body and write after releasing the lease
 - **Code Generation**: after editing `Model/*.xml`, run `python pumpall.py` to regenerate table-structure code without manual edits

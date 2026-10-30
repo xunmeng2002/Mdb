@@ -55,38 +55,80 @@ Mdb 是一个**内存数据库的实现示例**，重点是演示"如何实现�
 
 ```
 Mdb/
-├── src/Mdb/                       # 源码与对外头文件（含代码生成产物）
-│   ├── Mdb.h / Mdb.cpp            # 内存数据库入口（Mdb 类，持有全部类型化表）
-│   ├── MdbStructs.h/.cpp          # 11 张表的记录结构体 + TableSchema（代码生成）
-│   ├── MdbTables.h/.cpp           # 类型化表容器（TradingDayTable / ExchangeTable / ...）
-│   ├── MdbTableBase.h             # 表基类（MdbTableBase：订阅 / InitDB / Truncate / Dump）
-│   ├── MdbReadLease.h             # 范围租约（TableRangeLease：锁随结果走）
-│   ├── MdbTableRegistry.h/.cpp    # SchemaRegistry 实现，供 AsyncDbWriter 反查表结构
-│   ├── MdbPrimaryKeys.h/.cpp      # 主键索引容器（Select / SelectAll / 唯一性校验）
-│   ├── MdbIndexes.h/.cpp          # 二级索引容器（Range / EqualRange）
-│   ├── MdbPrimaryKeyComp.h/.cpp   # 主键哈希 / 相等比较器（代码生成）
-│   ├── MdbIndexComp.h/.cpp        # 索引比较器（代码生成）
-│   ├── TableList.h                # 表清单结构体（TableList）
-│   ├── InitMdbFromDb.h/.cpp       # 从持久化数据库批量载入内存
-│   └── InitMdbFromCsv.h/.cpp      # 从 CSV 目录批量载入内存
-├── test/TestMdb/                  # 集成测试（接物理库：异步写库、断连重连、从库加载）
-│   ├── DatabaseSession.h/.cpp     # 物理库 + 内存表 + 写库线程的 RAII 组合
-│   ├── Main.cpp                   # doctest 入口（初始化 Logger）
-│   ├── TestMdb.cpp                # 集成用例
-│   └── FullTableList.h            # 全量 11 表的 TableList 定义
-├── Model/                         # 数据表模型定义（Tables.xml / TableNames.xml 等）
-│   ├── TableNames/                # 表名清单（FullTableNames.xml）
-│   └── Tables/                    # 表结构定义（Tables.xml / ShortTables.xml / TableNames.xml）
-├── sql/                           # 各数据库建表脚本
+├── include/
+│   └── Mdb/
+│       └── Types.h                # 公共类型（定长字符串、日期、枚举等）
+├── src/Mdb/                       # 三种实现的源码（由 ../Templates 的模板经 pumpall.py 生成）
+│   ├── Common/                    # 三种实现共用的数据契约（MdbCommonStatic）
+│   │   ├── MdbStructs.h/.cpp      # 11 张表的记录结构体 + TableSchema
+│   │   ├── MdbTableBase.h         # 表基类（Subscribe / InitDB / Truncate / Dump）
+│   │   ├── MdbReadLease.h         # 范围租约（TableRangeLease：锁随结果走）
+│   │   ├── MdbTableRegistry.h/.cpp  # SchemaRegistry 实现，供 AsyncDbWriter 反查表结构
+│   │   ├── MdbPrimaryKeyComp.h/.cpp # 主键哈希 / 相等比较器
+│   │   ├── MdbIndexComp.h/.cpp    # 索引比较器
+│   │   └── TableList.h            # 表清单结构体（TableList）
+│   ├── LockBased/                 # 读写锁实现（MdbLockBasedStatic，命名空间 Mdb）
+│   │   ├── Mdb.h/.cpp             # 内存数据库入口（持有全部类型化表）
+│   │   ├── MdbTables.h/.cpp       # 类型化表容器（TradingDayTable / ExchangeTable / ...）
+│   │   ├── MdbPrimaryKeys.h/.cpp  # 主键索引容器（Select / SelectAll / 唯一性校验）
+│   │   ├── MdbIndexes.h/.cpp      # 二级索引容器（Range / EqualRange）
+│   │   ├── InitMdbFromDb.h/.cpp   # 从持久化数据库批量载入
+│   │   └── InitMdbFromCsv.h/.cpp  # 从 CSV 目录批量载入
+│   └── Rcu/
+│       ├── RcuEpoch.h/.cpp        # 纪元回收，两个 RCU 实现共用（MdbRcuCoreStatic）
+│       ├── PointerSwap/           # 指针交换实现 B：主键 only（MdbRcuPointerSwapStatic）
+│       │   ├── Mdb.h/.cpp
+│       │   ├── PointerSwapTables.h/.cpp
+│       │   ├── PointerSwapPrimaryKeys.h/.cpp
+│       │   ├── InitMdbFromDb.h/.cpp
+│       │   └── InitMdbFromCsv.h/.cpp
+│       └── StableRow/             # 稳定行实现 B2：含二级索引 / 唯一键（MdbRcuStableRowStatic）
+│           ├── Mdb.h/.cpp
+│           ├── StableRowTables.h/.cpp
+│           ├── StableRowPrimaryKeys.h/.cpp
+│           ├── StableRowIndexes.h/.cpp
+│           ├── InitMdbFromDb.h/.cpp
+│           └── InitMdbFromCsv.h/.cpp
+├── test/
+│   ├── UnitTests/                 # 单元测试（不接物理库）：TableTests.cpp / ContractTests.cpp / Main.cpp
+│   ├── TestMdb/                   # 集成测试（接物理库：异步写库、断连重连、从库加载）
+│   │   ├── DatabaseSession.h/.cpp # 物理库 + 内存表 + 写库线程的 RAII 组合
+│   │   ├── FullTableList.h        # 全量 11 表的 TableList 定义
+│   │   ├── Main.cpp               # doctest 入口（初始化 Logger）
+│   │   └── TestMdb.cpp            # 集成用例
+│   ├── TestConcurrency/           # 读扩展性对照（读者 2 / 4 / 8 × 写者 1）
+│   │   ├── OperationInterval.h    # 命令行操作间隔参数
+│   │   ├── TestConcurrency.cpp    # 对照用例
+│   │   └── Main.cpp               # doctest 入口
+│   ├── TestSupport/               # 测试共用辅助
+│   │   ├── TestSupport.h          # 记录填充、按主键灌满表
+│   │   └── ImplementationNames.h  # 三种实现的显示名
+│   └── Benchmarks/                # 单次操作成本基准（BenchTableOps）
+│       ├── CMakeLists.txt
+│       └── BenchTableOps/BenchTableOps.cpp
+├── Model/                         # 数据表模型（代码生成的输入）
+│   ├── Types.xml                  # 字段类型定义
+│   ├── ShortItems.xml             # 字段项简表（手工维护）
+│   ├── Items.xml                  # 补全 id 后的字段项登记（ParseShortItem.py 生成）
+│   ├── parselist.xml              # 模型解析清单（parseall.py 驱动）
+│   ├── TableNames/
+│   │   └── FullTableNames.xml     # 表名清单（生成 FullTableList.h）
+│   └── Tables/
+│       ├── ShortTables.xml        # 表结构简表（手工维护）
+│       ├── Tables.xml             # 完整表结构（解析生成）
+│       └── TableNames.xml         # 表名与说明（解析生成）
+├── Sql/                           # 各数据库建表脚本（由 Sql/pumplist.xml 生成）
+│   ├── pumplist.xml               # SQL 生成清单
 │   ├── Duckdb/                    # CreateDBTables.sql / DropDBTables.sql
 │   ├── Mysql/                     # CreateDBTables.sql / DropDBTables.sql
 │   └── Sqlite/                    # CreateDBTables.sql / DropDBTables.sql
+├── docs/                          # 环境搭建与 RCU 设计文档
 ├── submodules/                    # 子模块依赖（CMakeCommon）
 ├── bin/                           # 构建产物：可执行文件 / 动态库（按配置分目录）
 ├── lib/                           # 构建产物：静态库 / 导入库（按配置分目录）
 ├── out/                           # CMake Presets 构建目录
-├── *.py                           # Python 自动化脚本
-├── pumplist.xml                   # 代码生成清单（pump.py 驱动）
+├── *.py                           # 解析 / 代码生成脚本（见第八节）
+├── pumplist.xml                   # C++ 代码生成清单（pumpall.py 驱动）
 ├── CMakeLists.txt                 # CMake 主构建配置
 ├── CMakePresets.json              # CMake 预设配置（VS / 命令行）
 ├── vcpkg.json                     # vcpkg 清单（第三方驱动）
@@ -171,27 +213,30 @@ cmake --preset WSL-GCC-Release
 cmake --build out/build/WSL-GCC-Release
 ```
 
-编译完成后，`MdbStatic` 静态库输出至 `lib/<Config>`，测试程序 `TestDB` 输出至 `bin/<Config>`（如 `bin/Release/TestDB.exe`）。Windows 下 vcpkg 的 applocal 机制会把 `sqlite3.dll`、`mysqlcppconnx-*.dll`、`mariadbcpp.dll`、`duckdb.dll` 等运行时 DLL 自动拷贝到可执行文件旁。
+编译完成后，5 个静态库（`MdbCommonStatic` / `MdbLockBasedStatic` / `MdbRcuCoreStatic` / `MdbRcuPointerSwapStatic` / `MdbRcuStableRowStatic`）输出至 `lib/<Config>`，测试与基准程序 `UnitTests`、`TestMdb`、`TestConcurrency`、`BenchTableOps` 输出至 `bin/<Config>`（如 `bin/Release/UnitTests.exe`）。可执行文件依赖的运行时 DLL（Spark / DbAdapters / DuckDB / SQLite / MySQL / MariaDB）由 `copy_dll_file` 在链接后拷贝到同目录。
 
-### 5. 运行集成测试
+### 5. 运行测试
 
 ```bash
-# Windows
-./bin/Release/TestDB.exe
+# 单元测试：三种实现的表级直连与聚合契约，无需外部依赖
+./bin/Release/UnitTests.exe
 
-# Linux
-./bin/Release/TestDB
+# 集成测试：SQLite / DuckDB 文件上的异步落库、断连重连与从库加载
+./bin/Release/TestMdb.exe
+
+# 读扩展性对照：读者 2 / 4 / 8 × 写者 1，可传操作间隔（微秒）
+./bin/Release/TestConcurrency.exe 10
 ```
 
-测试程序依次对 SQLite / DuckDB / MySQL 执行"内存库 + 异步写库"全流程（MariaDB 默认注释关闭，需本地服务），验证内存读写、异步落库、主键 / 索引查询。
+以上目标默认不需要 MySQL / MariaDB 服务；设好环境变量后 `TestMdb` 会把服务端用例一并跑起来（见第九节）。
 
 ## 七、使用示例
 
 ### 示例 1：内存库 + 异步落库（完整接线）
 
 ```cpp
-#include "Mdb.h"
-#include "MdbTableRegistry.h"
+#include "LockBased/Mdb.h"
+#include "Common/MdbTableRegistry.h"
 #include "FullTableList.h"
 #include <DbAdapters/AsyncDbWriter/AsyncDbWriter.h>
 #include <DbAdapters/SqliteWrapper/SqliteWrapper.h>
@@ -317,8 +362,8 @@ mdb->TruncateTables();
 ### 示例 4：从数据库 / CSV 载入与 Dump 导出
 
 ```cpp
-#include "InitMdbFromDb.h"
-#include "InitMdbFromCsv.h"
+#include "LockBased/InitMdbFromDb.h"
+#include "LockBased/InitMdbFromCsv.h"
 
 // 从持久化数据库批量载入内存（建表后全表加载）
 InitMdbFromDb::LoadTables(mdb, db, FullTableList);
@@ -353,8 +398,30 @@ mdb->Dump("./dump");
 | 目标 | 覆盖内容 |
 | ---- | ---- |
 | `UnitTests` | 无外部依赖。三种实现的表级直连（单行接口、批量插入与读租约、订阅、并发读不撕裂、索引与唯一键、清表、导出），以及聚合层协作契约（订阅扇出、快照持读租约、发布屏障、写入校验、副本语义） |
-| `TestMdb` | 接物理库（SQLite / DuckDB 文件）。异步写库落库、修改与删除落库、断连期间增量丢弃与重连全量补齐、`InitMdbFromDb` 从库加载 |
+| `TestMdb` | 接物理库（默认 SQLite / DuckDB 文件，可选 MySQL / MariaDB，见下）。异步写库落库、修改与删除落库、断连期间增量丢弃与重连全量补齐、`InitMdbFromDb` 从库加载 |
 | `TestConcurrency` | 三种实现的读扩展性对照（读者 2 / 4 / 8 × 写者 1），打印撕裂读与缺失行计数，只作同机对拍 |
+
+### 可选服务端后端（MySQL / MariaDB）
+
+`TestMdb` 默认只跑 SQLite / DuckDB 文件；MySQL 与 MariaDB 用例在设好下列环境变量后才运行，
+未设置时打印一行 `[skip] ...` 后直接返回（doctest 记为通过）：
+
+| 环境变量 | 说明 |
+| ---- | ---- |
+| `MDB_TEST_ALLOW_DESTRUCTIVE=1` | 必须显式设置，否则服务端用例一律跳过 |
+| `MDB_TEST_MYSQL_URL` | MySQL X DevAPI 连接串，如 `mysqlx://user:pass@host:33060/mdb_test` |
+| `MDB_TEST_MARIADB_URL` | MariaDB 连接串，如 `tcp://host:3306/mdb_test` |
+| `MDB_TEST_MARIADB_USER` / `MDB_TEST_MARIADB_PASSWORD` | MariaDB 账号与密码 |
+
+> **警告**：测试启动时会把目标库的 11 张表全部清空再灌快照（`InitDb` 的既有行为），必须指向专用的测试库。
+
+```bash
+# Linux / WSL：设好变量直接运行
+MDB_TEST_ALLOW_DESTRUCTIVE=1 MDB_TEST_MYSQL_URL="mysqlx://user:pass@localhost:33060/mdb_test" ./bin/Debug/TestMdb
+```
+
+Windows 下先 `$env:MDB_TEST_ALLOW_DESTRUCTIVE=1`、`$env:MDB_TEST_MYSQL_URL="..."`，再运行 `TestMdb.exe`。
+服务端适配器与客户端 DLL 由构建时的 `copy_dll_file` 一并拷入 `bin/<Config>`，无需手工部署。
 
 基准程序 `BenchTableOps`（`test/Benchmarks`，`BUILD_BENCHMARKS` 缺省开）不做断言，也不进门禁：在 10 万行交易日表上
 测三种实现的单次 `Select` / `Update` / `InsertErase` 成本，按 Spark 的 `Benchmark::Measure` 输出 CSV。
@@ -392,7 +459,7 @@ StableRow.InsertErase,261.6,270.6,148676
 
 - **项目定位**：本项目是内存数据库的**实现示例**，重点在"如何实现与使用"；内置金融数据表仅作演示，新业务可基于 `Model/*.xml` + 代码生成快速定义自己的表结构
 - **依赖关系**：Mdb 构建在 [Spark](https://gitee.com/xunmeng2002/Spark.git)（基础能力）与 [DbAdapters](https://gitee.com/xunmeng2002/DbAdapters.git)（统一数据库访问层）之上，二者均为预编译依赖
-- **包含路径**：Mdb 头文件位于 `src/Mdb/`，以 `#include "Mdb.h"` 风格引用
-- **命名空间**：全部接口位于 `mdb` 命名空间；数据库接口复用 `DbAdapters` 命名空间
+- **包含路径**：对外类型定义在 `include/Mdb/Types.h`，实现与其余头文件在 `src/Mdb/{Common,LockBased,Rcu}/`；以 `#include "LockBased/Mdb.h"` 风格引用
+- **命名空间**：读写锁版位于 `Mdb` 命名空间，两个 RCU 实现位于 `Mdb::Rcu::PointerSwap` / `Mdb::Rcu::StableRow`；数据库接口复用 `DbAdapters` 命名空间
 - **并发访问**：内存表为多线程安全设计；单条 `Select` 返回副本，调用方拿到后即可自由使用，不持锁、不阻塞写者；`SelectAll` / `Range` / `EqualRange` 返回的范围租约持有共享锁，**租约存活期间不得对同一张表执行写操作**（Insert / Update / Erase / TruncateTable），否则会自锁，循环体内应只拷出所需字段，退租约后再写；订阅者回调在写事务的发布屏障内执行，可以读表，但**不得回写同一张表**（同样会自锁）
 - **代码生成**：修改 `Model/*.xml` 后运行 `python pumpall.py` 可重新生成表结构代码，无需手写
