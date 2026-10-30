@@ -11,10 +11,14 @@
 #include <DbAdapters/DbInterface/Db.h>
 #include <DbAdapters/DbInterface/TypedTable.h>
 #include <DbAdapters/DuckdbWrapper/DuckdbWrapper.h>
+#include <DbAdapters/MariadbWrapper/MariadbWrapper.h>
+#include <DbAdapters/MysqlWrapper/MysqlWrapper.h>
 #include <DbAdapters/SqliteWrapper/SqliteWrapper.h>
 #include <Spark/Core/Core.h>
 #include <atomic>
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <optional>
@@ -27,6 +31,8 @@ namespace
 {
 	using DbAdapters::Db;
 	using DbAdapters::DuckdbWrapper;
+	using DbAdapters::MariadbWrapper;
+	using DbAdapters::MysqlWrapper;
 	using DbAdapters::SqliteWrapper;
 	using DbAdapters::TypedTable;
 	using ::Mdb::Exchange;
@@ -34,21 +40,96 @@ namespace
 
 	const char* SqliteDatabasePath = "./Test.sqlitedb";
 	const char* DuckdbDatabasePath = "./Test.duckdb";
-	const char* ReconnectDatabasePath = "./TestReconnect.sqlitedb";
 
 	constexpr std::chrono::milliseconds PendingDrainTimeout{ 5000 };
 	// 写库失败后 DbAdapters 自己要退避 5 秒再重连，重连后的全量快照会比它更晚完成
 	constexpr std::chrono::milliseconds ResyncTimeout{ 20000 };
 
+	// 服务端后端默认不参与：InitDb 会先清空目标库的 11 张表再灌快照，指向真实库等同删数据，
+	// 必须显式同意后才运行；未配置时相关用例打印一行说明直接返回。
+	const char* AllowDestructiveEnvironmentName = "MDB_TEST_ALLOW_DESTRUCTIVE";
+	const char* MysqlUrlEnvironmentName = "MDB_TEST_MYSQL_URL";
+	const char* MariadbUrlEnvironmentName = "MDB_TEST_MARIADB_URL";
+	const char* MariadbUserEnvironmentName = "MDB_TEST_MARIADB_USER";
+	const char* MariadbPasswordEnvironmentName = "MDB_TEST_MARIADB_PASSWORD";
+
+	const char* ReadEnvironmentValue(const char* name)
+	{
+		const char* value = std::getenv(name);
+		return (value != nullptr && value[0] != '\0') ? value : nullptr;
+	}
+
+	const char* RequireEnvironmentValue(const char* name)
+	{
+		const char* value = ReadEnvironmentValue(name);
+		if (value == nullptr)
+		{
+			throw std::runtime_error(std::string("environment variable is not set: ") + name);
+		}
+		return value;
+	}
+
+	bool DestructiveTestsAllowed()
+	{
+		const char* value = ReadEnvironmentValue(AllowDestructiveEnvironmentName);
+		return value != nullptr && std::strcmp(value, "1") == 0;
+	}
+
 	struct SqliteBackend
 	{
+		static const char* Name() { return "SQLite"; }
+		static bool Configured() { return true; }
 		static std::unique_ptr<Db> Open() { return std::make_unique<SqliteWrapper>(SqliteDatabasePath); }
 	};
 
 	struct DuckdbBackend
 	{
+		static const char* Name() { return "DuckDB"; }
+		static bool Configured() { return true; }
 		static std::unique_ptr<Db> Open() { return std::make_unique<DuckdbWrapper>(DuckdbDatabasePath); }
 	};
+
+	struct MysqlBackend
+	{
+		static const char* Name() { return "MySQL"; }
+		static bool Configured()
+		{
+			return DestructiveTestsAllowed() && ReadEnvironmentValue(MysqlUrlEnvironmentName) != nullptr;
+		}
+		static std::unique_ptr<Db> Open()
+		{
+			return std::make_unique<MysqlWrapper>(RequireEnvironmentValue(MysqlUrlEnvironmentName));
+		}
+	};
+
+	struct MariadbBackend
+	{
+		static const char* Name() { return "MariaDB"; }
+		static bool Configured()
+		{
+			return DestructiveTestsAllowed() && ReadEnvironmentValue(MariadbUrlEnvironmentName) != nullptr
+				&& ReadEnvironmentValue(MariadbUserEnvironmentName) != nullptr
+				&& ReadEnvironmentValue(MariadbPasswordEnvironmentName) != nullptr;
+		}
+		static std::unique_ptr<Db> Open()
+		{
+			return std::make_unique<MariadbWrapper>(RequireEnvironmentValue(MariadbUrlEnvironmentName),
+				RequireEnvironmentValue(MariadbUserEnvironmentName),
+				RequireEnvironmentValue(MariadbPasswordEnvironmentName));
+		}
+	};
+
+	// doctest 2.5 没有运行时 skip，未配置的后端在用例开头打印原因后直接返回，计为通过。
+	template <typename Backend>
+	bool SkipUnconfiguredBackend()
+	{
+		if (Backend::Configured())
+		{
+			return false;
+		}
+		std::printf("[skip] %s 未配置，环境变量见 README「可选服务端后端」\n", Backend::Name());
+		return true;
+	}
 
 	TradingDay* AllocateTradingDay()
 	{
@@ -207,8 +288,12 @@ namespace
 	};
 }
 
-TEST_CASE_TEMPLATE("写入经异步队列落库，另开连接逐行读回", Backend, SqliteBackend, DuckdbBackend)
+TEST_CASE_TEMPLATE("写入经异步队列落库，另开连接逐行读回", Backend, SqliteBackend, DuckdbBackend, MysqlBackend, MariadbBackend)
 {
+	if (SkipUnconfiguredBackend<Backend>())
+	{
+		return;
+	}
 	{
 		DatabaseSession session(Backend::Open());
 		REQUIRE(session.Start());
@@ -235,8 +320,12 @@ TEST_CASE_TEMPLATE("写入经异步队列落库，另开连接逐行读回", Bac
 	}
 }
 
-TEST_CASE_TEMPLATE("删除落库，重开连接只剩未删的行", Backend, SqliteBackend, DuckdbBackend)
+TEST_CASE_TEMPLATE("删除落库，重开连接只剩未删的行", Backend, SqliteBackend, DuckdbBackend, MysqlBackend, MariadbBackend)
 {
+	if (SkipUnconfiguredBackend<Backend>())
+	{
+		return;
+	}
 	{
 		DatabaseSession session(Backend::Open());
 		REQUIRE(session.Start());
@@ -261,10 +350,15 @@ TEST_CASE_TEMPLATE("删除落库，重开连接只剩未删的行", Backend, Sql
 	CHECK(std::strcmp(storedExchanges.front().ExchangeId, "SHFE") == 0);
 }
 
-TEST_CASE("修改落库，重开连接读到新值（DuckDB 的 UPDATE 绑定参数缺失，暂只跑 SQLite）")
+// DuckDB 的 UPDATE 绑定参数缺失（DbAdapters 侧缺陷，见 PROGRESS），本用例不覆盖 DuckDB
+TEST_CASE_TEMPLATE("修改落库，重开连接读到新值", Backend, SqliteBackend, MysqlBackend, MariadbBackend)
 {
+	if (SkipUnconfiguredBackend<Backend>())
 	{
-		DatabaseSession session(SqliteBackend::Open());
+		return;
+	}
+	{
+		DatabaseSession session(Backend::Open());
 		REQUIRE(session.Start());
 		session.Tables().Exchanges->Insert(AllocateExchange("SHFE", "上海期货交易所"));
 
@@ -278,7 +372,7 @@ TEST_CASE("修改落库，重开连接读到新值（DuckDB 的 UPDATE 绑定参
 		session.Stop();
 	}
 
-	std::unique_ptr<Db> verificationDatabase(SqliteBackend::Open());
+	std::unique_ptr<Db> verificationDatabase(Backend::Open());
 	REQUIRE(verificationDatabase->Connect());
 	const std::vector<Exchange> storedExchanges = ReadStoredRows<Exchange>(verificationDatabase.get());
 	verificationDatabase->DisConnect();
@@ -288,33 +382,41 @@ TEST_CASE("修改落库，重开连接读到新值（DuckDB 的 UPDATE 绑定参
 	CHECK(std::strcmp(storedExchanges.front().ExchangeName, "Renamed") == 0);
 }
 
-TEST_CASE("断连期间的增量就地丢弃，重连后由全量快照补齐")
+TEST_CASE_TEMPLATE("断连期间的增量就地丢弃，重连后由全量快照补齐", Backend, SqliteBackend, DuckdbBackend, MysqlBackend,
+	MariadbBackend)
 {
-	std::unique_ptr<FailureInjectingDb> failingDatabase =
-		std::make_unique<FailureInjectingDb>(std::make_unique<SqliteWrapper>(ReconnectDatabasePath));
-	FailureInjectingDb& failureRecorder = *failingDatabase;
-	DatabaseSession session(std::move(failingDatabase));
-	REQUIRE(session.Start());
+	if (SkipUnconfiguredBackend<Backend>())
+	{
+		return;
+	}
+	// 会话必须先于验证连接销毁：DuckDB 在进程内独占文件，句柄未释放时再开必失败
+	{
+		std::unique_ptr<FailureInjectingDb> failingDatabase =
+			std::make_unique<FailureInjectingDb>(Backend::Open());
+		FailureInjectingDb& failureRecorder = *failingDatabase;
+		DatabaseSession session(std::move(failingDatabase));
+		REQUIRE(session.Start());
 
-	session.Tables().Exchanges->Insert(AllocateExchange("SHFE", "上海期货交易所"));
-	CHECK(session.WaitForPendingZero(PendingDrainTimeout));
+		session.Tables().Exchanges->Insert(AllocateExchange("SHFE", "上海期货交易所"));
+		CHECK(session.WaitForPendingZero(PendingDrainTimeout));
 
-	failureRecorder.ThrowOnNextWrite();
-	session.Tables().Exchanges->Insert(AllocateExchange("INE", "上海国际能源交易中心"));
-	CHECK(failureRecorder.WaitForDisconnect(5000));
+		failureRecorder.ThrowOnNextWrite();
+		session.Tables().Exchanges->Insert(AllocateExchange("INE", "上海国际能源交易中心"));
+		CHECK(failureRecorder.WaitForDisconnect(5000));
 
-	session.Tables().Exchanges->Insert(AllocateExchange("CFFEX", "中国金融期货交易所"));
-	CHECK(session.Writer().PendingOperateCount() == 0);
+		session.Tables().Exchanges->Insert(AllocateExchange("CFFEX", "中国金融期货交易所"));
+		CHECK(session.Writer().PendingOperateCount() == 0);
 
-	// 全量快照是重连唯一的数据来源：等它把 3 行整批写进库，再看队列排空
-	CHECK(failureRecorder.WaitForBatchInsertedExchangeCount(3, static_cast<int>(ResyncTimeout.count())));
-	CHECK(session.WaitForPendingZero(PendingDrainTimeout));
-	session.Stop();
+		// 全量快照是重连唯一的数据来源：等它把 3 行整批写进库，再看队列排空
+		CHECK(failureRecorder.WaitForBatchInsertedExchangeCount(3, static_cast<int>(ResyncTimeout.count())));
+		CHECK(session.WaitForPendingZero(PendingDrainTimeout));
+		session.Stop();
+	}
 
-	SqliteWrapper verificationDatabase(ReconnectDatabasePath);
-	REQUIRE(verificationDatabase.Connect());
-	const std::vector<Exchange> storedExchanges = ReadStoredRows<Exchange>(&verificationDatabase);
-	verificationDatabase.DisConnect();
+	std::unique_ptr<Db> verificationDatabase(Backend::Open());
+	REQUIRE(verificationDatabase->Connect());
+	const std::vector<Exchange> storedExchanges = ReadStoredRows<Exchange>(verificationDatabase.get());
+	verificationDatabase->DisConnect();
 
 	CHECK(storedExchanges.size() == 3);
 	for (const char* exchangeId : { "SHFE", "INE", "CFFEX" })
@@ -323,8 +425,12 @@ TEST_CASE("断连期间的增量就地丢弃，重连后由全量快照补齐")
 	}
 }
 
-TEST_CASE_TEMPLATE("从库加载：InitMdbFromDb 把落库的行灌回内存表", Backend, SqliteBackend, DuckdbBackend)
+TEST_CASE_TEMPLATE("从库加载：InitMdbFromDb 把落库的行灌回内存表", Backend, SqliteBackend, DuckdbBackend, MysqlBackend, MariadbBackend)
 {
+	if (SkipUnconfiguredBackend<Backend>())
+	{
+		return;
+	}
 	{
 		DatabaseSession session(Backend::Open());
 		REQUIRE(session.Start());

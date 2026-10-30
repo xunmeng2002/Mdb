@@ -93,7 +93,9 @@ target_link_libraries(MdbRcuStableRowStatic PRIVATE Spark::Serialization)
 add_library(MdbStatic INTERFACE)
 target_link_libraries(MdbStatic INTERFACE MdbCommonStatic MdbLockBasedStatic)
 
-# 集成测试：接物理库（SQLite / DuckDB 文件），验证异步写库、断连重连、从库加载
+# 集成测试：接物理库，验证异步写库、断连重连、从库加载。
+# SQLite / DuckDB 用文件，始终参与；MySQL / MariaDB 由 TestMdb.cpp 按环境变量决定是否运行，
+# 但链接行必须写全：客户端库随 $<TARGET_RUNTIME_DLLS> 一起拷进 bin，运行时缺文件就起不来。
 add_application(TestMdb  ${CMAKE_CURRENT_SOURCE_DIR}/test/TestMdb ${CMAKE_CURRENT_SOURCE_DIR}/test/TestMdb)
 target_link_libraries(TestMdb PRIVATE
     MdbStatic
@@ -101,6 +103,8 @@ target_link_libraries(TestMdb PRIVATE
     DbAdapters::AsyncDbWriter
     DbAdapters::SqliteWrapper
     DbAdapters::DuckdbWrapper
+    DbAdapters::MysqlWrapper
+    DbAdapters::MariadbWrapper
     Spark::Core
     Spark::Serialization
     doctest::doctest)
